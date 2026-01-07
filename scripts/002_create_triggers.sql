@@ -35,6 +35,9 @@ CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON public.tasks
 CREATE TRIGGER update_appointments_updated_at BEFORE UPDATE ON public.appointments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON public.subscriptions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER

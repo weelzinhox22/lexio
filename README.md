@@ -284,7 +284,7 @@ vercel --prod
 ## 🤝 Suporte
 
 Para dúvidas ou problemas:
-- Email: suporte@legalflow.com.br
+- Email: suporte@lexio.com.br
 - WhatsApp: (11) 99999-9999
 
 ## 📄 Licença

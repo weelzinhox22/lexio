@@ -11,7 +11,7 @@ export default function CheckEmailPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900">
               <Scale className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">LegalFlow</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Lexio</h1>
           </div>
           <Card className="border-slate-200">
             <CardHeader className="space-y-1 text-center">

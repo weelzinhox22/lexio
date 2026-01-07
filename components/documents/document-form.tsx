@@ -73,7 +73,14 @@ export function DocumentForm({
       router.push("/dashboard/documents")
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao adicionar documento")
+      console.error("Erro ao adicionar documento:", err)
+      if (err instanceof Error) {
+        setError(err.message || "Erro ao adicionar documento")
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        setError(String(err.message))
+      } else {
+        setError("Erro ao adicionar documento. Verifique se a tabela 'documents' existe no banco de dados.")
+      }
     } finally {
       setIsLoading(false)
     }
