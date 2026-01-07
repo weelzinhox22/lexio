@@ -35,11 +35,11 @@ export function LandingHeader() {
       )}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
+        <Link href="/" className="flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 group-hover/logo:scale-110 transition-transform duration-300">
             <Scale className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-slate-900">Lexio</span>
+          <span className="text-xl font-bold text-slate-900">Themixa</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -48,9 +48,10 @@ export function LandingHeader() {
             <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+              className="text-sm font-medium text-slate-700 transition-all hover:text-slate-900 hover:scale-105 relative group"
             >
               {link.name}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-slate-900 group-hover:w-full transition-all duration-300" />
             </Link>
           ))}
         </nav>
@@ -58,12 +59,12 @@ export function LandingHeader() {
         {/* Desktop CTA */}
         <div className="hidden items-center gap-4 md:flex">
           <Link href="/auth/login">
-            <Button variant="ghost" className="text-slate-700 hover:text-slate-900">
+            <Button variant="ghost" className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all">
               Entrar
             </Button>
           </Link>
           <Link href="/auth/sign-up">
-            <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+            <Button className="bg-slate-900 hover:bg-slate-800 hover:scale-105 hover:shadow-lg transition-all duration-300 text-white">
               Começar grátis
             </Button>
           </Link>

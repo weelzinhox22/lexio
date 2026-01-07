@@ -48,12 +48,33 @@ export function DocumentForm({
     setIsLoading(true)
     setError(null)
 
+    if (!selectedFile) {
+      setError("Por favor, selecione um arquivo")
+      setIsLoading(false)
+      return
+    }
+
     const formData = new FormData(e.currentTarget)
     const supabase = createClient()
 
     try {
-      // For now, we'll use a placeholder URL since Vercel Blob integration would be needed for actual file upload
-      const fileUrl = selectedFile ? `https://storage.example.com/${selectedFile.name}` : ""
+      // Upload file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop()
+      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName)
 
       const { error } = await supabase.from("documents").insert({
         user_id: userId,
@@ -61,10 +82,11 @@ export function DocumentForm({
         process_id: formData.get("process_id") ? (formData.get("process_id") as string) : null,
         title: formData.get("title") as string,
         description: formData.get("description") as string,
-        file_url: fileUrl,
-        file_name: selectedFile?.name || "",
-        file_size: selectedFile?.size || 0,
-        file_type: selectedFile?.type || "",
+        file_url: urlData.publicUrl,
+        file_path: fileName,
+        file_name: selectedFile.name,
+        file_size: selectedFile.size,
+        file_type: selectedFile.type,
         category: formData.get("category") as string,
       })
 
@@ -79,7 +101,7 @@ export function DocumentForm({
       } else if (typeof err === 'object' && err !== null && 'message' in err) {
         setError(String(err.message))
       } else {
-        setError("Erro ao adicionar documento. Verifique se a tabela 'documents' existe no banco de dados.")
+        setError("Erro ao adicionar documento. Verifique se o bucket 'documents' existe no Supabase Storage.")
       }
     } finally {
       setIsLoading(false)

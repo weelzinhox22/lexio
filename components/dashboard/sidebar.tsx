@@ -41,7 +41,7 @@ export function DashboardSidebar() {
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
           <Scale className="h-5 w-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-slate-900">Lexio</span>
+        <span className="text-xl font-bold text-slate-900">Themixa</span>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navigation.map((item) => {

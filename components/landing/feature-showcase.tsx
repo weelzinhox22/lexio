@@ -10,7 +10,7 @@ const showcases = [
   {
     title: 'Faça a gestão dos seus prazos e tarefas em um único lugar',
     description:
-      'O Lexio atualiza você sobre prazos importantes e ajuda a organizar, delegar e acompanhar todas as tarefas do seu escritório. Nunca mais perca uma data importante.',
+      'O Themixa atualiza você sobre prazos importantes e ajuda a organizar, delegar e acompanhar todas as tarefas do seu escritório. Nunca mais perca uma data importante.',
     features: [
       'Alertas automáticos de movimentações, prazos e tarefas iminentes',
       'Mais segurança e tranquilidade para você nunca perder uma data importante',
@@ -112,27 +112,28 @@ export function FeatureShowcase() {
               </p>
               <ul className="mb-8 space-y-4">
                 {showcase.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-start gap-3">
-                    <Check className="mt-1 h-5 w-5 shrink-0 text-green-600" />
-                    <span className="text-slate-700">{feature}</span>
+                  <li key={featureIndex} className="flex items-start gap-3 group/item hover:translate-x-1 transition-transform duration-200">
+                    <Check className="mt-1 h-5 w-5 shrink-0 text-green-600 group-hover/item:scale-110 transition-transform" />
+                    <span className="text-slate-700 group-hover/item:text-slate-900 transition-colors">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link href="/auth/sign-up">
-                <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
+                <Button size="lg" className="bg-slate-900 hover:bg-slate-800 hover:scale-105 hover:shadow-lg transition-all duration-300 text-white group">
                   Comece grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
 
             {/* Image Placeholder */}
-            <div className="flex-1">
-              <div className="relative h-[400px] overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 shadow-xl">
-                <div className="flex h-full items-center justify-center p-8">
-                  <div className="text-center">
-                    <div className="mb-4 text-6xl">📊</div>
-                    <p className="text-sm font-medium text-slate-500">
+            <div className="flex-1 group/image">
+              <div className="relative h-[400px] overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 shadow-xl group-hover/image:shadow-2xl transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover/image:opacity-100 transition-opacity duration-500" />
+                <div className="flex h-full items-center justify-center p-8 relative z-10">
+                  <div className="text-center group-hover/image:scale-105 transition-transform duration-500">
+                    <div className="mb-4 text-6xl group-hover/image:scale-110 transition-transform duration-300">📊</div>
+                    <p className="text-sm font-medium text-slate-500 group-hover/image:text-slate-700 transition-colors">
                       {showcase.imagePlaceholder}
                     </p>
                     <p className="mt-2 text-xs text-slate-400">

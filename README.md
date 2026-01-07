@@ -1,8 +1,8 @@
-# Lexio - Sistema de Gestão Jurídica
+# Themixa - Sistema de Gestão Jurídica
 
 SaaS completo e escalável para gestão de escritórios jurídicos, desenvolvido com Next.js 16, Supabase e TypeScript.
 
-> **Lexio** - Do latim "Lex" (Lei). A solução completa para gestão jurídica moderna.
+> **Themixa** - Inspirado em Themis, a deusa da Justiça. A solução completa para gestão jurídica moderna.
 
 ## 🚀 Funcionalidades
 
@@ -284,7 +284,7 @@ vercel --prod
 ## 🤝 Suporte
 
 Para dúvidas ou problemas:
-- Email: suporte@lexio.com.br
+- Email: suporte@themixa.com.br
 - WhatsApp: (11) 99999-9999
 
 ## 📄 Licença

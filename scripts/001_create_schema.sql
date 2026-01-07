@@ -111,7 +111,8 @@ CREATE TABLE IF NOT EXISTS public.documents (
   client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
-  file_url TEXT NOT NULL,
+  file_url TEXT,
+  file_path TEXT,
   file_name TEXT NOT NULL,
   file_size BIGINT,
   file_type TEXT,
@@ -137,6 +138,7 @@ CREATE TABLE IF NOT EXISTS public.financial_transactions (
   title TEXT NOT NULL,
   description TEXT,
   amount DECIMAL(15,2) NOT NULL,
+  currency TEXT DEFAULT 'BRL',
   type TEXT NOT NULL, -- income, expense
   category TEXT, -- honorarios, custas, despesas, etc
   status TEXT DEFAULT 'pending', -- pending, paid, overdue, cancelled

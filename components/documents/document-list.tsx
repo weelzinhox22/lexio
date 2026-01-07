@@ -1,9 +1,13 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { Download, Eye, Edit, Trash2, FileText } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import type { Document } from "@/lib/types/database"
 
 type DocumentWithRelations = Document & {
@@ -19,6 +23,76 @@ type DocumentWithRelations = Document & {
 }
 
 export function DocumentList({ documents }: { documents: DocumentWithRelations[] }) {
+  const router = useRouter()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    document: DocumentWithRelations | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    document: null,
+    isLoading: false,
+  })
+
+  const handleDownload = async (document: DocumentWithRelations) => {
+    if (!document.file_path) {
+      alert('Arquivo não encontrado')
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(document.file_path)
+
+      if (error) throw error
+
+      const url = URL.createObjectURL(data)
+      const a = window.document.createElement('a')
+      a.href = url
+      a.download = document.file_name || document.title
+      window.document.body.appendChild(a)
+      a.click()
+      window.document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Erro ao baixar documento:', error)
+      alert('Erro ao baixar documento')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteDialog.document) return
+
+    setDeleteDialog((prev) => ({ ...prev, isLoading: true }))
+    const supabase = createClient()
+
+    try {
+      // Deletar arquivo do storage
+      if (deleteDialog.document.file_path) {
+        await supabase.storage
+          .from('documents')
+          .remove([deleteDialog.document.file_path])
+      }
+
+      // Deletar registro do banco
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', deleteDialog.document.id)
+
+      if (error) throw error
+
+      router.refresh()
+      setDeleteDialog({ isOpen: false, document: null, isLoading: false })
+    } catch (error) {
+      console.error('Erro ao excluir documento:', error)
+      setDeleteDialog((prev) => ({ ...prev, isLoading: false }))
+      alert('Erro ao excluir documento')
+    }
+  }
+
   if (documents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -82,7 +156,12 @@ export function DocumentList({ documents }: { documents: DocumentWithRelations[]
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => handleDownload(doc)}
+            >
               <Download className="h-4 w-4" />
             </Button>
             <Link href={`/dashboard/documents/${doc.id}`}>
@@ -95,12 +174,27 @@ export function DocumentList({ documents }: { documents: DocumentWithRelations[]
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setDeleteDialog({ isOpen: true, document: doc, isLoading: false })}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       ))}
+
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, document: null, isLoading: false })}
+        onConfirm={handleDelete}
+        title="Excluir Documento"
+        itemName={deleteDialog.document?.title || ''}
+        itemType="documento"
+        isLoading={deleteDialog.isLoading}
+      />
     </div>
   )
 }

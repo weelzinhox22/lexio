@@ -1,9 +1,13 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { Eye, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import type { Process } from "@/lib/types/database"
 
 type ProcessWithClient = Process & {
@@ -14,6 +18,39 @@ type ProcessWithClient = Process & {
 }
 
 export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
+  const router = useRouter()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    process: ProcessWithClient | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    process: null,
+    isLoading: false,
+  })
+
+  const handleDelete = async () => {
+    if (!deleteDialog.process) return
+
+    setDeleteDialog((prev) => ({ ...prev, isLoading: true }))
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase
+        .from('processes')
+        .delete()
+        .eq('id', deleteDialog.process.id)
+
+      if (error) throw error
+
+      router.refresh()
+      setDeleteDialog({ isOpen: false, process: null, isLoading: false })
+    } catch (error) {
+      console.error('Erro ao excluir processo:', error)
+      setDeleteDialog((prev) => ({ ...prev, isLoading: false }))
+    }
+  }
+
   if (processes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -100,12 +137,27 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setDeleteDialog({ isOpen: true, process, isLoading: false })}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       ))}
+
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, process: null, isLoading: false })}
+        onConfirm={handleDelete}
+        title="Excluir Processo"
+        itemName={deleteDialog.process?.title || ''}
+        itemType="processo"
+        isLoading={deleteDialog.isLoading}
+      />
     </div>
   )
 }

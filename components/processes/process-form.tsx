@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { MaskedInput } from "@/components/ui/masked-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
+import { unformat } from "@/lib/utils/masks"
 
 type Client = {
   id: string
@@ -33,7 +35,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
       const { error } = await supabase.from("processes").insert({
         user_id: userId,
         client_id: formData.get("client_id") as string,
-        process_number: formData.get("process_number") as string,
+        process_number: unformat(formData.get("process_number") as string),
         title: formData.get("title") as string,
         description: formData.get("description") as string,
         court: formData.get("court") as string,
@@ -76,7 +78,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
 
         <div className="space-y-2">
           <Label htmlFor="process_number">Número do Processo *</Label>
-          <Input id="process_number" name="process_number" placeholder="0000000-00.0000.0.00.0000" required />
+          <MaskedInput id="process_number" name="process_number" mask="process" placeholder="0000000-00.0000.0.00.0000" required />
         </div>
 
         <div className="space-y-2 md:col-span-2">

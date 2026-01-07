@@ -9,32 +9,32 @@ const faqs = [
   {
     question: 'Como funciona o período de teste gratuito?',
     answer:
-      'Você tem 7 dias grátis para testar todas as funcionalidades do Lexio. Não é necessário cartão de crédito para começar. Após o período de teste, você pode escolher um dos nossos planos ou cancelar sem custos.',
+      'Você tem 7 dias grátis para testar todas as funcionalidades do Themixa. Não é necessário cartão de crédito para começar. Após o período de teste, você pode escolher um dos nossos planos ou cancelar sem custos.',
   },
   {
-    question: 'Meus dados estão seguros no Lexio?',
+    question: 'Meus dados estão seguros no Themixa?',
     answer:
       'Sim! Utilizamos criptografia de ponta a ponta, backup automático em nuvem e seguimos os mais altos padrões de segurança. Seus dados são protegidos com Row Level Security (RLS) e nunca são compartilhados com terceiros.',
   },
   {
     question: 'Posso integrar com outros sistemas?',
     answer:
-      'Sim, o Lexio oferece integrações com WhatsApp, sistemas de pagamento e APIs para conectar com outros softwares jurídicos. Estamos sempre expandindo nossas integrações.',
+      'Sim, o Themixa oferece integrações com WhatsApp, sistemas de pagamento e APIs para conectar com outros softwares jurídicos. Estamos sempre expandindo nossas integrações.',
   },
   {
     question: 'Como funciona o sistema de notificações via WhatsApp?',
     answer:
-      'O Lexio envia automaticamente alertas de prazos, lembretes de pagamento e atualizações de processos via WhatsApp. Você pode configurar os horários e tipos de notificações que deseja receber.',
+      'O Themixa envia automaticamente alertas de prazos, lembretes de pagamento e atualizações de processos via WhatsApp. Você pode configurar os horários e tipos de notificações que deseja receber.',
   },
   {
     question: 'Posso usar o Lexio em múltiplos dispositivos?',
     answer:
-      'Sim! O Lexio é uma plataforma web responsiva que funciona perfeitamente em computadores, tablets e smartphones. Acesse seus dados de qualquer lugar, a qualquer hora.',
+      'Sim! O Themixa é uma plataforma web responsiva que funciona perfeitamente em computadores, tablets e smartphones. Acesse seus dados de qualquer lugar, a qualquer hora.',
   },
   {
     question: 'E se eu precisar de suporte?',
     answer:
-      'Oferecemos suporte via chat, email e documentação completa. Nossa equipe está sempre pronta para ajudar você a aproveitar ao máximo todas as funcionalidades do Lexio.',
+      'Oferecemos suporte via chat, email e documentação completa. Nossa equipe está sempre pronta para ajudar você a aproveitar ao máximo todas as funcionalidades do Themixa.',
   },
   {
     question: 'Posso cancelar minha assinatura a qualquer momento?',
@@ -42,9 +42,9 @@ const faqs = [
       'Sim, você pode cancelar sua assinatura a qualquer momento sem multas ou taxas. Seus dados permanecerão acessíveis até o final do período pago.',
   },
   {
-    question: 'O Lexio funciona offline?',
+    question: 'O Themixa funciona offline?',
     answer:
-      'O Lexio é uma plataforma baseada em nuvem que requer conexão com a internet. Isso garante que seus dados estejam sempre sincronizados e seguros, além de permitir acesso de qualquer dispositivo.',
+      'O Themixa é uma plataforma baseada em nuvem que requer conexão com a internet. Isso garante que seus dados estejam sempre sincronizados e seguros, além de permitir acesso de qualquer dispositivo.',
   },
 ]
 
@@ -143,7 +143,7 @@ export function FAQSection() {
             Perguntas Frequentes
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-slate-600">
-            Tire suas dúvidas sobre o Lexio e descubra como podemos ajudar seu escritório
+            Tire suas dúvidas sobre o Themixa e descubra como podemos ajudar seu escritório
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export function FAQSection() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="faq-item overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md"
+              className="faq-item overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/50 hover:-translate-y-0.5 cursor-pointer"
             >
               <button
                 onClick={() => toggleFAQ(index)}

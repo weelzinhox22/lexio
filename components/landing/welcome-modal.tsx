@@ -12,7 +12,7 @@ export function WelcomeModal() {
 
   useEffect(() => {
     // Verifica se o usuário já fechou o modal antes
-    const hasSeenModal = localStorage.getItem('lexio-welcome-modal-seen')
+    const hasSeenModal = localStorage.getItem('themixa-welcome-modal-seen')
     if (!hasSeenModal) {
       // Aguarda um pouco antes de mostrar
       const timer = setTimeout(() => {
@@ -24,7 +24,7 @@ export function WelcomeModal() {
 
   const handleClose = () => {
     setIsOpen(false)
-    localStorage.setItem('lexio-welcome-modal-seen', 'true')
+    localStorage.setItem('themixa-welcome-modal-seen', 'true')
   }
 
   if (!isOpen) return null
@@ -44,11 +44,11 @@ export function WelcomeModal() {
 
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900">
-            <span className="text-2xl font-bold text-white">L</span>
+            <span className="text-2xl font-bold text-white">T</span>
           </div>
 
           <h2 className="mb-4 text-3xl font-bold text-slate-900">
-            Bem-vindo ao Lexio
+            Bem-vindo ao Themixa
           </h2>
 
           <p className="mb-2 text-lg text-slate-600">

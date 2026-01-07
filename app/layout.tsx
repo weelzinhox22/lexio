@@ -7,7 +7,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Lexio - Sistema de Gestão Jurídica',
+  title: 'Themixa - Sistema de Gestão Jurídica',
   description: 'Sistema completo de gestão para escritórios de advocacia modernos',
   generator: 'v0.app',
   icons: {

@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { MaskedInput } from "@/components/ui/masked-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
+import { unformat } from "@/lib/utils/masks"
 
 export function ClientForm({ userId }: { userId: string }) {
   const router = useRouter()
@@ -29,8 +31,8 @@ export function ClientForm({ userId }: { userId: string }) {
         user_id: userId,
         name: formData.get("name") as string,
         email: formData.get("email") as string,
-        phone: formData.get("phone") as string,
-        cpf_cnpj: formData.get("cpf_cnpj") as string,
+        phone: unformat(formData.get("phone") as string),
+        cpf_cnpj: unformat(formData.get("cpf_cnpj") as string),
         client_type: formData.get("client_type") as string,
         status: formData.get("status") as string,
         notes: formData.get("notes") as string,
@@ -70,7 +72,7 @@ export function ClientForm({ userId }: { userId: string }) {
 
         <div className="space-y-2">
           <Label htmlFor="cpf_cnpj">CPF / CNPJ</Label>
-          <Input id="cpf_cnpj" name="cpf_cnpj" placeholder="000.000.000-00" />
+          <MaskedInput id="cpf_cnpj" name="cpf_cnpj" mask="cpf-cnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00" />
         </div>
 
         <div className="space-y-2">
@@ -80,7 +82,7 @@ export function ClientForm({ userId }: { userId: string }) {
 
         <div className="space-y-2">
           <Label htmlFor="phone">Telefone</Label>
-          <Input id="phone" name="phone" type="tel" placeholder="(00) 00000-0000" />
+          <MaskedInput id="phone" name="phone" mask="phone" placeholder="(00) 00000-0000" />
         </div>
 
         <div className="space-y-2 md:col-span-2">

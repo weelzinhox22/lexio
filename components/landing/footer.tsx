@@ -44,11 +44,11 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="mb-4 flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
+            <Link href="/" className="mb-4 flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 group-hover/logo:scale-110 transition-transform duration-300">
                 <Scale className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900">Lexio</span>
+              <span className="text-xl font-bold text-slate-900">Themixa</span>
             </Link>
             <p className="mb-4 text-sm leading-relaxed text-slate-600">
               A solução completa para gestão jurídica moderna. Gerencie processos, clientes,
@@ -61,7 +61,7 @@ export function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:scale-110 hover:shadow-md"
                   aria-label={social.name}
                 >
                   <social.icon className="h-5 w-5" />
@@ -78,7 +78,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -94,7 +94,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -110,7 +110,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -126,7 +126,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -142,8 +142,8 @@ export function Footer() {
             <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:gap-6">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <a href="mailto:contato@lexio.com.br" className="hover:text-slate-900">
-                  contato@lexio.com.br
+                <a href="mailto:contato@themixa.com.br" className="hover:text-slate-900">
+                  contato@themixa.com.br
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Lexio. Todos os direitos reservados.
+              © {new Date().getFullYear()} Themixa. Todos os direitos reservados.
             </p>
           </div>
         </div>

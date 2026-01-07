@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PasswordInput } from "@/components/ui/password-input"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -62,9 +63,9 @@ export default function SignUpPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900">
               <Scale className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Lexio</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Themixa</h1>
           </div>
-          <Card className="border-slate-200">
+          <Card className="border-slate-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-bold text-slate-900">Criar conta</CardTitle>
               <CardDescription className="text-slate-600">Crie sua conta para começar</CardDescription>
@@ -83,7 +84,7 @@ export default function SignUpPage() {
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="border-slate-200"
+                      className="border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -97,33 +98,31 @@ export default function SignUpPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="border-slate-200"
+                      className="border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-slate-700">
                       Senha
                     </Label>
-                    <Input
+                    <PasswordInput
                       id="password"
-                      type="password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="border-slate-200"
+                      className="border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-slate-700">
                       Confirmar senha
                     </Label>
-                    <Input
+                    <PasswordInput
                       id="confirmPassword"
-                      type="password"
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="border-slate-200"
+                      className="border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
                     />
                   </div>
                   {error && (
@@ -131,7 +130,7 @@ export default function SignUpPage() {
                   )}
                   <Button
                     type="submit"
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                    className="w-full bg-slate-900 hover:bg-slate-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 text-white"
                     disabled={isLoading}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta"}

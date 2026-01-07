@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Check, AlertCircle, CreditCard } from "lucide-react"
+import { AlertCircle, Sparkles } from "lucide-react"
 import { redirect } from "next/navigation"
+import { CountdownTimer } from "@/components/subscription/countdown-timer"
+import { SubscriptionPlans } from "@/components/subscription/subscription-plans"
 
 export default async function SubscriptionPage() {
   const supabase = await createClient()
@@ -19,61 +21,6 @@ export default async function SubscriptionPage() {
     subscription?.status === "expired" ||
     (subscription?.current_period_end && new Date(subscription.current_period_end) < new Date())
 
-  const plans = [
-    {
-      name: "Básico",
-      price: "R$ 97",
-      period: "/mês",
-      description: "Ideal para advogados autônomos",
-      features: [
-        "Até 50 processos ativos",
-        "Gestão de clientes",
-        "Controle de prazos",
-        "Gestão financeira básica",
-        "2GB de armazenamento",
-        "Suporte por email",
-      ],
-      popular: false,
-      planId: "basic",
-    },
-    {
-      name: "Premium",
-      price: "R$ 197",
-      period: "/mês",
-      description: "Para escritórios em crescimento",
-      features: [
-        "Processos ilimitados",
-        "Gestão completa de clientes",
-        "Controle avançado de prazos",
-        "Gestão financeira completa",
-        "CRM e pipeline de leads",
-        "50GB de armazenamento",
-        "Notificações WhatsApp",
-        "Relatórios e analytics",
-        "Suporte prioritário",
-      ],
-      popular: true,
-      planId: "premium",
-    },
-    {
-      name: "Enterprise",
-      price: "R$ 397",
-      period: "/mês",
-      description: "Para grandes escritórios",
-      features: [
-        "Tudo do Premium +",
-        "Usuários ilimitados",
-        "Armazenamento ilimitado",
-        "API de integração",
-        "Suporte dedicado 24/7",
-        "Treinamento personalizado",
-        "White label",
-        "SLA garantido",
-      ],
-      popular: false,
-      planId: "enterprise",
-    },
-  ]
 
   return (
     <div className="space-y-6">
@@ -95,73 +42,53 @@ export default async function SubscriptionPage() {
       )}
 
       {subscription && !isExpired && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="text-green-900">Assinatura Ativa</span>
-              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-green-100 p-2">
+                  <Sparkles className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-green-900">Assinatura Ativa</CardTitle>
+                  <CardDescription className="text-green-700">
+                    Plano: <span className="font-semibold capitalize">{subscription.plan}</span>
+                  </CardDescription>
+                </div>
+              </div>
+              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
                 {subscription.status}
               </Badge>
-            </CardTitle>
-            <CardDescription className="text-green-700">
-              Plano: <span className="font-semibold capitalize">{subscription.plan}</span>
-            </CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-green-800">
-            <p>
-              Válido até:{" "}
-              <span className="font-semibold">
-                {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}
-              </span>
-            </p>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
+              <p className="text-sm text-slate-600 mb-2">Válido até:</p>
+              <p className="text-lg font-semibold text-slate-900 mb-3">
+                {new Date(subscription.current_period_end).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              <div className="pt-3 border-t border-slate-200">
+                <p className="text-xs text-slate-500 mb-2">Tempo restante:</p>
+                <CountdownTimer targetDate={subscription.current_period_end} />
+              </div>
+            </div>
             {subscription.cancel_at_period_end && (
-              <p className="text-orange-700 font-medium">Cancelamento agendado para o fim do período</p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-orange-700 font-medium text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Cancelamento agendado para o fim do período
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {plans.map((plan) => (
-          <Card
-            key={plan.name}
-            className={cn("relative border-slate-200", plan.popular && "border-2 border-blue-500 shadow-lg")}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-blue-500 text-white px-4">Mais Popular</Badge>
-              </div>
-            )}
-            <CardHeader>
-              <CardTitle className="text-slate-900">{plan.name}</CardTitle>
-              <CardDescription className="text-slate-600">{plan.description}</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
-                <span className="text-slate-600">{plan.period}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-slate-700">
-                    <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className={cn(
-                  "w-full",
-                  plan.popular ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-900 hover:bg-slate-800",
-                )}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                {subscription?.plan === plan.planId ? "Plano Atual" : "Assinar Agora"}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <SubscriptionPlans currentPlan={subscription?.plan} />
 
       <Card className="border-slate-200 bg-slate-50">
         <CardHeader>
@@ -179,6 +106,3 @@ export default async function SubscriptionPage() {
   )
 }
 
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(" ")
-}

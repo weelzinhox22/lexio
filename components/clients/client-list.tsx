@@ -1,12 +1,49 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { Eye, Edit, Trash2, Mail, Phone } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import type { Client } from "@/lib/types/database"
 
 export function ClientList({ clients }: { clients: Client[] }) {
+  const router = useRouter()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    client: Client | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    client: null,
+    isLoading: false,
+  })
+
+  const handleDelete = async () => {
+    if (!deleteDialog.client) return
+
+    setDeleteDialog((prev) => ({ ...prev, isLoading: true }))
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', deleteDialog.client.id)
+
+      if (error) throw error
+
+      router.refresh()
+      setDeleteDialog({ isOpen: false, client: null, isLoading: false })
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error)
+      setDeleteDialog((prev) => ({ ...prev, isLoading: false }))
+    }
+  }
+
   if (clients.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -70,12 +107,27 @@ export function ClientList({ clients }: { clients: Client[] }) {
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setDeleteDialog({ isOpen: true, client, isLoading: false })}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       ))}
+
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, client: null, isLoading: false })}
+        onConfirm={handleDelete}
+        title="Excluir Cliente"
+        itemName={deleteDialog.client?.name || ''}
+        itemType="cliente"
+        isLoading={deleteDialog.isLoading}
+      />
     </div>
   )
 }

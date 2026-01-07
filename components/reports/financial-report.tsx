@@ -1,8 +1,15 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { FinancialTransaction } from "@/lib/types/database"
 import { TrendingUp, TrendingDown, DollarSign, CreditCard } from "lucide-react"
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 export function FinancialReport({ transactions }: { transactions: FinancialTransaction[] }) {
+  const [incomeChartType, setIncomeChartType] = useState<'pie' | 'bar'>('pie')
+  const [expenseChartType, setExpenseChartType] = useState<'pie' | 'bar'>('pie')
   // Calculate metrics
   const totalIncome = transactions.filter((t) => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0)
 
@@ -47,6 +54,16 @@ export function FinancialReport({ transactions }: { transactions: FinancialTrans
   const formatCurrency = (value: number) => {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
   }
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7300']
+
+  const incomeChartData = Object.entries(incomeByCategory)
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, value]) => ({ name, value }))
+
+  const expenseChartData = Object.entries(expenseByCategory)
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, value]) => ({ name, value }))
 
   return (
     <>
@@ -105,57 +122,113 @@ export function FinancialReport({ transactions }: { transactions: FinancialTrans
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-slate-200">
           <CardHeader>
-            <CardTitle className="text-slate-900">Receitas por Categoria</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-slate-900">Receitas por Categoria</CardTitle>
+              <Select value={incomeChartType} onValueChange={(v: 'pie' | 'bar') => setIncomeChartType(v)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pie">Pizza</SelectItem>
+                  <SelectItem value="bar">Barras</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {Object.entries(incomeByCategory)
-                .sort(([, a], [, b]) => b - a)
-                .map(([category, amount]) => (
-                  <div key={category} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-700 font-medium">{category}</span>
-                      <span className="text-slate-900 font-semibold">{formatCurrency(amount)}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full bg-green-500"
-                        style={{
-                          width: `${(amount / totalIncome) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-            </div>
+            {incomeChartData.length > 0 ? (
+              <div className="h-[300px]">
+                {incomeChartType === 'pie' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={incomeChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {incomeChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={incomeChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      <Bar dataKey="value" fill="#00C49F" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600 text-center py-8">Nenhuma receita encontrada</p>
+            )}
           </CardContent>
         </Card>
 
         <Card className="border-slate-200">
           <CardHeader>
-            <CardTitle className="text-slate-900">Despesas por Categoria</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-slate-900">Despesas por Categoria</CardTitle>
+              <Select value={expenseChartType} onValueChange={(v: 'pie' | 'bar') => setExpenseChartType(v)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pie">Pizza</SelectItem>
+                  <SelectItem value="bar">Barras</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {Object.entries(expenseByCategory)
-                .sort(([, a], [, b]) => b - a)
-                .map(([category, amount]) => (
-                  <div key={category} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-700 font-medium">{category}</span>
-                      <span className="text-slate-900 font-semibold">{formatCurrency(amount)}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full bg-red-500"
-                        style={{
-                          width: `${(amount / totalExpenses) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-            </div>
+            {expenseChartData.length > 0 ? (
+              <div className="h-[300px]">
+                {expenseChartType === 'pie' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={expenseChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {expenseChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={expenseChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      <Bar dataKey="value" fill="#FF8042" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600 text-center py-8">Nenhuma despesa encontrada</p>
+            )}
           </CardContent>
         </Card>
       </div>

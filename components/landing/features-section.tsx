@@ -199,18 +199,18 @@ export function FeaturesSection() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="group border-slate-200 bg-white transition-all duration-300 hover:border-slate-300 hover:shadow-lg"
+              className="group border-slate-200 bg-white transition-all duration-300 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 cursor-pointer"
             >
               <CardContent className="p-6">
                 <div
-                  className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg ${feature.bgColor} transition-transform duration-300 group-hover:scale-110`}
+                  className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg ${feature.bgColor} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-md`}
                 >
-                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
+                  <feature.icon className={`h-6 w-6 ${feature.color} transition-transform duration-300 group-hover:scale-110`} />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-slate-900">
+                <h3 className="mb-2 text-xl font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="leading-relaxed text-slate-600">{feature.description}</p>
+                <p className="leading-relaxed text-slate-600 group-hover:text-slate-700 transition-colors">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

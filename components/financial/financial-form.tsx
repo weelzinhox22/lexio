@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { CurrencyInput } from "@/components/ui/currency-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 
@@ -34,6 +34,8 @@ export function FinancialForm({
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [amount, setAmount] = useState<number>(0)
+  const [currency, setCurrency] = useState<string>('BRL')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -50,7 +52,8 @@ export function FinancialForm({
         process_id: formData.get("process_id") ? (formData.get("process_id") as string) : null,
         title: formData.get("title") as string,
         description: formData.get("description") as string,
-        amount: Number.parseFloat(formData.get("amount") as string),
+        amount: amount,
+        currency: currency,
         type: formData.get("type") as string,
         category: formData.get("category") as string,
         status: formData.get("status") as string,
@@ -92,7 +95,14 @@ export function FinancialForm({
 
         <div className="space-y-2">
           <Label htmlFor="amount">Valor *</Label>
-          <Input id="amount" name="amount" type="number" step="0.01" placeholder="0,00" required />
+          <CurrencyInput
+            id="amount"
+            value={amount}
+            onChange={setAmount}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            required
+          />
         </div>
 
         <div className="space-y-2">

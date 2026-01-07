@@ -76,11 +76,12 @@ export function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Imagem - Lado Esquerdo */}
           <div ref={imageRef} className="order-2 lg:order-1">
-            <div className="relative">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
               <img
                 src="/person-hero.webp"
-                alt="Advogado usando o Lexio"
-                className="w-full h-auto rounded-2xl object-cover shadow-2xl"
+                alt="Advogado usando o Themixa"
+                className="w-full h-auto rounded-2xl object-cover shadow-2xl group-hover:scale-[1.02] transition-transform duration-500"
               />
             </div>
           </div>
@@ -97,7 +98,7 @@ export function HeroSection() {
                 Tenha mais tranquilidade na advocacia
               </span>
               <br />
-              <span className="text-blue-600">com o Lexio</span>
+              <span className="text-blue-600">com o Themixa</span>
             </h1>
 
             <p
@@ -111,18 +112,21 @@ export function HeroSection() {
 
             <div ref={buttonsRef} className="mb-8 flex flex-col gap-4 sm:flex-row">
               <Link href="/auth/sign-up">
-                <Button size="lg" className="h-14 bg-slate-900 px-8 text-lg hover:bg-slate-800 text-white">
+                <Button 
+                  size="lg" 
+                  className="h-14 bg-slate-900 px-8 text-lg hover:bg-slate-800 hover:scale-105 hover:shadow-lg transition-all duration-300 text-white group"
+                >
                   Experimentar grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link href="#features">
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-14 border-2 border-slate-300 bg-transparent px-8 text-lg hover:bg-slate-50"
+                  className="h-14 border-2 border-slate-300 bg-transparent px-8 text-lg hover:bg-slate-50 hover:border-slate-400 hover:scale-105 hover:shadow-md transition-all duration-300"
                 >
-                  Conheça o Lexio
+                  Conheça o Themixa
                 </Button>
               </Link>
             </div>
@@ -131,16 +135,16 @@ export function HeroSection() {
               ref={featuresRef}
               className="flex flex-wrap items-center gap-6 text-sm text-slate-600 sm:gap-8"
             >
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600" />
+              <div className="flex items-center gap-2 hover:text-slate-900 transition-colors cursor-default group">
+                <Check className="h-5 w-5 text-green-600 group-hover:scale-110 transition-transform" />
                 <span>7 dias grátis para testar</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600" />
+              <div className="flex items-center gap-2 hover:text-slate-900 transition-colors cursor-default group">
+                <Check className="h-5 w-5 text-green-600 group-hover:scale-110 transition-transform" />
                 <span>Sem necessidade de cartão</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600" />
+              <div className="flex items-center gap-2 hover:text-slate-900 transition-colors cursor-default group">
+                <Check className="h-5 w-5 text-green-600 group-hover:scale-110 transition-transform" />
                 <span>Cancele quando quiser</span>
               </div>
             </div>

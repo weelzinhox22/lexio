@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
+import { DeadlineNotifications } from "@/components/notifications/deadline-notifications"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="flex flex-1 flex-col lg:pl-64">
         <DashboardHeader user={user} />
         <main className="flex-1 p-6">{children}</main>
+        <DeadlineNotifications />
       </div>
     </div>
   )

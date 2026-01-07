@@ -1,12 +1,49 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { Eye, Edit, Trash2, Mail, Phone, UserCheck } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import type { Lead } from "@/lib/types/database"
 
 export function LeadList({ leads }: { leads: Lead[] }) {
+  const router = useRouter()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    lead: Lead | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    lead: null,
+    isLoading: false,
+  })
+
+  const handleDelete = async () => {
+    if (!deleteDialog.lead) return
+
+    setDeleteDialog((prev) => ({ ...prev, isLoading: true }))
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', deleteDialog.lead.id)
+
+      if (error) throw error
+
+      router.refresh()
+      setDeleteDialog({ isOpen: false, lead: null, isLoading: false })
+    } catch (error) {
+      console.error('Erro ao excluir lead:', error)
+      setDeleteDialog((prev) => ({ ...prev, isLoading: false }))
+    }
+  }
+
   if (leads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -84,12 +121,27 @@ export function LeadList({ leads }: { leads: Lead[] }) {
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setDeleteDialog({ isOpen: true, lead, isLoading: false })}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       ))}
+
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, lead: null, isLoading: false })}
+        onConfirm={handleDelete}
+        title="Excluir Lead"
+        itemName={deleteDialog.lead?.name || ''}
+        itemType="lead"
+        isLoading={deleteDialog.isLoading}
+      />
     </div>
   )
 }

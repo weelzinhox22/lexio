@@ -76,10 +76,10 @@ export async function updateSession(request: NextRequest) {
     user = null
   }
 
-  // TODO: Uncomment this after running scripts/003_create_subscriptions.sql in Supabase
-  /*
+  // Verificação de subscription ativa
+  // Descomente após executar scripts/001_create_schema.sql e scripts/003_create_subscriptions.sql
   if (user && request.nextUrl.pathname.startsWith("/dashboard")) {
-    const exemptPaths = ["/dashboard/settings", "/dashboard/subscription"]
+    const exemptPaths = ["/dashboard/settings", "/dashboard/subscription", "/dashboard/subscription/edit"]
     const isExemptPath = exemptPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
     if (!isExemptPath) {
@@ -89,6 +89,11 @@ export async function updateSession(request: NextRequest) {
           .select("status, current_period_end")
           .eq("user_id", user.id)
           .single()
+
+        // Se não houver subscription, permite acesso (pode ser novo usuário)
+        if (error && error.code !== 'PGRST116') {
+          console.log("[Middleware] Subscription check error:", error.message)
+        }
 
         if (!error && subscription) {
           const isExpired =
@@ -102,11 +107,14 @@ export async function updateSession(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.log("[v0] Subscription check skipped - table may not exist yet")
+        // Se a tabela não existir ainda, apenas loga e continua
+        // Isso permite que o sistema funcione mesmo sem subscriptions configuradas
+        if (process.env.NODE_ENV === "development") {
+          console.log("[Middleware] Subscription check skipped - table may not exist yet")
+        }
       }
     }
   }
-  */
 
   // Protected routes: dashboard and all sub-routes
   if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
