@@ -10,34 +10,37 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "❌ Variáveis de ambiente do Supabase não configuradas!\n\n" +
-      "1. Abra o arquivo .env.local na raiz do projeto\n" +
-      "2. Adicione suas credenciais do Supabase:\n" +
-      "   NEXT_PUBLIC_SUPABASE_URL=https://hvpbouaonwolixgedjaf.supabase.co\n" +
-      "   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2cGJvdWFvbndvbGl4Z2VkamFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1OTkzNDIsImV4cCI6MjA3OTE3NTM0Mn0.RlMMMVdj4CJH916sUu4d_gCgVZ3sEeriZ627ybanEsw\n\n" +
-      "Obtenha em: https://supabase.com/dashboard/project/_/settings/api\n" +
-      "Depois reinicie o servidor: npm run dev"
-    )
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Supabase environment variables not configured"
+      : "❌ Variáveis de ambiente do Supabase não configuradas!\n\n" +
+        "1. Abra o arquivo .env.local na raiz do projeto\n" +
+        "2. Adicione suas credenciais do Supabase:\n" +
+        "   NEXT_PUBLIC_SUPABASE_URL=https://hvpbouaonwolixgedjaf.supabase.co\n" +
+        "   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2cGJvdWFvbndvbGl4Z2VkamFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1OTkzNDIsImV4cCI6MjA3OTE3NTM0Mn0.RlMMMVdj4CJH916sUu4d_gCgVZ3sEeriZ627ybanEsw\n\n" +
+        "Obtenha em: https://supabase.com/dashboard/project/_/settings/api\n" +
+        "Depois reinicie o servidor: npm run dev"
+    throw new Error(errorMessage)
   }
 
   // Validar formato da URL
   if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
-    throw new Error(
-      "❌ NEXT_PUBLIC_SUPABASE_URL inválido!\n\n" +
-      "A URL deve começar com http:// ou https://\n" +
-      "Exemplo: https://seu-projeto.supabase.co\n\n" +
-      "Verifique o arquivo .env.local e reinicie o servidor."
-    )
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Invalid Supabase URL format"
+      : "❌ NEXT_PUBLIC_SUPABASE_URL inválido!\n\n" +
+        "A URL deve começar com http:// ou https://\n" +
+        "Exemplo: https://seu-projeto.supabase.co\n\n" +
+        "Verifique o arquivo .env.local e reinicie o servidor."
+    throw new Error(errorMessage)
   }
 
   // Validar se não está com valor de exemplo
   if (supabaseUrl.includes('your-supabase') || supabaseUrl.includes('example')) {
-    throw new Error(
-      "❌ NEXT_PUBLIC_SUPABASE_URL ainda está com valor de exemplo!\n\n" +
-      "Substitua 'your-supabase-project-url' pela URL real do seu projeto Supabase.\n" +
-      "Obtenha em: https://supabase.com/dashboard/project/_/settings/api"
-    )
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Supabase URL contains example placeholder"
+      : "❌ NEXT_PUBLIC_SUPABASE_URL ainda está com valor de exemplo!\n\n" +
+        "Substitua 'your-supabase-project-url' pela URL real do seu projeto Supabase.\n" +
+        "Obtenha em: https://supabase.com/dashboard/project/_/settings/api"
+    throw new Error(errorMessage)
   }
 
   const supabase = createServerClient(
@@ -60,9 +63,18 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Do not run code between createServerClient and supabase.auth.getUser()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    user = authUser
+  } catch (error) {
+    // Se houver erro ao buscar usuário, continua sem autenticação
+    // Isso evita que erros de conexão quebrem o middleware
+    console.error("[Supabase Auth Error]:", error)
+    user = null
+  }
 
   // TODO: Uncomment this after running scripts/003_create_subscriptions.sql in Supabase
   /*
