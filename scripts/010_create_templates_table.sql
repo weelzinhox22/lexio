@@ -5,7 +5,7 @@
 -- Criar tabela de templates
 CREATE TABLE IF NOT EXISTS public.document_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- NULL para templates do sistema
     name TEXT NOT NULL,
     category TEXT NOT NULL, -- ex: 'direito_consumidor', 'direito_familia', 'trabalhista', etc
     subcategory TEXT, -- ex: 'peticao_inicial', 'contestacao', 'recurso'
@@ -45,7 +45,7 @@ DROP POLICY IF EXISTS "Users can view their own templates and system templates" 
 CREATE POLICY "Users can view their own templates and system templates"
     ON public.document_templates FOR SELECT
     USING (
-        auth.uid() = user_id OR is_system = TRUE
+        auth.uid() = user_id OR is_system = TRUE OR user_id IS NULL
     );
 
 DROP POLICY IF EXISTS "Users can insert their own templates" ON public.document_templates;

@@ -2,12 +2,21 @@
 -- INSERIR TEMPLATES DO SISTEMA
 -- ============================================
 
--- Criar um usuário fictício para templates do sistema (você deve substituir pelo ID de um usuário admin real)
--- Por enquanto, vamos usar um UUID fixo que você pode substituir depois
+-- Primeiro, tornar user_id NULL permitido para templates do sistema
+ALTER TABLE public.document_templates ALTER COLUMN user_id DROP NOT NULL;
+
+-- Criar templates do sistema (sem user_id específico)
 DO $$
 DECLARE
-    system_user_id UUID := '00000000-0000-0000-0000-000000000000';
+    system_user_id UUID;
 BEGIN
+    -- Pegar o primeiro usuário do sistema para usar como "dono" dos templates
+    SELECT id INTO system_user_id FROM auth.users LIMIT 1;
+    
+    -- Se não houver usuário, criar templates sem user_id (serão acessíveis por todos)
+    IF system_user_id IS NULL THEN
+        system_user_id := NULL;
+    END IF;
     -- 1. KIT BÁSICO
     
     -- Procuração Ad Judicia

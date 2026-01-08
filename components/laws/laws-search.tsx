@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search, BookOpen, ExternalLink, Loader2, FileText, Calendar, Users } from 'lucide-react'
+import { Search, BookOpen, ExternalLink, Loader2, FileText, Calendar, AlertCircle } from 'lucide-react'
+import { BRAZILIAN_LAWS } from '@/lib/data/brazilian-laws'
 
-// Base de leis mais consultadas
+// Base de leis brasileiras (expandida com 50+ leis)
+const ALL_LAWS = BRAZILIAN_LAWS
+
+// Leis mais populares para exibição inicial
 const POPULAR_LAWS = [
   {
     name: 'Lei Maria da Penha',
@@ -88,15 +92,43 @@ export function LawsSearch() {
     }
 
     const term = searchTerm.toLowerCase()
-    const results = POPULAR_LAWS.filter(
-      (law) =>
-        law.name.toLowerCase().includes(term) ||
-        law.number.toLowerCase().includes(term) ||
-        law.category.toLowerCase().includes(term) ||
-        law.description.toLowerCase().includes(term)
-    )
-    setSearchResults(results)
+    
+    // Busca inteligente: procura em todos os campos incluindo keywords
+    const results = ALL_LAWS.filter((law) => {
+      const searchIn = [
+        law.name,
+        law.number,
+        law.category,
+        law.description,
+        ...((law as any).keywords || []),
+      ].map((s) => s.toLowerCase())
+      
+      return searchIn.some((field) => field.includes(term))
+    })
+
+    // Ordenar por relevância: priorizar matches no nome
+    const sorted = results.sort((a, b) => {
+      const aNameMatch = a.name.toLowerCase().includes(term)
+      const bNameMatch = b.name.toLowerCase().includes(term)
+      
+      if (aNameMatch && !bNameMatch) return -1
+      if (!aNameMatch && bNameMatch) return 1
+      return 0
+    })
+
+    setSearchResults(sorted)
   }
+
+  // Buscar enquanto digita (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm.trim()) {
+        handleSearch()
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const handleOpenLaw = (law: typeof POPULAR_LAWS[0]) => {
     setSelectedLaw(law)
@@ -130,11 +162,25 @@ export function LawsSearch() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Ex: Lei Maria da Penha"
+                placeholder="Ex: Lei Maria da Penha, CDC, 8.078"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pr-10"
               />
+              {searchTerm && (
+                <Button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSearchResults([])
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="shrink-0 absolute right-12"
+                >
+                  ✕
+                </Button>
+              )}
               <Button onClick={handleSearch} size="icon" className="shrink-0">
                 <Search className="h-4 w-4" />
               </Button>
@@ -143,10 +189,25 @@ export function LawsSearch() {
             <div className="pt-4 border-t">
               <p className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
-                {searchResults.length > 0 ? 'Resultados' : 'Leis Mais Consultadas'}
+                {searchResults.length > 0
+                  ? `${searchResults.length} resultado${searchResults.length !== 1 ? 's' : ''}`
+                  : 'Leis Mais Consultadas'}
               </p>
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {displayedLaws.map((law, index) => (
+              
+              {searchTerm.trim() && searchResults.length === 0 ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                  <AlertCircle className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-amber-900 mb-1">Nenhuma lei encontrada</p>
+                  <p className="text-xs text-amber-700">
+                    Tente buscar por: nome da lei, número, ou área do direito
+                  </p>
+                  <p className="text-xs text-amber-600 mt-2">
+                    Exemplo: "maria da penha", "8.078", "consumidor"
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                  {displayedLaws.map((law, index) => (
                   <button
                     key={index}
                     onClick={() => handleOpenLaw(law)}
@@ -162,8 +223,9 @@ export function LawsSearch() {
                       {law.category}
                     </Badge>
                   </button>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
