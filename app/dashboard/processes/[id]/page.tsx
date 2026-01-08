@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Edit, Calendar, Scale, User, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Calendar, Scale, User, FileText, DollarSign, Percent, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { formatProcessNumber } from '@/lib/utils/masks'
 
@@ -119,11 +119,50 @@ export default async function ProcessViewPage({
                     <p className="text-slate-900">{process.judge}</p>
                   </div>
                 )}
-                {process.value && (
+                {(process as any).polo && (
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Valor</label>
+                    <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                      <Scale className="h-4 w-4" />
+                      Polo
+                    </label>
+                    <p className="text-slate-900 capitalize">
+                      {(process as any).polo === 'ativo' ? 'Ativo' : 'Passivo'}
+                    </p>
+                  </div>
+                )}
+                {(process as any).valor_causa && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Valor da Causa
+                    </label>
+                    <p className="text-lg font-semibold text-slate-900">
+                      R$ {Number((process as any).valor_causa).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                )}
+                {(process as any).percentual_honorario && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                      <Percent className="h-4 w-4" />
+                      Percentual de Honorário
+                    </label>
                     <p className="text-slate-900">
-                      R$ {Number(process.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {(process as any).percentual_honorario}%
+                    </p>
+                  </div>
+                )}
+                {(process as any).honorario_calculado && (
+                  <div className="md:col-span-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <label className="text-sm font-medium text-green-700 flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4" />
+                      Honorário Calculado
+                    </label>
+                    <p className="text-2xl font-bold text-green-700">
+                      R$ {Number((process as any).honorario_calculado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Calculado automaticamente quando a causa é ganha
                     </p>
                   </div>
                 )}
@@ -169,6 +208,35 @@ export default async function ProcessViewPage({
                   </Badge>
                 </div>
               </div>
+              {(process as any).status_ganho && (
+                <div>
+                  <label className="text-sm font-medium text-slate-600">Status da Causa</label>
+                  <div className="mt-2">
+                    <Badge
+                      variant={
+                        (process as any).status_ganho === 'ganho'
+                          ? 'default'
+                          : (process as any).status_ganho === 'perdido'
+                            ? 'destructive'
+                            : 'secondary'
+                      }
+                      className={
+                        (process as any).status_ganho === 'ganho'
+                          ? 'bg-green-100 text-green-700'
+                          : (process as any).status_ganho === 'perdido'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-slate-100 text-slate-700'
+                      }
+                    >
+                      {(process as any).status_ganho === 'ganho'
+                        ? 'Ganho'
+                        : (process as any).status_ganho === 'perdido'
+                          ? 'Perdido'
+                          : 'Em Andamento'}
+                    </Badge>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-sm font-medium text-slate-600">Prioridade</label>
                 <div className="mt-2">

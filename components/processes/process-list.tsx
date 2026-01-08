@@ -118,10 +118,34 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
               <span>Processo: {process.process_number}</span>
               <span>•</span>
               <span>Cliente: {process.clients.name}</span>
+              {(process as any).polo && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-xs">
+                    Polo: {(process as any).polo === 'ativo' ? 'Ativo' : 'Passivo'}
+                  </Badge>
+                </>
+              )}
               {process.court && (
                 <>
                   <span>•</span>
                   <span>{process.court}</span>
+                </>
+              )}
+              {(process as any).valor_causa && (
+                <>
+                  <span>•</span>
+                  <span className="font-medium text-green-700">
+                    Valor: R$ {(process as any).valor_causa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </>
+              )}
+              {(process as any).honorario_calculado && (
+                <>
+                  <span>•</span>
+                  <span className="font-semibold text-blue-700">
+                    Honorário: R$ {(process as any).honorario_calculado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
                 </>
               )}
             </div>
