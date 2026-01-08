@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Briefcase, Users, Bell, DollarSign, FileText, TrendingUp, Calendar, AlertCircle, Clock, CheckCircle2 } from "lucide-react"
 import { HonorariosCard } from "@/components/dashboard/honorarios-card"
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -171,13 +172,14 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-600 mt-1 text-sm md:text-base">Visão geral do seu escritório jurídico</p>
-      </div>
+    <DashboardLayout userId={user?.id} userEmail={user?.email}>
+      <div className="space-y-4 md:space-y-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-slate-600 mt-1 text-sm md:text-base">Visão geral do seu escritório jurídico</p>
+        </div>
 
-      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.name} href={stat.link || "#"}>
             <Card className="border-slate-200 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer">
@@ -516,5 +518,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   )
 }
+

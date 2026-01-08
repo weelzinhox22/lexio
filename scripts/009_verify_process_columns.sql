@@ -45,3 +45,5 @@ END $$;
 
 SELECT 'Verificação concluída!' as status;
 
+
+

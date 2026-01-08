@@ -81,3 +81,5 @@ WHERE table_name = 'processes'
 
 SELECT '✅ SCRIPT EXECUTADO COM SUCESSO! Agora você pode criar processos sem erro 409!' as status;
 
+
+

@@ -1,46 +1,50 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Scale, ArrowRight, Check } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import gsap from 'gsap'
+import dynamic from 'next/dynamic'
+
+// Carregar Lottie dinamicamente
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 
 export function HeroSection() {
   const heroRef = useRef<HTMLDivElement>(null)
-  const imageRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const subtitleRef = useRef<HTMLParagraphElement>(null)
   const buttonsRef = useRef<HTMLDivElement>(null)
   const featuresRef = useRef<HTMLDivElement>(null)
+  const [animationData, setAnimationData] = useState<any>(null)
+
+  useEffect(() => {
+    // Carregar a animação Lottie
+    fetch('/officeteam.json')
+      .then((res) => res.json())
+      .then((data) => setAnimationData(data))
+      .catch((err) => console.error('Erro ao carregar animação:', err))
+  }, [])
 
   useEffect(() => {
     if (!heroRef.current) return
 
     const ctx = gsap.context(() => {
-      // Animação da imagem (esquerda)
-      gsap.from(imageRef.current, {
-        opacity: 0,
-        x: -50,
-        duration: 1,
-        ease: 'power3.out',
-      })
-
-      // Animação do título (direita)
+      // Animação do título
       gsap.from(titleRef.current, {
         opacity: 0,
-        x: 50,
-        duration: 0.8,
-        delay: 0.2,
+        y: 30,
+        duration: 1,
+        delay: 0.3,
         ease: 'power3.out',
       })
 
       // Animação do subtítulo
       gsap.from(subtitleRef.current, {
         opacity: 0,
-        y: 30,
+        y: 20,
         duration: 0.8,
-        delay: 0.4,
+        delay: 0.5,
         ease: 'power3.out',
       })
 
@@ -49,7 +53,7 @@ export function HeroSection() {
         opacity: 0,
         y: 20,
         duration: 0.6,
-        delay: 0.6,
+        delay: 0.7,
         ease: 'power2.out',
       })
 
@@ -59,7 +63,7 @@ export function HeroSection() {
         x: 20,
         stagger: 0.1,
         duration: 0.6,
-        delay: 0.8,
+        delay: 0.9,
         ease: 'power2.out',
       })
     }, heroRef)
@@ -70,31 +74,19 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="relative overflow-hidden bg-white pt-32 pb-24"
+      className="relative min-h-[90vh] overflow-hidden flex items-center bg-white pt-32 pb-24"
     >
       <div className="container mx-auto px-6">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
-          {/* Imagem - Lado Esquerdo */}
-          <div ref={imageRef} className="order-2 lg:order-1">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
-              <img
-                src="/person-hero.webp"
-                alt="Advogado usando o Themixa"
-                className="w-full h-auto rounded-2xl object-cover shadow-2xl group-hover:scale-[1.02] transition-transform duration-500"
-              />
-            </div>
-          </div>
-
-          {/* Texto - Lado Direito */}
-          <div className="order-1 lg:order-2">
+          {/* Texto - Lado Esquerdo */}
+          <div className="order-1">
             <h1
               ref={titleRef}
               className="mb-6 text-4xl font-bold leading-tight text-slate-900 sm:text-5xl lg:text-6xl"
             >
               Prático, inteligente e funcional.
               <br />
-              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <span className="text-slate-900">
                 Tenha mais tranquilidade na advocacia
               </span>
               <br />
@@ -124,7 +116,7 @@ export function HeroSection() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-14 border-2 border-slate-300 bg-transparent px-8 text-lg hover:bg-slate-50 hover:border-slate-400 hover:scale-105 hover:shadow-md transition-all duration-300"
+                  className="h-14 border-2 border-slate-300 bg-transparent px-8 text-lg hover:bg-slate-50 hover:border-slate-400 hover:scale-105 hover:shadow-md transition-all duration-300 text-slate-900"
                 >
                   Conheça o Themixa
                 </Button>
@@ -149,9 +141,26 @@ export function HeroSection() {
               </div>
             </div>
           </div>
+
+          {/* Animação Lottie - Lado Direito */}
+          <div className="order-2 flex items-center justify-center">
+            {animationData && (
+              <div className="w-full max-w-5xl h-auto">
+                <Lottie
+                  animationData={animationData}
+                  loop={true}
+                  autoplay={true}
+                  style={{ 
+                    width: '100%', 
+                    height: 'auto',
+                    maxHeight: '900px'
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
   )
 }
-

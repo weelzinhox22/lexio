@@ -197,3 +197,5 @@ O script SQL é **seguro** para executar:
 
 **EXECUTE AGORA e tudo funcionará perfeitamente!** ✨
 
+
+

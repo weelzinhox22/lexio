@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Scale, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function LandingHeader() {
@@ -36,10 +36,11 @@ export function LandingHeader() {
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 group-hover/logo:scale-110 transition-transform duration-300">
-            <Scale className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-slate-900">Themixa</span>
+          <img 
+            src="/logo.png" 
+            alt="Themixa Logo" 
+            className="h-30 w-auto group-hover/logo:scale-110 transition-transform duration-300"
+          />
         </Link>
 
         {/* Desktop Navigation */}

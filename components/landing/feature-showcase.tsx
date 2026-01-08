@@ -1,10 +1,14 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import gsap from 'gsap'
+import dynamic from 'next/dynamic'
+
+// Carregar Lottie dinamicamente
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 
 const showcases = [
   {
@@ -16,31 +20,7 @@ const showcases = [
       'Mais segurança e tranquilidade para você nunca perder uma data importante',
       'Eleve a produtividade e comunicação entre a equipe com uma gestão de tarefas eficiente',
     ],
-    imagePlaceholder: 'Calendário visual com prazos e tarefas organizados',
-    reverse: false,
-  },
-  {
-    title: 'Evolua a comunicação compartilhando no WhatsApp',
-    description:
-      'Envie informações sobre audiências, tarefas, prazos e eventos de forma rápida e eficiente via WhatsApp. Mantenha seus clientes sempre informados.',
-    features: [
-      'Centralização da comunicação para otimizar seu tempo e esforços',
-      'Tenha um atendimento ao cliente de excelência investindo na comunicação ativa',
-      'Garanta que nenhuma informação importante para seu cliente seja esquecida',
-    ],
-    imagePlaceholder: 'Interface mostrando compartilhamento via WhatsApp',
-    reverse: true,
-  },
-  {
-    title: 'Emita boletos com PIX para uma gestão financeira mais profissional',
-    description:
-      'Facilite a gestão financeira do seu escritório gerando boletos integrados com PIX para recebimento de honorários de forma prática e segura.',
-    features: [
-      'Simplifique o processo de pagamento para os clientes e garanta seus honorários em dia',
-      'Tenha uma visão clara e detalhada do fluxo de caixa e da saúde financeira do seu negócio',
-      'Automatize lembretes de pagamento e profissionalize as suas cobranças',
-    ],
-    imagePlaceholder: 'Interface de gestão financeira com boletos e PIX',
+    animationFile: '/calendar.json',
     reverse: false,
   },
   {
@@ -52,13 +32,44 @@ const showcases = [
       'Você não precisa se preocupar, receba publicações e intimações automaticamente',
       'Minimize erros e aumente a eficiência utilizando a tecnologia a seu favor',
     ],
-    imagePlaceholder: 'Dashboard de processos com publicações e atualizações',
+    animationFile: '/femaledashboard.json',
     reverse: true,
   },
 ]
 
 export function FeatureShowcase() {
   const sectionRef = useRef<HTMLElement>(null)
+  const [animations, setAnimations] = useState<Record<string, any>>({})
+
+  useEffect(() => {
+    // Carregar todas as animações
+    const loadAnimations = async () => {
+      const animationPromises = showcases.map(async (showcase) => {
+        if (showcase.animationFile) {
+          try {
+            const response = await fetch(showcase.animationFile)
+            const data = await response.json()
+            return { key: showcase.animationFile, data }
+          } catch (error) {
+            console.error(`Erro ao carregar ${showcase.animationFile}:`, error)
+            return null
+          }
+        }
+        return null
+      })
+
+      const results = await Promise.all(animationPromises)
+      const animationsMap: Record<string, any> = {}
+      results.forEach((result) => {
+        if (result) {
+          animationsMap[result.key] = result.data
+        }
+      })
+      setAnimations(animationsMap)
+    }
+
+    loadAnimations()
+  }, [])
 
   useEffect(() => {
     if (!sectionRef.current) return
@@ -126,20 +137,28 @@ export function FeatureShowcase() {
               </Link>
             </div>
 
-            {/* Image Placeholder */}
+            {/* Animation */}
             <div className="flex-1 group/image">
               <div className="relative h-[400px] overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 shadow-xl group-hover/image:shadow-2xl transition-all duration-500">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover/image:opacity-100 transition-opacity duration-500" />
                 <div className="flex h-full items-center justify-center p-8 relative z-10">
-                  <div className="text-center group-hover/image:scale-105 transition-transform duration-500">
-                    <div className="mb-4 text-6xl group-hover/image:scale-110 transition-transform duration-300">📊</div>
-                    <p className="text-sm font-medium text-slate-500 group-hover/image:text-slate-700 transition-colors">
-                      {showcase.imagePlaceholder}
-                    </p>
-                    <p className="mt-2 text-xs text-slate-400">
-                      (Imagem será adicionada aqui)
-                    </p>
-                  </div>
+                  {showcase.animationFile && animations[showcase.animationFile] ? (
+                    <div className="w-full h-full">
+                      <Lottie
+                        animationData={animations[showcase.animationFile]}
+                        loop={true}
+                        autoplay={true}
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center group-hover/image:scale-105 transition-transform duration-500">
+                      <div className="mb-4 text-6xl group-hover/image:scale-110 transition-transform duration-300">📊</div>
+                      <p className="text-sm font-medium text-slate-500 group-hover/image:text-slate-700 transition-colors">
+                        Carregando animação...
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -149,4 +168,3 @@ export function FeatureShowcase() {
     </section>
   )
 }
-

@@ -191,3 +191,5 @@ END $$;
 2. Aguardar deploy do Vercel (~3 minutos)
 3. Testar tudo! 🚀
 
+
+

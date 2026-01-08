@@ -93,3 +93,5 @@ Este script:
 
 **EXECUTE AGORA! ⏰**
 
+
+

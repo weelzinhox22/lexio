@@ -81,6 +81,21 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         throw error
       }
 
+      // Buscar publicações automaticamente para o processo recém-criado
+      if (insertData.process_number) {
+        try {
+          // Chamar API de busca de publicações em background (não bloquear o fluxo)
+          fetch('/api/jusbrasil/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ processNumber: insertData.process_number }),
+          }).catch(err => console.error('Erro ao buscar publicações:', err))
+        } catch (err) {
+          // Ignorar erros na busca automática
+          console.error('Erro ao buscar publicações automaticamente:', err)
+        }
+      }
+
       router.push("/dashboard/processes")
       router.refresh()
     } catch (err) {

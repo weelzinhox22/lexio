@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { GlobalSearch } from "@/components/navigation/global-search"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,13 +29,19 @@ export function DashboardHeader({ user }: { user: User }) {
   const initials = user.email?.substring(0, 2).toUpperCase() || "US"
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-6">
       <div className="flex items-center gap-3 md:gap-4">
         <MobileMenu />
         <h2 className="text-base md:text-lg font-semibold text-slate-900 hidden sm:block">
           Bem-vindo ao Themixa
         </h2>
       </div>
+      
+      {/* Barra de Pesquisa Global */}
+      <div className="flex-1 max-w-2xl">
+        <GlobalSearch />
+      </div>
+
       <div className="flex items-center gap-2 md:gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

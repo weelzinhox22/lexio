@@ -228,3 +228,5 @@ export function FavoriteLawsList({ favorites }: { favorites: FavoriteLaw[] }) {
   )
 }
 
+
+

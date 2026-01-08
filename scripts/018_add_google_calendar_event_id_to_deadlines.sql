@@ -24,3 +24,5 @@ BEGIN
   RAISE NOTICE '✅ Índice criado para busca rápida!';
 END $$;
 
+
+

@@ -10,3 +10,5 @@ echo "- SUPABASE_SERVICE_ROLE_KEY (obtenha no Supabase Dashboard)"
 echo "- STRIPE_PRICE_* IDs (opcional, obtenha no Stripe Dashboard)"
 echo ""
 
+
+

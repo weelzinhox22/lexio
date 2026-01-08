@@ -11,3 +11,5 @@ echo - STRIPE_PRICE_* IDs (opcional, obtenha no Stripe Dashboard)
 echo.
 pause
 
+
+

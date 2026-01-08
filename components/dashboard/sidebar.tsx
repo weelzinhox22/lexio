@@ -19,6 +19,7 @@ import {
   BookOpen,
   FileStack,
   Star,
+  Newspaper,
 } from "lucide-react"
 
 const navigation = [
@@ -27,6 +28,7 @@ const navigation = [
   { name: "Clientes", href: "/dashboard/clients", icon: Users },
   { name: "Prazos", href: "/dashboard/deadlines", icon: Bell },
   { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
+  { name: "Publicações", href: "/dashboard/publications", icon: Newspaper },
   { name: "Documentos", href: "/dashboard/documents", icon: FileText },
   { name: "Modelos", href: "/dashboard/templates", icon: FileStack },
   { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },

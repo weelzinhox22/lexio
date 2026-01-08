@@ -47,3 +47,5 @@ CREATE POLICY "Users can update their own favorite laws"
 
 SELECT 'Tabela de leis favoritas criada com sucesso!' as status;
 
+
+

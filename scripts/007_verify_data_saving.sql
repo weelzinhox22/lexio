@@ -141,3 +141,5 @@ WHERE p.id IS NULL;
 -- Success message
 SELECT '✅ Verificação concluída! Revise os resultados acima.' as resultado;
 
+
+
