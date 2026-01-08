@@ -173,10 +173,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-4 md:space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Configurações</h1>
-        <p className="text-slate-600 mt-1">Gerencie suas preferências e informações pessoais</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Configurações</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Gerencie suas preferências e informações pessoais</p>
       </div>
 
       <Card className="border-slate-200 shadow-lg">

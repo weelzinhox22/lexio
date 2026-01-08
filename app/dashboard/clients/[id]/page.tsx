@@ -43,21 +43,21 @@ export default async function ClientViewPage({
     .limit(5)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <Link href="/dashboard/clients">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10">
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">{client.name}</h1>
-            <p className="text-slate-600 mt-1">Detalhes do cliente</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900 truncate">{client.name}</h1>
+            <p className="text-slate-600 mt-1 text-sm md:text-base">Detalhes do cliente</p>
           </div>
         </div>
-        <Link href={`/dashboard/clients/${id}/edit`}>
-          <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+        <Link href={`/dashboard/clients/${id}/edit`} className="flex-1 sm:flex-initial">
+          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
