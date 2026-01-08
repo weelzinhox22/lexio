@@ -36,6 +36,9 @@ export function ClientForm({ userId }: { userId: string }) {
         client_type: formData.get("client_type") as string,
         status: formData.get("status") as string,
         notes: formData.get("notes") as string,
+        address: formData.get("address") as string || null,
+        city: formData.get("city") as string || null,
+        birth_date: formData.get("birth_date") as string || null,
       })
 
       if (error) throw error
