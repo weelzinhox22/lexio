@@ -171,25 +171,25 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-600 mt-1">Visão geral do seu escritório jurídico</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Visão geral do seu escritório jurídico</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.name} href={stat.link || "#"}>
             <Card className="border-slate-200 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-xs font-medium text-slate-600">{stat.name}</CardTitle>
-                <div className={cn("rounded-lg p-1.5", stat.bgColor)}>
-                  <stat.icon className={cn("h-4 w-4", stat.color)} />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-3 md:p-6">
+                <CardTitle className="text-xs font-medium text-slate-600 truncate pr-2">{stat.name}</CardTitle>
+                <div className={cn("rounded-lg p-1.5 shrink-0", stat.bgColor)}>
+                  <stat.icon className={cn("h-3 w-3 md:h-4 md:w-4", stat.color)} />
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold text-slate-900">{stat.value}</div>
-                {stat.description && <p className="text-xs text-slate-500 mt-1">{stat.description}</p>}
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="text-lg md:text-xl font-bold text-slate-900">{stat.value}</div>
+                {stat.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{stat.description}</p>}
               </CardContent>
             </Card>
           </Link>
