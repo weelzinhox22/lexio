@@ -85,11 +85,14 @@ export default async function DashboardPage() {
     ?.filter((t) => t.type === "income" && t.status === "pending")
     .reduce((acc, t) => acc + Number(t.amount), 0) || 0
 
-  const newLeads = leadsResult.data?.filter((l: any) => l.status === "new").length || 0
-  const convertedLeads = leadsResult.data?.filter((l: any) => l.status === "converted").length || 0
-
   // Calcular total de honorários
   const totalHonorarios = wonProcesses.data?.reduce((acc, p: any) => acc + Number(p.honorario_calculado || 0), 0) || 0
+  
+  // Saldo positivo = Receitas + Honorários - Despesas
+  const saldoPositivo = totalIncome + totalHonorarios - totalExpenses
+
+  const newLeads = leadsResult.data?.filter((l: any) => l.status === "new").length || 0
+  const convertedLeads = leadsResult.data?.filter((l: any) => l.status === "converted").length || 0
 
   const stats = [
     {
@@ -174,34 +177,27 @@ export default async function DashboardPage() {
         <p className="text-slate-600 mt-1">Visão geral do seu escritório jurídico</p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.name} href={stat.link || "#"}>
-            <Card className="border-slate-200 hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-slate-700">{stat.name}</CardTitle>
-                <div className={cn("rounded-lg p-2", stat.bgColor)}>
-                  <stat.icon className={cn("h-5 w-5", stat.color)} />
+            <Card className="border-slate-200 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-xs font-medium text-slate-600">{stat.name}</CardTitle>
+                <div className={cn("rounded-lg p-1.5", stat.bgColor)}>
+                  <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                <div className="text-xl font-bold text-slate-900">{stat.value}</div>
+                {stat.description && <p className="text-xs text-slate-500 mt-1">{stat.description}</p>}
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      {/* Card de Honorários */}
-      {wonProcesses.data && wonProcesses.data.length > 0 && (
-        <HonorariosCard 
-          processes={wonProcesses.data} 
-          totalHonorarios={totalHonorarios}
-        />
-      )}
-
       {/* Financial Summary */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="border-slate-200 lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -238,11 +234,16 @@ export default async function DashboardPage() {
                   <p className="text-sm text-slate-600">Saldo Líquido</p>
                   <p
                     className={`text-2xl font-bold ${
-                      totalIncome - totalExpenses >= 0 ? "text-emerald-600" : "text-red-600"
+                      saldoPositivo >= 0 ? "text-emerald-600" : "text-red-600"
                     }`}
                   >
-                    R$ {(totalIncome - totalExpenses).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R$ {saldoPositivo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </p>
+                  {totalHonorarios > 0 && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      Inclui R$ {totalHonorarios.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em honorários
+                    </p>
+                  )}
                 </div>
                 <DollarSign className="h-8 w-8 text-slate-600" />
               </div>
@@ -285,7 +286,15 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Card de Honorários */}
+      {wonProcesses.data && wonProcesses.data.length > 0 && (
+        <HonorariosCard 
+          processes={wonProcesses.data} 
+          totalHonorarios={totalHonorarios}
+        />
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
         {/* Próximos Prazos */}
         <Card className="border-slate-200">
           <CardHeader>

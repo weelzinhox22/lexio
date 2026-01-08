@@ -21,7 +21,7 @@ interface HonorariosCardProps {
 }
 
 export function HonorariosCard({ processes, totalHonorarios }: HonorariosCardProps) {
-  const [isVisible, setIsVisible] = useState(true)
+  const [valuesVisible, setValuesVisible] = useState(true)
 
   return (
     <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
@@ -34,40 +34,39 @@ export function HonorariosCard({ processes, totalHonorarios }: HonorariosCardPro
             <div>
               <CardTitle className="text-slate-900">Honorários Calculados</CardTitle>
               <CardDescription className="text-slate-600">
-                Processos ganhos com honorários automáticos
+                {processes.length} processo(s) ganho(s)
               </CardDescription>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsVisible(!isVisible)}
+            onClick={() => setValuesVisible(!valuesVisible)}
             className="hover:bg-green-100"
           >
-            {isVisible ? (
+            {valuesVisible ? (
               <>
                 <EyeOff className="h-4 w-4 mr-2" />
-                Ocultar
+                Ocultar Valores
               </>
             ) : (
               <>
                 <Eye className="h-4 w-4 mr-2" />
-                Mostrar
+                Mostrar Valores
               </>
             )}
           </Button>
         </div>
       </CardHeader>
       
-      {isVisible && (
-        <CardContent className="pt-6">
+      <CardContent className="pt-6">
           {/* Total */}
           <div className="mb-6 p-4 rounded-lg bg-white border border-green-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Total de Honorários</p>
                 <p className="text-3xl font-bold text-green-600">
-                  R$ {totalHonorarios.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {valuesVisible ? `R$ ${totalHonorarios.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '••••••'}
                 </p>
               </div>
               <div className="text-right">
@@ -92,7 +91,7 @@ export function HonorariosCard({ processes, totalHonorarios }: HonorariosCardPro
                       <p className="text-xs text-slate-500 mt-1">{process.process_number}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge variant="outline" className="text-xs">
-                          Valor: R$ {Number(process.valor_causa).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          Valor: {valuesVisible ? `R$ ${Number(process.valor_causa).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '••••••'}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           {process.percentual_honorario}%
@@ -102,7 +101,7 @@ export function HonorariosCard({ processes, totalHonorarios }: HonorariosCardPro
                     <div className="text-right shrink-0">
                       <p className="text-xs text-slate-500 mb-1">Honorário</p>
                       <p className="text-lg font-bold text-green-600">
-                        R$ {Number(process.honorario_calculado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        {valuesVisible ? `R$ ${Number(process.honorario_calculado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '••••••'}
                       </p>
                     </div>
                   </div>
@@ -129,7 +128,6 @@ export function HonorariosCard({ processes, totalHonorarios }: HonorariosCardPro
             </div>
           )}
         </CardContent>
-      )}
     </Card>
   )
 }

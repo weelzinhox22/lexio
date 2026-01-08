@@ -127,13 +127,15 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
     : null
 
   // Agrupar prazos por categoria
-  const groupedDeadlines = LEGAL_DEADLINES.reduce((acc, deadline) => {
-    if (!acc[deadline.category]) {
-      acc[deadline.category] = []
-    }
-    acc[deadline.category].push(deadline)
-    return acc
-  }, {} as Record<string, typeof LEGAL_DEADLINES>)
+  const groupedDeadlines = Array.isArray(LEGAL_DEADLINES) 
+    ? LEGAL_DEADLINES.reduce((acc, deadline) => {
+        if (!acc[deadline.category]) {
+          acc[deadline.category] = []
+        }
+        acc[deadline.category].push(deadline)
+        return acc
+      }, {} as Record<string, Array<typeof LEGAL_DEADLINES[0]>>)
+    : {}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
