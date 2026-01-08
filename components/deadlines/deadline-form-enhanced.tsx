@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
-import { LEGAL_DEADLINES, calculateDeadline } from '@/lib/data/legal-deadlines'
+import { LEGAL_DEADLINES } from '@/lib/data/legal-deadlines'
 import { Calendar, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
@@ -29,14 +29,38 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
 
   useEffect(() => {
     if (selectedDeadlineType && startDate && !useManualDate) {
-      const deadline = LEGAL_DEADLINES[selectedDeadlineType as keyof typeof LEGAL_DEADLINES]
+      const deadline = LEGAL_DEADLINES.find(d => d.type === selectedDeadlineType)
       if (deadline) {
         const start = new Date(startDate)
-        const calculated = calculateDeadline(start, deadline.days, deadline.countType as any)
+        const calculated = calculateDeadline(start, deadline.days, deadline.businessDays)
         setCalculatedDate(calculated)
       }
     }
   }, [selectedDeadlineType, startDate, useManualDate])
+
+  // Função para calcular prazo
+  const calculateDeadline = (startDate: Date, days: number, businessDays: boolean): Date => {
+    const result = new Date(startDate)
+    
+    if (!businessDays) {
+      result.setDate(result.getDate() + days)
+      return result
+    }
+
+    // Para dias úteis, pular fins de semana
+    let addedDays = 0
+    while (addedDays < days) {
+      result.setDate(result.getDate() + 1)
+      const dayOfWeek = result.getDay()
+      
+      // Pular sábado (6) e domingo (0)
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        addedDays++
+      }
+    }
+
+    return result
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -75,8 +99,17 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
   }
 
   const selectedDeadline = selectedDeadlineType 
-    ? LEGAL_DEADLINES[selectedDeadlineType as keyof typeof LEGAL_DEADLINES] 
+    ? LEGAL_DEADLINES.find(d => d.type === selectedDeadlineType) 
     : null
+
+  // Agrupar prazos por categoria
+  const groupedDeadlines = LEGAL_DEADLINES.reduce((acc, deadline) => {
+    if (!acc[deadline.category]) {
+      acc[deadline.category] = []
+    }
+    acc[deadline.category].push(deadline)
+    return acc
+  }, {} as Record<string, typeof LEGAL_DEADLINES>)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -91,50 +124,23 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
             <SelectContent className="max-h-[400px]">
               <SelectItem value="">Nenhum (Manual)</SelectItem>
               
-              {/* CPC - Novo Código de Processo Civil */}
-              <div className="px-2 py-1.5 text-xs font-semibold text-slate-500">CPC - Código de Processo Civil</div>
-              {Object.entries(LEGAL_DEADLINES)
-                .filter(([_, d]) => d.description.includes('CPC'))
-                .map(([key, deadline]) => (
-                  <SelectItem key={key} value={key}>
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <span className="flex-1">{deadline.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {deadline.days === 0 ? 'Na audiência' : `${deadline.days} ${deadline.countType === 'dias_uteis' ? 'dias úteis' : 'dias'}`}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-
-              {/* CLT - Trabalhista */}
-              <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 mt-2">CLT - Direito Trabalhista</div>
-              {Object.entries(LEGAL_DEADLINES)
-                .filter(([_, d]) => d.description.includes('CLT') || d.description.includes('Trabalhista'))
-                .map(([key, deadline]) => (
-                  <SelectItem key={key} value={key}>
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <span className="flex-1">{deadline.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {deadline.days === 0 ? 'Na audiência' : `${deadline.days} ${deadline.countType === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}`}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-
-              {/* Outros */}
-              <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 mt-2">Outros</div>
-              {Object.entries(LEGAL_DEADLINES)
-                .filter(([_, d]) => !d.description.includes('CPC') && !d.description.includes('CLT') && !d.description.includes('Trabalhista'))
-                .map(([key, deadline]) => (
-                  <SelectItem key={key} value={key}>
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <span className="flex-1">{deadline.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {deadline.days === 0 ? 'Urgente' : `${deadline.days} dias`}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
+              {Object.entries(groupedDeadlines).map(([category, deadlines]) => (
+                <div key={category}>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 mt-2 first:mt-0">
+                    {category}
+                  </div>
+                  {deadlines.map((deadline) => (
+                    <SelectItem key={deadline.type} value={deadline.type}>
+                      <div className="flex items-center justify-between w-full gap-3">
+                        <span className="flex-1">{deadline.type}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {deadline.days} {deadline.businessDays ? 'dias úteis' : 'dias'}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </div>
+              ))}
             </SelectContent>
           </Select>
           {selectedDeadline && (
@@ -177,7 +183,7 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
                 })}
               </p>
               <p className="text-xs text-green-700 mt-1">
-                {selectedDeadline?.countType === 'dias_uteis' ? 'Contando apenas dias úteis' : 'Contando dias corridos'}
+                {selectedDeadline?.businessDays ? 'Contando apenas dias úteis' : 'Contando dias corridos'}
               </p>
             </div>
             <Button
@@ -205,8 +211,8 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
           <Input 
             id="title" 
             name="title" 
-            placeholder={selectedDeadline ? selectedDeadline.name : "Ex: Protocolar Contestação"} 
-            defaultValue={selectedDeadline?.name}
+            placeholder={selectedDeadline ? selectedDeadline.type : "Ex: Protocolar Contestação"} 
+            defaultValue={selectedDeadline?.type}
             required 
           />
         </div>

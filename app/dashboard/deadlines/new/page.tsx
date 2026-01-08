@@ -1,4 +1,4 @@
-import { DeadlineForm } from "@/components/deadlines/deadline-form"
+import { DeadlineFormEnhanced } from "@/components/deadlines/deadline-form-enhanced"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 
@@ -26,7 +26,7 @@ export default async function NewDeadlinePage() {
           <CardTitle className="text-slate-900">Informações do Prazo</CardTitle>
         </CardHeader>
         <CardContent>
-          <DeadlineForm processes={processes || []} userId={user!.id} />
+          <DeadlineFormEnhanced processes={processes || []} userId={user!.id} />
         </CardContent>
       </Card>
     </div>
