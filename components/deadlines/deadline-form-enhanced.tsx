@@ -75,7 +75,7 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
         ? formData.get('deadline_date') as string
         : calculatedDate?.toISOString() || formData.get('deadline_date') as string
 
-      const { error } = await supabase.from('deadlines').insert({
+      const deadlineData = {
         user_id: userId,
         process_id: formData.get('process_id') ? (formData.get('process_id') as string) : null,
         title: formData.get('title') as string,
@@ -85,9 +85,33 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
         priority: formData.get('priority') as string,
         type: selectedDeadlineType || formData.get('type') as string,
         status: 'pending',
-      })
+      }
+
+      const { data: newDeadline, error } = await supabase
+        .from('deadlines')
+        .insert(deadlineData)
+        .select()
+        .single()
 
       if (error) throw error
+
+      // Tentar sincronizar com Google Calendar (não bloqueia se falhar)
+      if (newDeadline) {
+        try {
+          await fetch('/api/deadlines/sync-google-calendar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create',
+              deadlineId: newDeadline.id,
+              deadline: deadlineData,
+            }),
+          })
+        } catch (syncError) {
+          console.log('Não foi possível sincronizar com Google Calendar:', syncError)
+          // Não lança erro, apenas registra
+        }
+      }
 
       router.push('/dashboard/deadlines')
       router.refresh()

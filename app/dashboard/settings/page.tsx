@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useRouter } from "next/navigation"
-import { User, Bell, Shield, LogOut, Save, Mail, Phone, GraduationCap, Briefcase } from "lucide-react"
+import { User, Bell, Shield, LogOut, Save, Mail, Phone, GraduationCap, Briefcase, Calendar } from "lucide-react"
 import { MaskedInput } from "@/components/ui/masked-input"
 import { formatPhone } from "@/lib/utils/masks"
 
@@ -26,6 +26,8 @@ export default function SettingsPage() {
     payment_alerts: true,
   })
   const [oabState, setOabState] = useState('BA')
+  const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false)
+  const [connectingGoogleCalendar, setConnectingGoogleCalendar] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -49,6 +51,17 @@ export default function SettingsPage() {
             setOabState(match[1].toUpperCase())
           }
         }
+      }
+
+      // Verificar se Google Calendar está conectado
+      const { data: userData } = await supabase
+        .from("users")
+        .select("google_calendar_connected")
+        .eq("id", user.id)
+        .single()
+      
+      if (userData) {
+        setGoogleCalendarConnected(userData.google_calendar_connected || false)
       }
     } catch (error) {
       console.error("[v0] Error loading profile:", error)
@@ -89,6 +102,34 @@ export default function SettingsPage() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push("/auth/login")
+  }
+
+  async function handleConnectGoogleCalendar() {
+    setConnectingGoogleCalendar(true)
+    // Redirecionar para a rota de autenticação do Google
+    window.location.href = '/api/google-calendar/auth'
+  }
+
+  async function handleDisconnectGoogleCalendar() {
+    if (!confirm('Tem certeza que deseja desconectar o Google Calendar? Os eventos já criados não serão removidos.')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/google-calendar/disconnect', {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        setGoogleCalendarConnected(false)
+        alert('Google Calendar desconectado com sucesso!')
+      } else {
+        throw new Error('Erro ao desconectar')
+      }
+    } catch (error) {
+      console.error('Erro ao desconectar Google Calendar:', error)
+      alert('Erro ao desconectar Google Calendar')
+    }
   }
 
   if (loading) {
@@ -319,6 +360,78 @@ export default function SettingsPage() {
             <Save className="h-4 w-4 mr-2" />
             {saving ? "Salvando..." : "Salvar Preferências"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-200">
+          <CardTitle className="flex items-center gap-3 text-slate-900">
+            <div className="rounded-lg bg-green-100 p-2">
+              <Calendar className="h-5 w-5 text-green-600" />
+            </div>
+            Integrações
+          </CardTitle>
+          <CardDescription className="text-slate-600">
+            Conecte o Themixa com outras ferramentas que você usa
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <p className="font-semibold text-slate-900">Google Calendar</p>
+                  {googleCalendarConnected && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      Conectado
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  {googleCalendarConnected 
+                    ? 'Seus prazos estão sendo sincronizados automaticamente com o Google Calendar'
+                    : 'Sincronize automaticamente seus prazos com o Google Calendar para nunca perder um compromisso'
+                  }
+                </p>
+                {googleCalendarConnected ? (
+                  <Button
+                    onClick={handleDisconnectGoogleCalendar}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    Desconectar
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConnectGoogleCalendar}
+                    disabled={connectingGoogleCalendar}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {connectingGoogleCalendar ? 'Conectando...' : 'Conectar Google Calendar'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <div className="flex items-start gap-3">
+              <Mail className="h-5 w-5 text-slate-400 mt-0.5" />
+              <div>
+                <p className="font-semibold text-slate-900 mb-1">Notificações por E-mail</p>
+                <p className="text-sm text-slate-600 mb-2">
+                  Em breve: Receba alertas de prazos diretamente no seu e-mail
+                </p>
+                <span className="px-2 py-1 text-xs font-medium bg-slate-200 text-slate-600 rounded">
+                  Em desenvolvimento
+                </span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
