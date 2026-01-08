@@ -43,12 +43,12 @@ const navigation = [
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const pathname = usePathname()
 
   // Prevenir scroll do body quando menu está aberto
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isClosing) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -56,16 +56,19 @@ export function MobileMenu() {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isOpen])
+  }, [isOpen, isClosing])
 
   const handleOpen = () => {
-    setIsAnimating(true)
+    setIsClosing(false)
     setIsOpen(true)
   }
 
   const handleClose = () => {
-    setIsAnimating(false)
-    setTimeout(() => setIsOpen(false), 300) // Aguarda animação terminar
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsOpen(false)
+      setIsClosing(false)
+    }, 300) // Aguarda animação terminar
   }
 
   return (
@@ -86,7 +89,7 @@ export function MobileMenu() {
           <div
             className={cn(
               "fixed inset-0 bg-black/50 z-50 lg:hidden transition-opacity duration-300",
-              isAnimating ? "opacity-100" : "opacity-0"
+              isClosing ? "opacity-0" : "opacity-100"
             )}
             onClick={handleClose}
             aria-hidden="true"
@@ -96,7 +99,7 @@ export function MobileMenu() {
           <div
             className={cn(
               "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 lg:hidden overflow-y-auto transform transition-transform duration-300 ease-in-out",
-              isAnimating ? "translate-x-0" : "-translate-x-full"
+              isClosing ? "-translate-x-full" : "translate-x-0"
             )}
           >
             <div className="flex h-16 items-center justify-between gap-2 px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
@@ -130,7 +133,7 @@ export function MobileMenu() {
                     )}
                     style={{
                       animationDelay: `${index * 30}ms`,
-                      animation: isAnimating ? 'slideInLeft 0.3s ease-out forwards' : 'none',
+                      animation: !isClosing ? 'slideInLeft 0.3s ease-out forwards' : 'none',
                     }}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
