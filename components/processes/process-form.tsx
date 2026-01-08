@@ -73,7 +73,13 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
 
       const { error } = await supabase.from("processes").insert(insertData)
 
-      if (error) throw error
+      if (error) {
+        // Verificar se é erro de duplicação de processo
+        if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('already exists')) {
+          throw new Error('⚠️ Já existe um processo cadastrado com este número. Por favor, verifique o número do processo ou utilize outro.')
+        }
+        throw error
+      }
 
       router.push("/dashboard/processes")
       router.refresh()
