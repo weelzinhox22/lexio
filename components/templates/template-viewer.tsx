@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Download, FileText, Wand2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ArrowLeft, Download, FileText, Wand2, FileType } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type Template = {
@@ -28,11 +29,11 @@ export function TemplateViewer({
   const [placeholderValues, setPlaceholderValues] = useState<Record<string, string>>({})
   const [filledContent, setFilledContent] = useState('')
   const [clientData, setClientData] = useState<any>(null)
-  const [processData, setProcessData] = useState<any>(null)
   const [userData, setUserData] = useState<any>(null)
+  const [exportFormat, setExportFormat] = useState<'txt' | 'pdf' | 'docx'>('txt')
+  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
-    // Carregar dados do usuário para preencher automaticamente
     loadUserData()
   }, [])
 
@@ -48,17 +49,15 @@ export function TemplateViewer({
     
     if (profile) {
       setUserData(profile)
-      // Preencher dados do advogado automaticamente
       const autoFill: Record<string, string> = {
         NOME_ADVOGADO: profile.full_name || '',
         NUMERO_OAB: profile.oab_number || '',
         UF_OAB: profile.oab_state || 'BA',
-        // Adicionar mais campos conforme necessário
       }
       setPlaceholderValues((prev) => ({ ...prev, ...autoFill }))
     }
 
-    // Buscar último cliente para sugestão
+    // Buscar último cliente
     const { data: lastClient } = await supabase
       .from('clients')
       .select('*')
@@ -90,14 +89,12 @@ export function TemplateViewer({
   }
 
   useEffect(() => {
-    // Preencher template com os valores
     let content = template.content
     Object.entries(placeholderValues).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, 'g')
       content = content.replace(regex, value || `{{${key}}}`)
     })
     
-    // Preencher DATA_ATUAL automaticamente
     const today = new Date().toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
@@ -108,16 +105,81 @@ export function TemplateViewer({
     setFilledContent(content)
   }, [placeholderValues, template.content])
 
-  const handleExport = () => {
-    const blob = new Blob([filledContent], { type: 'text/plain;charset=utf-8' })
+  const handleExport = async () => {
+    setIsExporting(true)
+    
+    try {
+      if (exportFormat === 'txt') {
+        // Exportar como TXT
+        const blob = new Blob([filledContent], { type: 'text/plain;charset=utf-8' })
+        downloadBlob(blob, `${template.name}.txt`)
+      } else if (exportFormat === 'pdf') {
+        // Exportar como PDF
+        await exportAsPDF()
+      } else if (exportFormat === 'docx') {
+        // Exportar como DOCX
+        await exportAsWord()
+      }
+    } catch (error) {
+      console.error('Erro ao exportar:', error)
+      alert('Erro ao exportar documento. Tente novamente.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${template.name.replace(/\s+/g, '_')}.txt`
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const exportAsPDF = async () => {
+    // Usar html2pdf ou jsPDF
+    const { default: html2pdf } = await import('html2pdf.js')
+    
+    const element = document.createElement('div')
+    element.innerHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; white-space: pre-wrap;">
+        ${filledContent}
+      </div>
+    `
+    
+    const opt = {
+      margin: 1,
+      filename: `${template.name}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }
+    
+    html2pdf().set(opt).from(element).save()
+  }
+
+  const exportAsWord = async () => {
+    // Usar docx
+    const { Document, Paragraph, TextRun, Packer } = await import('docx')
+    
+    const paragraphs = filledContent.split('\n').map(line => 
+      new Paragraph({
+        children: [new TextRun(line || ' ')],
+      })
+    )
+    
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: paragraphs,
+      }],
+    })
+    
+    const blob = await Packer.toBlob(doc)
+    downloadBlob(blob, `${template.name}.docx`)
   }
 
   const placeholders = (template.placeholders as string[]) || []
@@ -133,14 +195,41 @@ export function TemplateViewer({
           <h2 className="text-2xl font-bold text-slate-900">{template.name}</h2>
           <p className="text-sm text-slate-600">Preencha os campos para gerar o documento</p>
         </div>
-        <Button onClick={handleExport} className="bg-green-600 hover:bg-green-700">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={exportFormat} onValueChange={(v: any) => setExportFormat(v)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="txt">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  TXT
+                </div>
+              </SelectItem>
+              <SelectItem value="pdf">
+                <div className="flex items-center gap-2">
+                  <FileType className="h-4 w-4" />
+                  PDF
+                </div>
+              </SelectItem>
+              <SelectItem value="docx">
+                <div className="flex items-center gap-2">
+                  <FileType className="h-4 w-4" />
+                  Word
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleExport} disabled={isExporting} className="bg-green-600 hover:bg-green-700">
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exportando...' : `Exportar ${exportFormat.toUpperCase()}`}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Formulário de preenchimento */}
+        {/* Formulário */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -193,7 +282,7 @@ export function TemplateViewer({
           </CardContent>
         </Card>
 
-        {/* Visualização do documento */}
+        {/* Visualização */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -211,4 +300,3 @@ export function TemplateViewer({
     </div>
   )
 }
-
