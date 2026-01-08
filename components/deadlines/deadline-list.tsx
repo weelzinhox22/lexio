@@ -3,9 +3,10 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, Edit, Trash2 } from "lucide-react"
+import { Edit } from "lucide-react"
 import Link from "next/link"
 import type { Deadline } from "@/lib/types/database"
+import { DeleteDeadlineButton } from "./delete-deadline-button"
 
 type DeadlineWithProcess = Deadline & {
   processes?: {
@@ -118,19 +119,20 @@ export function DeadlineList({ deadlines }: { deadlines: DeadlineWithProcess[] }
                 {deadline.description && <p className="text-sm text-slate-600 mt-1">{deadline.description}</p>}
               </div>
               <div className="flex items-center gap-2">
-                {deadline.status === "pending" && (
-                  <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-700">
-                    <CheckCircle2 className="h-4 w-4" />
+                <Link href={`/dashboard/deadlines/${deadline.id}`}>
+                  <Button variant="ghost" size="icon" title="Visualizar">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
                   </Button>
-                )}
+                </Link>
                 <Link href={`/dashboard/deadlines/${deadline.id}/edit`}>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" title="Editar">
                     <Edit className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <DeleteDeadlineButton deadlineId={deadline.id} deadlineTitle={deadline.title} />
               </div>
             </div>
           ))}
