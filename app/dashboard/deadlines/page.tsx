@@ -28,6 +28,13 @@ export default async function DeadlinesPage() {
     .eq("user_id", user!.id)
     .order("deadline_date", { ascending: true })
 
+  // Verificar se Google Calendar está conectado
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("google_calendar_connected")
+    .eq("id", user!.id)
+    .single()
+
   // Calculate stats
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
