@@ -99,7 +99,7 @@ export default async function SubscriptionPage() {
             Entre em contato com nosso time de suporte para mais informações sobre planos corporativos ou condições
             especiais.
           </p>
-          <p className="font-semibold">Email: suporte@seusistema.com.br | WhatsApp: (11) 99999-9999</p>
+          <p className="font-semibold">Email: suporte@themixa.com.br | WhatsApp: (11) 99999-9999</p>
         </CardContent>
       </Card>
     </div>
