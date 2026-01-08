@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search, BookOpen, ExternalLink, Loader2, FileText, Calendar, AlertCircle } from 'lucide-react'
+import { Search, BookOpen, ExternalLink, Loader2, FileText, Calendar, AlertCircle, Users } from 'lucide-react'
 import { BRAZILIAN_LAWS } from '@/lib/data/brazilian-laws'
 
 // Base de leis brasileiras (expandida com 50+ leis)

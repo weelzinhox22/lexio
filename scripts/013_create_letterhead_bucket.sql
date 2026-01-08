@@ -15,29 +15,34 @@
 -- Depois, configure as políticas de acesso:
 -- Vá em Storage > letterheads > Policies e adicione:
 
--- Política 1: Permitir upload (INSERT)
--- CREATE POLICY "Users can upload letterhead logos"
--- ON storage.objects FOR INSERT
--- TO authenticated
--- WITH CHECK (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- Políticas de acesso (execute no Supabase Dashboard > Storage > letterheads > Policies):
 
--- Política 2: Permitir leitura (SELECT)
--- CREATE POLICY "Public can view letterhead logos"
--- ON storage.objects FOR SELECT
--- TO public
--- USING (bucket_id = 'letterheads');
+-- IMPORTANTE: Se der erro "policy already exists", delete as políticas antigas primeiro:
+-- DROP POLICY IF EXISTS "policy_name" ON storage.objects;
+
+-- Política 1: Permitir upload (INSERT)
+CREATE POLICY IF NOT EXISTS "Users can upload letterhead logos"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Política 2: Permitir leitura (SELECT) - PÚBLICA
+CREATE POLICY IF NOT EXISTS "Public can view letterhead logos"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'letterheads');
 
 -- Política 3: Permitir atualização (UPDATE)
--- CREATE POLICY "Users can update their own letterhead logos"
--- ON storage.objects FOR UPDATE
--- TO authenticated
--- USING (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY IF NOT EXISTS "Users can update their own letterhead logos"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
 
 -- Política 4: Permitir exclusão (DELETE)
--- CREATE POLICY "Users can delete their own letterhead logos"
--- ON storage.objects FOR DELETE
--- TO authenticated
--- USING (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY IF NOT EXISTS "Users can delete their own letterhead logos"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'letterheads' AND auth.uid()::text = (storage.foldername(name))[1]);
 
 SELECT 'Instruções para criar bucket de letterheads exibidas. Execute manualmente no Storage.' as status;
 
