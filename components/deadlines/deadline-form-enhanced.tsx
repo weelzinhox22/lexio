@@ -143,12 +143,12 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
         {/* Tipo de Prazo com Cálculo Automático */}
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="deadline_type">Tipo de Prazo com Cálculo Automático</Label>
-          <Select value={selectedDeadlineType || ''} onValueChange={setSelectedDeadlineType}>
+          <Select value={selectedDeadlineType || undefined} onValueChange={(value) => setSelectedDeadlineType(value === "manual" ? null : value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione para cálculo automático ou deixe em branco" />
             </SelectTrigger>
             <SelectContent className="max-h-[400px]">
-              <SelectItem value="">Nenhum (Manual)</SelectItem>
+              <SelectItem value="manual">Nenhum (Manual)</SelectItem>
               
               {Object.entries(groupedDeadlines).map(([category, deadlines]) => (
                 <div key={category}>

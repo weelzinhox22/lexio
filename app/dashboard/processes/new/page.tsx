@@ -57,10 +57,17 @@ export default async function NewProcessPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Novo Processo</h1>
-        <p className="text-slate-600 mt-1">Cadastre um novo processo judicial</p>
+    <div className="max-w-6xl space-y-6">
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-200">
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+          <div className="rounded-lg bg-indigo-100 p-2">
+            <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          Novo Processo
+        </h1>
+        <p className="text-slate-600 mt-2">Cadastre um novo processo judicial no sistema</p>
       </div>
 
       <ProcessForm clients={clients} userId={user.id} />
