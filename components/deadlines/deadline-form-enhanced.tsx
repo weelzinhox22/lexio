@@ -119,10 +119,6 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
     }
   }
 
-  const selectedDeadline = selectedDeadlineType 
-    ? LEGAL_DEADLINES.find(d => d.type === selectedDeadlineType) 
-    : null
-
   // Agrupar prazos por categoria
   const groupedDeadlines = Array.isArray(LEGAL_DEADLINES) 
     ? LEGAL_DEADLINES.reduce((acc, deadline) => {

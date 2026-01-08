@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Verificar se o usuário tem Google Calendar conectado
     const { data: userData } = await supabase
-      .from('users')
+      .from('profiles')
       .select('google_calendar_connected')
       .eq('id', user.id)
       .single()
