@@ -14,7 +14,7 @@ interface SubscriptionPlansProps {
 const plans = [
   {
     name: 'Básico',
-    price: 'R$ 97',
+    price: 'R$ 89',
     period: '/mês',
     description: 'Ideal para advogados autônomos',
     features: [
@@ -31,7 +31,7 @@ const plans = [
   },
   {
     name: 'Premium',
-    price: 'R$ 197',
+    price: 'R$ 174,99',
     period: '/mês',
     description: 'Para escritórios em crescimento',
     features: [
@@ -51,7 +51,7 @@ const plans = [
   },
   {
     name: 'Enterprise',
-    price: 'R$ 397',
+    price: 'R$ 260',
     period: '/mês',
     description: 'Para grandes escritórios',
     features: [

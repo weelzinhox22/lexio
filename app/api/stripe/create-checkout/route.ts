@@ -35,6 +35,11 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .single()
 
+    // Detectar URL do app automaticamente
+    // Prioridade: NEXT_PUBLIC_APP_URL > VERCEL_URL > localhost
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
     // Criar sessão de checkout no Stripe
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email || undefined,
@@ -46,8 +51,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription?canceled=true`,
+      success_url: `${appUrl}/dashboard/subscription?success=true`,
+      cancel_url: `${appUrl}/dashboard/subscription?canceled=true`,
       metadata: {
         user_id: user.id,
         plan_id: planId,

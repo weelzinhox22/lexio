@@ -16,6 +16,8 @@ import {
   Settings,
   UserCircle,
   CreditCard,
+  BookOpen,
+  FileStack,
 } from "lucide-react"
 
 const navigation = [
@@ -25,6 +27,8 @@ const navigation = [
   { name: "Prazos", href: "/dashboard/deadlines", icon: Bell },
   { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
   { name: "Documentos", href: "/dashboard/documents", icon: FileText },
+  { name: "Modelos", href: "/dashboard/templates", icon: FileStack },
+  { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
   { name: "Financeiro", href: "/dashboard/financial", icon: DollarSign },
   { name: "Leads", href: "/dashboard/leads", icon: UserCircle },
   { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
