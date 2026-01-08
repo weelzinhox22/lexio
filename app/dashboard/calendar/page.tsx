@@ -50,10 +50,10 @@ export default async function CalendarPage() {
   ])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Calendário</h1>
-        <p className="text-slate-600 mt-1">Visualize todos os seus prazos e compromissos</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Calendário</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Visualize todos os seus prazos e compromissos</p>
       </div>
 
       <CalendarView deadlines={deadlinesResult.data || []} appointments={appointmentsResult.data || []} />

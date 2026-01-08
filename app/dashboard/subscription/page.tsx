@@ -23,10 +23,10 @@ export default async function SubscriptionPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Assinatura</h1>
-        <p className="text-slate-600 mt-1">Gerencie seu plano e pagamentos</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Assinatura</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Gerencie seu plano e pagamentos</p>
       </div>
 
       {isExpired && (

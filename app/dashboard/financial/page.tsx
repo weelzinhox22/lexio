@@ -43,22 +43,23 @@ export default async function FinancialPage() {
   const saldo = totalReceitas - totalDespesas
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Financeiro</h1>
-          <p className="text-slate-600 mt-1">Gerencie suas finanças e honorários</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Financeiro</h1>
+          <p className="text-slate-600 mt-1 text-sm md:text-base">Gerencie suas finanças e honorários</p>
         </div>
-        <Link href="/dashboard/financial/new">
-          <Button className="bg-slate-900 hover:bg-slate-800">
+        <Link href="/dashboard/financial/new" className="flex-1 sm:flex-initial">
+          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-sm">
             <Plus className="h-4 w-4 mr-2" />
-            Nova Transação
+            <span className="hidden sm:inline">Nova Transação</span>
+            <span className="sm:hidden">Nova</span>
           </Button>
         </Link>
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:gap-6 grid-cols-2 lg:grid-cols-4">
         <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-900">Receitas</CardTitle>

@@ -25,10 +25,10 @@ export default async function TemplatesPage() {
     .order("created_at", { ascending: false })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Modelos de Documentos</h1>
-        <p className="text-slate-600 mt-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Modelos de Documentos</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">
           Crie e gerencie templates de documentos jurídicos com preenchimento automático
         </p>
       </div>
