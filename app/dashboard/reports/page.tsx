@@ -29,12 +29,12 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Relatórios e Análises</h1>
-        <p className="text-slate-600 mt-1">Insights completos sobre seu escritório jurídico</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Relatórios e Análises</h1>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Insights completos sobre seu escritório jurídico</p>
       </div>
 
       <Tabs defaultValue="financial" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 md:gap-0">
           <TabsTrigger value="financial">Financeiro</TabsTrigger>
           <TabsTrigger value="processes">Processos</TabsTrigger>
           <TabsTrigger value="clients">Clientes</TabsTrigger>

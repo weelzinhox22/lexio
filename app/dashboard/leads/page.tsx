@@ -27,15 +27,16 @@ export default async function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Leads</h1>
-          <p className="text-slate-600 mt-1">Gerencie seus potenciais clientes</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Leads</h1>
+          <p className="text-slate-600 mt-1 text-sm md:text-base">Gerencie seus potenciais clientes</p>
         </div>
-        <Link href="/dashboard/leads/new">
-          <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+        <Link href="/dashboard/leads/new" className="flex-1 sm:flex-initial">
+          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
             <Plus className="mr-2 h-4 w-4" />
-            Novo Lead
+            <span className="hidden sm:inline">Novo Lead</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </Link>
       </div>
