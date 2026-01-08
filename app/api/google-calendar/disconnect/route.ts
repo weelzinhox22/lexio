@@ -35,7 +35,7 @@ export async function POST() {
 
     // Atualizar flag de conexão do usuário
     await supabase
-      .from('users')
+      .from('profiles')
       .update({ google_calendar_connected: false })
       .eq('id', user.id)
 

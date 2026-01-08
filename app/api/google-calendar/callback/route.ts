@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     // Atualizar flag de conexão do usuário
     await supabase
-      .from('users')
+      .from('profiles')
       .update({ google_calendar_connected: true })
       .eq('id', user.id)
 

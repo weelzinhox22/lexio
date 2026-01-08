@@ -66,8 +66,9 @@ CREATE TRIGGER trigger_update_google_calendar_tokens_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_google_calendar_tokens_updated_at();
 
--- Adicionar coluna na tabela users para indicar se está conectado
-ALTER TABLE public.users 
+-- Adicionar coluna na tabela profiles para indicar se está conectado
+-- (Supabase usa profiles ao invés de public.users)
+ALTER TABLE public.profiles 
   ADD COLUMN IF NOT EXISTS google_calendar_connected BOOLEAN DEFAULT FALSE;
 
 -- Comentários
@@ -81,6 +82,6 @@ DO $$
 BEGIN
   RAISE NOTICE '✅ Tabela google_calendar_tokens criada com sucesso!';
   RAISE NOTICE '✅ RLS habilitado e políticas criadas!';
-  RAISE NOTICE '✅ Coluna google_calendar_connected adicionada à tabela users!';
+  RAISE NOTICE '✅ Coluna google_calendar_connected adicionada à tabela profiles!';
 END $$;
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Briefcase, Users, Bell, DollarSign, FileText, TrendingUp, Calendar, AlertCircle, Clock, CheckCircle2 } from "lucide-react"
+import { HonorariosCard } from "@/components/dashboard/honorarios-card"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ export default async function DashboardPage() {
     upcomingDeadlines,
     recentTransactions,
     overdueDeadlines,
+    wonProcesses,
   ] = await Promise.all([
     supabase.from("processes").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
@@ -62,6 +64,13 @@ export default async function DashboardPage() {
       .eq("status", "pending")
       .lt("deadline_date", new Date().toISOString().split("T")[0])
       .limit(5),
+    supabase
+      .from("processes")
+      .select("id, title, process_number, valor_causa, percentual_honorario, honorario_calculado")
+      .eq("user_id", user!.id)
+      .eq("status_ganho", "ganho")
+      .not("honorario_calculado", "is", null)
+      .order("created_at", { ascending: false }),
   ])
 
   const totalIncome = financialResult.data
@@ -78,6 +87,9 @@ export default async function DashboardPage() {
 
   const newLeads = leadsResult.data?.filter((l: any) => l.status === "new").length || 0
   const convertedLeads = leadsResult.data?.filter((l: any) => l.status === "converted").length || 0
+
+  // Calcular total de honorários
+  const totalHonorarios = wonProcesses.data?.reduce((acc, p: any) => acc + Number(p.honorario_calculado || 0), 0) || 0
 
   const stats = [
     {
@@ -129,6 +141,15 @@ export default async function DashboardPage() {
       link: "/dashboard/financial",
     },
     {
+      name: "Honorários Calculados",
+      value: `R$ ${totalHonorarios.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      link: "/dashboard/financial",
+      description: `${wonProcesses.data?.length || 0} processo(s) ganho(s)`,
+    },
+    {
       name: "Leads Novos",
       value: newLeads,
       icon: Users,
@@ -170,6 +191,14 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Card de Honorários */}
+      {wonProcesses.data && wonProcesses.data.length > 0 && (
+        <HonorariosCard 
+          processes={wonProcesses.data} 
+          totalHonorarios={totalHonorarios}
+        />
+      )}
 
       {/* Financial Summary */}
       <div className="grid gap-6 lg:grid-cols-3">

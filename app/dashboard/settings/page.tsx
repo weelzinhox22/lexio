@@ -54,14 +54,14 @@ export default function SettingsPage() {
       }
 
       // Verificar se Google Calendar está conectado
-      const { data: userData } = await supabase
-        .from("users")
+      const { data: profileData } = await supabase
+        .from("profiles")
         .select("google_calendar_connected")
         .eq("id", user.id)
         .single()
       
-      if (userData) {
-        setGoogleCalendarConnected(userData.google_calendar_connected || false)
+      if (profileData) {
+        setGoogleCalendarConnected(profileData.google_calendar_connected || false)
       }
     } catch (error) {
       console.error("[v0] Error loading profile:", error)
