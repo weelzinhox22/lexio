@@ -1,4 +1,4 @@
-{
+﻿{
   "crons": [
     {
       "path": "/api/cron/check-deadlines",
@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/check-subscriptions",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/check-jusbrasil-publications",
-      "schedule": "0 10 * * *"
     }
   ]
 }
