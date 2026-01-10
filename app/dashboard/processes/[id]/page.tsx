@@ -97,7 +97,7 @@ export default async function ProcessViewPage({
                 )}
                 {process.matter && (
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Matéia</label>
+                    <label className="text-sm font-medium text-slate-600">Matéria</label>
                     <p className="text-slate-900">{process.matter}</p>
                   </div>
                 )}
