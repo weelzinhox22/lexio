@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
-import { RESEND_TEST_FROM, sendTestEmail } from '@/lib/email/resend'
+import { sendTestEmail } from '@/lib/email/brevo'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/dev/test-email?to=email@destino.com
- * Teste isolado do Resend (mínimo) para provar se envio funciona.
+ * Teste isolado do Brevo (mínimo) para provar se envio funciona.
  *
  * Regras:
  * - Em produção: bloqueia por padrão (403) a menos que ALLOW_DEV_ROUTES esteja habilitada.
- * - Usa process.env.RESEND_API_KEY (backend-only)
+ * - Usa process.env.BREVO_API_KEY (backend-only)
  */
 export async function GET(req: Request) {
   if (process.env.ALLOW_DEV_ROUTES !== '1') {
@@ -24,17 +24,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Missing ?to=' }, { status: 400 })
   }
 
-  console.log('🧪 /api/dev/test-email iniciado', { at: new Date().toISOString(), to })
+  console.log('🧪 /api/dev/test-email iniciado', { at: new Date().toISOString(), to, provider: 'brevo' })
 
   try {
-    console.log('📨 Resend test-email send', { from: RESEND_TEST_FROM, to })
+    const fromEmail = process.env.BREVO_FROM_EMAIL || ''
+    console.log('📨 Brevo test-email send', { from: fromEmail, to })
     const result = await sendTestEmail(to)
-    console.log('✅ Resend test-email response', result)
-    return NextResponse.json({ success: true, to, resend: result })
+    
+    if (result.ok) {
+      console.log('✅ Brevo test-email response', { messageId: result.messageId, to, template: 'test' })
+      return NextResponse.json({ success: true, to, provider: 'brevo', template: 'test', brevo: { messageId: result.messageId } })
+    } else {
+      console.log('❌ Brevo test-email error', { error: result.error, to })
+      return NextResponse.json({ error: result.error, provider: 'brevo' }, { status: 502 })
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    console.log('❌ Resend test-email error', { message: msg, from: RESEND_TEST_FROM, to })
-    return NextResponse.json({ error: msg }, { status: 502 })
+    console.log('❌ Brevo test-email exception', { message: msg, to })
+    return NextResponse.json({ error: msg, provider: 'brevo' }, { status: 502 })
   }
 }
 

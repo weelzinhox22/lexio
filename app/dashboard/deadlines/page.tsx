@@ -6,6 +6,7 @@ import Link from "next/link"
 import { DeadlineList } from "@/components/deadlines/deadline-list"
 import { DeadlineStats } from "@/components/deadlines/deadline-stats"
 import { DeadlineCalendar } from "@/components/deadlines/deadline-calendar"
+import { DeadlineEmailSettings } from "@/components/deadlines/deadline-email-settings"
 
 export default async function DeadlinesPage() {
   const supabase = await createClient()
@@ -82,10 +83,11 @@ export default async function DeadlinesPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <Card className="border-slate-200">
             <DeadlineList deadlines={deadlines || []} />
           </Card>
+          <DeadlineEmailSettings />
         </div>
         <div>
           <Card className="border-slate-200">

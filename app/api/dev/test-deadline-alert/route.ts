@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
  *
  * Teste manual do cron: força envio de e-mail usando 1 deadline ativo qualquer.
  * - Ignora datas reais: envia como se fosse "HOJE" (daysRemaining=0)
- * - Loga tudo: deadline encontrado, usuário, e-mail alvo, resposta do Resend
+ * - Loga tudo: deadline encontrado, usuário, e-mail alvo, resposta do Brevo
  *
  * Segurança:
  * - Em produção: bloqueia por padrão (403) a menos que ALLOW_DEV_ROUTES esteja habilitada.
@@ -92,13 +92,13 @@ export async function POST(request: NextRequest) {
     severity: 'danger',
   })
 
-  console.log('📬 Resposta Resend', send)
+  console.log('📬 Resposta Brevo', send)
 
   if (!send.ok) {
     return NextResponse.json({ success: false, error: send.error }, { status: 502 })
   }
 
-  return NextResponse.json({ success: true, resend_id: send.id })
+  return NextResponse.json({ success: true, brevo_messageId: send.id, provider: 'brevo' })
 }
 
 

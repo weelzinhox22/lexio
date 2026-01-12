@@ -18,7 +18,7 @@ function severityFromDays(days: number): 'info' | 'warning' | 'danger' {
 
 /**
  * POST /api/test/email-alert
- * Envia um e-mail de teste via Resend.
+ * Envia um e-mail de teste via Brevo.
  *
  * Regras:
  * - Apenas dev (NODE_ENV !== 'production')
@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
   })
 
   const resp = send.ok
-    ? NextResponse.json({ success: true, resend_id: send.id }, { headers: { 'Cache-Control': 'no-store' } })
-    : NextResponse.json({ error: send.error }, { status: 502, headers: { 'Cache-Control': 'no-store' } })
+    ? NextResponse.json({ success: true, brevo_messageId: send.id, provider: 'brevo' }, { headers: { 'Cache-Control': 'no-store' } })
+    : NextResponse.json({ error: send.error, provider: 'brevo' }, { status: 502, headers: { 'Cache-Control': 'no-store' } })
 
   return attachSupabaseCookies(resp, cookieResponse)
 }

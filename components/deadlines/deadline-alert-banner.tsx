@@ -34,49 +34,74 @@ export function DeadlineAlertBanner({ deadlines }: { deadlines: BannerDeadline[]
 
   return (
     <div
-      className={
+      className={`w-full border-b-2 px-4 py-4 shadow-sm ${
         isDanger
-          ? 'w-full border-b border-red-200 bg-red-50 px-4 py-3'
+          ? 'border-red-300 bg-gradient-to-r from-red-50 via-red-50 to-orange-50'
           : isWarning
-            ? 'w-full border-b border-yellow-200 bg-yellow-50 px-4 py-3'
-            : 'w-full border-b border-slate-200 bg-slate-50 px-4 py-3'
-      }
+            ? 'border-yellow-300 bg-gradient-to-r from-yellow-50 via-yellow-50 to-amber-50'
+            : 'border-blue-300 bg-gradient-to-r from-blue-50 via-blue-50 to-indigo-50'
+      }`}
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <AlertTriangle
-            className={
-              isDanger ? 'mt-0.5 h-5 w-5 text-red-700' : isWarning ? 'mt-0.5 h-5 w-5 text-yellow-700' : 'mt-0.5 h-5 w-5 text-slate-700'
-            }
-          />
-          <div className="space-y-1">
+          <div
+            className={`mt-0.5 rounded-full p-2 ${
+              isDanger
+                ? 'bg-red-100 text-red-700'
+                : isWarning
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-blue-100 text-blue-700'
+            }`}
+          >
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="space-y-1.5 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={isDanger ? 'font-semibold text-red-900' : isWarning ? 'font-semibold text-yellow-900' : 'font-semibold text-slate-900'}>
-                Alertas de prazo
+              <span
+                className={`font-bold text-base ${
+                  isDanger ? 'text-red-900' : isWarning ? 'text-yellow-900' : 'text-blue-900'
+                }`}
+              >
+                ⚠️ Alertas de Prazo
               </span>
-              {counts.overdue > 0 && <Badge variant="destructive">{counts.overdue} vencido(s)</Badge>}
-              {counts.today > 0 && <Badge variant="destructive">{counts.today} vence(m) hoje</Badge>}
-              {counts.tomorrow > 0 && <Badge className="bg-yellow-100 text-yellow-800">{counts.tomorrow} vence(m) amanhã</Badge>}
+              {counts.overdue > 0 && (
+                <Badge className="bg-red-600 text-white font-semibold px-2.5 py-0.5 text-xs">
+                  {counts.overdue} vencido{counts.overdue > 1 ? 's' : ''}
+                </Badge>
+              )}
+              {counts.today > 0 && (
+                <Badge className="bg-orange-600 text-white font-semibold px-2.5 py-0.5 text-xs">
+                  {counts.today} vence hoje
+                </Badge>
+              )}
+              {counts.tomorrow > 0 && (
+                <Badge className="bg-yellow-500 text-white font-semibold px-2.5 py-0.5 text-xs">
+                  {counts.tomorrow} vence amanhã
+                </Badge>
+              )}
             </div>
-            <div className={isDanger ? 'text-xs text-red-900/90' : isWarning ? 'text-xs text-yellow-900/90' : 'text-xs text-slate-700'}>
-              Alerta auxiliar — confira o prazo no teor da publicação/andamento. Não substitui conferência profissional.
+            <div
+              className={`text-sm leading-relaxed ${
+                isDanger ? 'text-red-800/90' : isWarning ? 'text-yellow-800/90' : 'text-blue-800/90'
+              }`}
+            >
+              Confira o prazo no teor da publicação/andamento. Este alerta é auxiliar e não substitui conferência profissional.
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             asChild
-            variant="outline"
-            className={
+            className={`font-semibold shadow-md transition-all ${
               isDanger
-                ? 'border-red-200 bg-white hover:bg-red-50'
+                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                 : isWarning
-                  ? 'border-yellow-200 bg-white hover:bg-yellow-50'
-                  : 'border-slate-200 bg-white hover:bg-slate-50'
-            }
+                  ? 'bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+            }`}
           >
-            <Link href="/dashboard/deadlines">Ver prazos</Link>
+            <Link href="/dashboard/deadlines">Ver prazos →</Link>
           </Button>
         </div>
       </div>

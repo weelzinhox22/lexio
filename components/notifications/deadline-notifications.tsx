@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Bell, X } from 'lucide-react'
+import { Bell, X, CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 interface Notification {
   id: string
@@ -108,68 +109,125 @@ export function DeadlineNotifications() {
     setNotifications([])
   }
 
-  if (notifications.length === 0) return null
+  // Não renderizar se não houver notificações e não estiver aberto
+  if (notifications.length === 0 && !isOpen) return null
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-6 right-6 z-50">
       <div className="relative">
+        {/* Botão Flutuante */}
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="h-12 w-12 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg relative"
+          className={cn(
+            "h-14 w-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 relative",
+            "hover:scale-105 active:scale-95",
+            isOpen && "bg-slate-800"
+          )}
         >
-          <Bell className="h-5 w-5" />
+          <Bell className={cn("h-5 w-5 transition-transform duration-200", isOpen && "rotate-12")} />
           {notifications.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+            <Badge
+              variant="destructive"
+              className={cn(
+                "absolute -top-1 -right-1 h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full text-[10px] font-semibold",
+                "transition-all duration-200",
+                isOpen && "scale-110"
+              )}
+            >
               {notifications.length > 9 ? '9+' : notifications.length}
-            </span>
+            </Badge>
           )}
         </Button>
 
+        {/* Dropdown */}
         {isOpen && (
-          <div className="absolute bottom-16 right-0 w-80 rounded-lg border border-slate-200 bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-200 p-4">
-              <h3 className="font-semibold text-slate-900">Notificações</h3>
-              <div className="flex gap-2">
+          <div
+            className={cn(
+              "absolute bottom-20 right-0 w-96 rounded-xl border border-slate-200 bg-white shadow-2xl",
+              "transform transition-all duration-200 ease-out",
+              "overflow-hidden"
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/50 px-5 py-4">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-slate-900">Notificações</h3>
+                {notifications.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {notifications.length}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
                 {notifications.length > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={markAllAsRead}
-                    className="text-xs text-slate-600 hover:text-slate-900"
+                    className="text-xs h-8 px-2 text-slate-600 hover:text-slate-900"
                   >
-                    Marcar todas como lidas
+                    <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
+                    Todas
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="h-8 w-8"
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            <div className="max-h-96 overflow-y-auto">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className="border-b border-slate-100 p-4 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-slate-900">{notification.title}</p>
-                      <p className="text-xs text-slate-600 mt-1">{notification.message}</p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {new Date(notification.created_at).toLocaleString('pt-BR')}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 shrink-0"
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+
+            {/* Lista */}
+            <div className="max-h-96 overflow-y-auto overscroll-contain">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                  <div className="rounded-full bg-slate-100 p-3 mb-3">
+                    <Bell className="h-6 w-6 text-slate-400" />
                   </div>
+                  <p className="text-sm font-medium text-slate-900 mb-1">Sem notificações</p>
+                  <p className="text-xs text-slate-500">
+                    Você será notificado quando houver novos alertas de prazo.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="border-b border-slate-100 p-4 hover:bg-slate-50/50 transition-colors duration-150"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-slate-900 leading-snug mb-1">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-slate-600 leading-relaxed mb-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {new Date(notification.created_at).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 hover:bg-slate-200"
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

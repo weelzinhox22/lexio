@@ -4,6 +4,7 @@ import {
   buildAlertPlan,
   computeAlertStatus,
   updateDeadlineAlertStatus,
+  daysUntilUTC,
 } from '@/lib/deadlines/alert-engine'
 import {
   buildDeadlineNotificationType,
@@ -13,6 +14,9 @@ import {
 import { sendDeadlineAlertEmail } from '@/lib/email/send-deadline-alert'
 import { isEligibleForDeadlineEmail } from '@/lib/email/deadline-email-eligibility'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 type NotificationSettingsRow = {
   user_id: string
   email_enabled: boolean
@@ -21,54 +25,244 @@ type NotificationSettingsRow = {
 }
 
 /**
+ * Valida autenticação do cron (à prova de erro).
+ * 
+ * Aceita:
+ * - Authorization: Bearer <token>
+ * - x-cron-secret: <token>
+ * 
+ * Em development: NÃO bloqueia (permite testes locais)
+ * Em production: Auth OBRIGATÓRIO
+ */
+function validateCronAuth(request: Request): { valid: boolean; reason?: string } {
+  const isDev = process.env.NODE_ENV === 'development'
+  const expectedSecret = (process.env.CRON_SECRET || '').trim()
+
+  // Em dev: permitir sem auth
+  if (isDev) {
+    if (!expectedSecret) {
+      console.log('🔓 [DeadlineAlerts Cron] DEV MODE - CRON_SECRET não configurado, permitindo acesso')
+      return { valid: true }
+    }
+  }
+
+  // Em prod: auth obrigatório
+  if (!expectedSecret) {
+    console.error('❌ [DeadlineAlerts Cron] CRON_SECRET não configurado em produção')
+    return { valid: false, reason: 'CRON_SECRET não configurado' }
+  }
+
+  // Tentar pegar token do header Authorization
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || ''
+  const cronSecretHeader = request.headers.get('x-cron-secret') || request.headers.get('X-Cron-Secret') || ''
+
+  // Normalizar: remover espaços, considerar Bearer <token> ou apenas <token>
+  const authToken = authHeader
+    .trim()
+    .replace(/^bearer\s+/i, '')
+    .trim()
+  
+  const secretToken = cronSecretHeader.trim()
+
+  const receivedToken = authToken || secretToken
+  const receivedTokenDisplay = receivedToken ? `${receivedToken.substring(0, 8)}...` : '[vazio]'
+
+  // Log apenas em dev (não expor secret em logs de produção)
+  if (isDev) {
+    console.log('🔐 [DeadlineAlerts Cron] Validando auth:')
+    console.log(`   └─ Authorization header: ${authHeader ? 'presente' : 'ausente'}`)
+    console.log(`   └─ x-cron-secret header: ${cronSecretHeader ? 'presente' : 'ausente'}`)
+    console.log(`   └─ Token recebido: ${receivedTokenDisplay}`)
+    console.log(`   └─ Token esperado: ${expectedSecret.substring(0, 8)}...`)
+  }
+
+  // Comparação segura (case-sensitive)
+  if (!receivedToken) {
+    const reason = isDev ? 'Nenhum token fornecido (DEV: permitido)' : 'Nenhum token fornecido'
+    if (isDev) {
+      console.log(`🔓 [DeadlineAlerts Cron] ${reason}`)
+      return { valid: true } // Em dev, permitir sem token
+    }
+    return { valid: false, reason }
+  }
+
+  // Comparação exata (sem trimming adicional, case-sensitive)
+  const isValid = receivedToken === expectedSecret
+
+  if (isValid) {
+    if (isDev) {
+      console.log('✅ [DeadlineAlerts Cron] Auth válido (token bateu)')
+    }
+    return { valid: true }
+  }
+
+  const reason = `Token inválido (recebido: ${receivedTokenDisplay}, esperado: ${expectedSecret.substring(0, 8)}...)`
+  if (isDev) {
+    console.warn(`⚠️ [DeadlineAlerts Cron] ${reason}`)
+    // Em dev, ainda permitir se não tiver secret configurado
+    if (!expectedSecret) {
+      console.log('🔓 [DeadlineAlerts Cron] DEV MODE - Permitindo apesar de token inválido')
+      return { valid: true }
+    }
+  }
+
+  return { valid: false, reason }
+}
+
+/**
  * Cron diário: Deadline Alert Engine
  *
  * - Atualiza deadlines.alert_status (active/urgent/overdue/done)
- * - Dispara notificações in-app e email (se SMTP configurado)
+ * - Dispara notificações in-app e email (via Brevo)
  * - Registra histórico e evita duplicatas via dedupe_key
  *
  * Segurança:
- * - Protegido por CRON_SECRET
+ * - Em dev: Auth opcional (permite testes locais)
+ * - Em prod: Auth obrigatório (CRON_SECRET via Authorization ou x-cron-secret)
  * - Usa SUPABASE_SERVICE_ROLE_KEY para acessar dados de todos usuários
+ * - Runtime: nodejs (obrigatório para Brevo API)
  */
 export async function GET(request: Request) {
+  const startTime = Date.now()
+  const nowUTC = new Date()
+  const nowISO = nowUTC.toISOString()
+
   try {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Validar autenticação
+    const authResult = validateCronAuth(request)
+    if (!authResult.valid) {
+      console.error('[DeadlineAlerts Cron] ❌ UNAUTHORIZED:', authResult.reason)
+      return NextResponse.json({ error: 'Unauthorized', reason: authResult.reason }, { status: 401 })
     }
 
-    console.log('⏰ Cron executado', new Date().toISOString())
+    console.log('⏰ [DeadlineAlerts Cron] ============================================')
+    console.log('⏰ [DeadlineAlerts Cron] INÍCIO DA EXECUÇÃO')
+    console.log('⏰ [DeadlineAlerts Cron] Timestamp UTC:', nowISO)
+    console.log('⏰ [DeadlineAlerts Cron] Ambiente:', process.env.NODE_ENV || 'unknown')
+    console.log('⏰ [DeadlineAlerts Cron] User-Agent:', request.headers.get('user-agent') || 'N/A')
+    console.log('⏰ [DeadlineAlerts Cron] ============================================')
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceKey) {
+    
+    if (!supabaseUrl) {
+      console.error('[DeadlineAlerts Cron] ❌ ENV VAR MISSING: NEXT_PUBLIC_SUPABASE_URL')
       return NextResponse.json(
-        { error: 'Supabase env vars não configuradas (NEXT_PUBLIC_SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY).' },
+        { error: 'NEXT_PUBLIC_SUPABASE_URL não configurada' },
         { status: 500 }
       )
     }
+    
+    if (!serviceKey) {
+      console.error('[DeadlineAlerts Cron] ❌ ENV VAR MISSING: SUPABASE_SERVICE_ROLE_KEY')
+      return NextResponse.json(
+        { error: 'SUPABASE_SERVICE_ROLE_KEY não configurada. Configure no Vercel → Settings → Environment Variables' },
+        { status: 500 }
+      )
+    }
+    
+    // Validar formato básico da Service Role Key (deve ser um JWT)
+    if (!serviceKey.startsWith('eyJ')) {
+      console.error('[DeadlineAlerts Cron] ❌ SERVICE KEY FORMATO INVÁLIDO')
+      console.error('[DeadlineAlerts Cron] Service Key deve começar com "eyJ" (JWT)')
+      console.error('[DeadlineAlerts Cron] Service Key recebida começa com:', serviceKey.substring(0, 10))
+      return NextResponse.json(
+        { error: 'SUPABASE_SERVICE_ROLE_KEY formato inválido. Deve ser um JWT válido começando com "eyJ"' },
+        { status: 500 }
+      )
+    }
+
+    console.log('🔐 [DeadlineAlerts Cron] Validando conexão Supabase...')
+    console.log('🔐 [DeadlineAlerts Cron] Supabase URL:', supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'NÃO CONFIGURADA')
+    console.log('🔐 [DeadlineAlerts Cron] Service Key presente:', serviceKey ? `SIM (${serviceKey.substring(0, 20)}...)` : 'NÃO')
+    console.log('🔐 [DeadlineAlerts Cron] Service Key formato:', serviceKey.startsWith('eyJ') ? 'JWT válido' : 'INVÁLIDO')
 
     const supabase = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const now = new Date()
+    const now = nowUTC
+
+    // Testar conexão Supabase primeiro (query simples)
+    console.log('🔐 [DeadlineAlerts Cron] Testando conexão Supabase...')
+    const { data: testData, error: testError } = await supabase.from('profiles').select('count').limit(1)
+    if (testError) {
+      console.error('[DeadlineAlerts Cron] ❌ Erro ao testar conexão Supabase:')
+      console.error('[DeadlineAlerts Cron] ❌ Erro code:', testError.code)
+      console.error('[DeadlineAlerts Cron] ❌ Erro message:', testError.message)
+      console.error('[DeadlineAlerts Cron] ❌ Erro details:', testError.details)
+      console.error('[DeadlineAlerts Cron] ❌ Erro hint:', testError.hint)
+      
+      // Mensagem mais clara para erro de API key
+      if (testError.message?.includes('Invalid API key') || testError.message?.includes('JWT')) {
+        return NextResponse.json(
+          { 
+            error: 'SUPABASE_SERVICE_ROLE_KEY inválida',
+            details: 'A Service Role Key configurada no Vercel está incorreta ou expirada. Verifique em: Vercel → Settings → Environment Variables → SUPABASE_SERVICE_ROLE_KEY',
+            code: testError.code,
+            hint: 'Obtenha a Service Role Key correta em: Supabase Dashboard → Settings → API → service_role key',
+          },
+          { status: 500 }
+        )
+      }
+      
+      return NextResponse.json(
+        { 
+          error: 'Erro ao conectar ao Supabase',
+          details: testError.message,
+          code: testError.code,
+          hint: testError.hint,
+        },
+        { status: 500 }
+      )
+    }
+    
+    console.log('✅ [DeadlineAlerts Cron] Conexão Supabase OK')
 
     // Buscar deadlines ativos (não concluídos)
+    console.log('📋 [DeadlineAlerts Cron] Buscando deadlines ativos...')
     const { data: deadlines, error: dlError } = await supabase
       .from('deadlines')
       .select('id, user_id, process_id, title, description, deadline_date, status, acknowledged_at, alert_status')
       .neq('status', 'completed')
 
     if (dlError) {
-      console.error('[DeadlineAlerts Cron] Error fetching deadlines:', dlError)
-      return NextResponse.json({ error: 'Failed to fetch deadlines' }, { status: 500 })
+      console.error('[DeadlineAlerts Cron] ❌ Erro ao buscar deadlines:')
+      console.error('[DeadlineAlerts Cron] ❌ Erro code:', dlError.code)
+      console.error('[DeadlineAlerts Cron] ❌ Erro message:', dlError.message)
+      console.error('[DeadlineAlerts Cron] ❌ Erro details:', dlError.details)
+      console.error('[DeadlineAlerts Cron] ❌ Erro hint:', dlError.hint)
+      
+      // Mensagem mais clara para erro de API key
+      if (dlError.message?.includes('Invalid API key') || dlError.message?.includes('JWT')) {
+        return NextResponse.json(
+          { 
+            error: 'SUPABASE_SERVICE_ROLE_KEY inválida',
+            details: 'A Service Role Key configurada no Vercel está incorreta ou expirada. Verifique em: Vercel → Settings → Environment Variables → SUPABASE_SERVICE_ROLE_KEY',
+            code: dlError.code,
+            hint: 'Obtenha a Service Role Key correta em: Supabase Dashboard → Settings → API → service_role key',
+          },
+          { status: 500 }
+        )
+      }
+      
+      return NextResponse.json(
+        { 
+          error: 'Failed to fetch deadlines',
+          details: dlError.message,
+          code: dlError.code,
+          hint: dlError.hint,
+        },
+        { status: 500 }
+      )
     }
 
     if (!deadlines || deadlines.length === 0) {
-      return NextResponse.json({ success: true, checked_at: now.toISOString(), deadlines_checked: 0 })
+      console.log('📋 [DeadlineAlerts Cron] Nenhum deadline ativo encontrado')
+      return NextResponse.json({ success: true, checked_at: nowISO, deadlines_checked: 0 })
     }
+
+    console.log(`📋 [DeadlineAlerts Cron] Encontrados ${deadlines.length} deadline(s) ativo(s)`)
 
     const userIds = Array.from(new Set(deadlines.map((d: any) => d.user_id)))
     const { data: profiles } = await supabase
@@ -92,15 +286,31 @@ export async function GET(request: Request) {
     let emailSkipped = 0
 
     for (const d of deadlines as any[]) {
+      const deadlineDate = new Date(d.deadline_date)
+      const daysUntil = daysUntilUTC(d.deadline_date, now)
+
+      console.log(`\n📅 [DeadlineAlerts Cron] Processando deadline: ${d.id}`)
+      console.log(`   └─ Título: ${d.title}`)
+      console.log(`   └─ Data do prazo (UTC): ${deadlineDate.toISOString()}`)
+      console.log(`   └─ Dias até o prazo: ${daysUntil}`)
+      console.log(`   └─ Status atual: ${d.status}`)
+      console.log(`   └─ Alert status atual: ${d.alert_status || 'null'}`)
+
       const alertStatus = computeAlertStatus(d, now)
 
       if ((d.alert_status || null) !== alertStatus) {
+        console.log(`   └─ ⚠️  Alert status mudou: ${d.alert_status || 'null'} → ${alertStatus}`)
         await updateDeadlineAlertStatus(supabase as any, d.id, d.user_id, alertStatus)
         statusUpdates++
       }
 
       const plans = buildAlertPlan(d, now)
-      if (plans.length === 0) continue
+      if (plans.length === 0) {
+        console.log(`   └─ ⏭️  Sem planos de alerta (prazo muito distante ou concluído)`)
+        continue
+      }
+
+      console.log(`   └─ ✅ ${plans.length} plano(s) de alerta gerado(s)`)
 
       const profile = profileMap.get(d.user_id) as any | undefined
       const settings = settingsMap.get(d.user_id)
@@ -110,8 +320,13 @@ export async function GET(request: Request) {
       const toEmail = (settings?.email_override || profile?.email || '').trim()
       const userName = profile?.full_name ?? null
 
+      console.log(`   └─ Usuário: ${userName || 'N/A'} (${d.user_id})`)
+      console.log(`   └─ E-mail: ${toEmail || '[VAZIO]'}`)
+      console.log(`   └─ E-mail habilitado: ${emailEnabled}`)
+      console.log(`   └─ Dias configurados: [${alertDays.join(', ')}]`)
+
       for (const plan of plans) {
-        console.log('📅 Prazo', d.id, 'daysDiff:', plan.daysRemaining, 'rule:', plan.rule)
+        console.log(`\n   📬 [Plano] ${plan.rule} (${plan.daysRemaining} dias restantes)`)
 
         const notificationType = buildDeadlineNotificationType(plan.rule)
 
@@ -135,7 +350,7 @@ export async function GET(request: Request) {
         })
         if (inApp.created) inAppCreated++
 
-        // Email notification (Resend) — respeita settings do usuário e dedupe por deadline_id + days_remaining
+        // Email notification (Brevo) — respeita settings do usuário e dedupe por deadline_id + days_remaining
         const eligibleForEmail = isEligibleForDeadlineEmail({
           emailEnabled,
           alertDays,
@@ -144,19 +359,22 @@ export async function GET(request: Request) {
         })
 
         if (!eligibleForEmail) {
-          console.log('⛔ Email skip (regra/consentimento)', {
-            deadlineId: d.id,
-            userId: d.user_id,
-            toEmail: toEmail ? '[ok]' : '[vazio]',
-            emailEnabled,
-            alertDays,
-            daysRemaining: plan.daysRemaining,
-            rule: plan.rule,
-            note: plan.daysRemaining < 0 ? 'OVERDUE não envia por padrão (evita spam)' : undefined,
-          })
+          const reason = !emailEnabled 
+            ? 'email desabilitado nas configurações'
+            : !toEmail
+            ? 'e-mail de destino vazio'
+            : !alertDays.includes(plan.daysRemaining)
+            ? `diasRemaining (${plan.daysRemaining}) não está em alertDays [${alertDays.join(', ')}]`
+            : plan.daysRemaining < 0
+            ? 'OVERDUE não envia por padrão (evita spam)'
+            : 'razão desconhecida'
+          
+          console.log(`      ⛔ Email SKIP: ${reason}`)
           emailSkipped++
           continue
         }
+
+        console.log(`      ✅ Email ELIGÍVEL para envio`)
 
         // Claim record first (dedupe hard). If it already exists, skip sending.
         const record = await createEmailNotificationRecord(supabase as any, {
@@ -182,24 +400,16 @@ export async function GET(request: Request) {
         })
 
         if (!record.created || !record.id) {
-          console.log('🧯 Dedupe: alerta já registrado, não reenviar', {
-            deadlineId: d.id,
-            userId: d.user_id,
-            daysRemaining: plan.daysRemaining,
-            rule: plan.rule,
-          })
+          console.log(`      🧯 DEDUPE: Alerta já registrado (não reenviar)`)
+          console.log(`         └─ dedupeKey: ${plan.dedupeKeyEmail || plan.dedupeKeyInApp}`)
           continue
         }
 
-        console.log('📨 Enviando e-mail (Resend)', {
-          notificationId: record.id,
-          deadlineId: d.id,
-          userId: d.user_id,
-          toEmail,
-          severity: plan.severity,
-          daysRemaining: plan.daysRemaining,
-          rule: plan.rule,
-        })
+        console.log(`      📨 ENVIANDO E-MAIL via Brevo...`)
+        console.log(`         └─ Notification ID: ${record.id}`)
+        console.log(`         └─ Para: ${toEmail}`)
+        console.log(`         └─ Assunto: [Themixa] Prazo ${plan.daysRemaining === 0 ? 'HOJE' : `em ${plan.daysRemaining} dias`} — ${d.title}`)
+        console.log(`         └─ Severity: ${plan.severity}`)
 
         const send = await sendDeadlineAlertEmail({
           to: toEmail,
@@ -215,14 +425,16 @@ export async function GET(request: Request) {
         })
 
         if (send.ok) {
-          console.log('✅ Resend OK', { notificationId: record.id, resendId: send.id })
+          console.log(`      ✅ BREVO OK - E-mail enviado com sucesso`)
+          console.log(`         └─ Brevo Message ID: ${send.id}`)
           await supabase
             .from('notifications')
             .update({ notification_status: 'sent', sent_at: new Date().toISOString(), error_message: null })
             .eq('id', record.id)
           emailSent++
         } else {
-          console.log('❌ Resend FAIL', { notificationId: record.id, error: send.error })
+          console.log(`      ❌ BREVO FAIL - Erro ao enviar e-mail`)
+          console.log(`         └─ Erro: ${send.error}`)
           // Para permitir retry no próximo cron sem spam, "liberamos" o dedupe hard
           await supabase
             .from('notifications')
@@ -238,9 +450,11 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    const duration = Date.now() - startTime
+    const summary = {
       success: true,
-      checked_at: now.toISOString(),
+      checked_at: nowISO,
+      execution_duration_ms: duration,
       deadlines_checked: deadlines.length,
       status_updates: statusUpdates,
       in_app_created: inAppCreated,
@@ -251,9 +465,25 @@ export async function GET(request: Request) {
         consent_default_email_enabled: true,
         overdue_email_default: 'disabled',
       },
-    })
+    }
+
+    console.log('\n⏰ [DeadlineAlerts Cron] ============================================')
+    console.log('⏰ [DeadlineAlerts Cron] RESUMO DA EXECUÇÃO')
+    console.log('⏰ [DeadlineAlerts Cron]', JSON.stringify(summary, null, 2))
+    console.log('⏰ [DeadlineAlerts Cron] ============================================')
+
+    return NextResponse.json(summary)
   } catch (error) {
-    console.error('[DeadlineAlerts Cron] Error:', error)
+    const duration = Date.now() - startTime
+    console.error('\n❌ [DeadlineAlerts Cron] ============================================')
+    console.error('❌ [DeadlineAlerts Cron] ERRO NA EXECUÇÃO')
+    console.error('❌ [DeadlineAlerts Cron] Duration:', duration, 'ms')
+    console.error('❌ [DeadlineAlerts Cron] Error:', error)
+    if (error instanceof Error) {
+      console.error('❌ [DeadlineAlerts Cron] Stack:', error.stack)
+    }
+    console.error('❌ [DeadlineAlerts Cron] ============================================')
+
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -268,5 +498,3 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return GET(request)
 }
-
-
