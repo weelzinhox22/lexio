@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { sendDeadlineAlertEmail } from '@/lib/email/send-deadline-alert'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/dev/test-deadline-alert
@@ -12,12 +13,12 @@ export const runtime = 'nodejs'
  * - Loga tudo: deadline encontrado, usuário, e-mail alvo, resposta do Resend
  *
  * Segurança:
- * - Apenas dev (NODE_ENV !== 'production')
+ * - Em produção: bloqueia por padrão (403) a menos que ALLOW_DEV_ROUTES esteja habilitada.
  * - Protegido por CRON_SECRET (Authorization: Bearer <CRON_SECRET>)
  */
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_DEV_ROUTES) {
+    return NextResponse.json({ error: 'Dev route disabled' }, { status: 403 })
   }
 
   const authHeader = request.headers.get('authorization')
