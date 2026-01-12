@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useRouter } from "next/navigation"
-import { User, Bell, Shield, LogOut, Save, Mail, Phone, GraduationCap, Briefcase, Calendar } from "lucide-react"
+import { User, Bell, Shield, LogOut, Save, Mail, Phone, GraduationCap, Briefcase, Calendar, ArrowRight } from "lucide-react"
 import { MaskedInput } from "@/components/ui/masked-input"
 import { formatPhone } from "@/lib/utils/masks"
 
@@ -322,6 +323,22 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
+          <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold text-slate-900">Alertas de prazos por e-mail</p>
+                <p className="text-sm text-slate-600 mt-1">
+                  Configure lembretes 7/3/1/0 dias antes e o e-mail de destino.
+                </p>
+              </div>
+              <Button asChild variant="outline" className="shrink-0">
+                <Link href="/dashboard/settings/notifications">
+                  Configurar <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
             <div className="flex-1">
               <p className="font-semibold text-slate-900 mb-1">Notificações WhatsApp</p>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { getProcessDetailsByNumber } from '@/lib/datajud/process-by-number'
+import { ConfirmAwarenessButton } from '@/components/deadlines/confirm-awareness-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -211,6 +212,21 @@ export default async function ProcessDetailsPage({
     redirect('/dashboard/processes')
   }
 
+  const { data: deadlines } = await supabase
+    .from('deadlines')
+    .select('id, title, deadline_date, status, priority, acknowledged_at')
+    .eq('user_id', user.id)
+    .eq('process_id', process.id)
+    .order('deadline_date', { ascending: true })
+
+  const { data: notifications } = await supabase
+    .from('notifications')
+    .select('id, title, message, severity, notification_type, channel, notification_status, created_at, entity_id, meta')
+    .eq('user_id', user.id)
+    .eq('process_id', process.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -234,6 +250,57 @@ export default async function ProcessDetailsPage({
             <span className="text-sm text-muted-foreground">Status</span>
             <Badge variant="secondary">{process.status || '—'}</Badge>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Prazos & Alertas</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-xs text-muted-foreground">
+            Alerta auxiliar — confira o prazo no teor da publicação/andamento. Não substitui conferência profissional.
+          </div>
+
+          {(deadlines || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum prazo vinculado a este processo.</p>
+          ) : (
+            <div className="space-y-2">
+              {(deadlines || []).map((d: any) => (
+                <div key={d.id} className="rounded border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-medium">{d.title}</div>
+                    <ConfirmAwarenessButton deadlineId={d.id} disabled={Boolean(d.acknowledged_at)} />
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Data: {new Date(d.deadline_date).toLocaleString('pt-BR')} • Status: {d.status}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(notifications || []).length > 0 && (
+            <div className="space-y-2">
+              <div className="text-sm font-semibold">Histórico de alertas</div>
+              <ScrollArea className="h-[320px]">
+                <div className="space-y-2 pr-4">
+                  {(notifications || []).map((n: any) => (
+                    <div key={n.id} className="rounded border p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="font-medium">{n.title}</div>
+                        <Badge variant="secondary">{n.severity || 'info'}</Badge>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{n.message}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {new Date(n.created_at).toLocaleString('pt-BR')} • {n.channel} • {n.notification_status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

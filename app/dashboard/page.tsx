@@ -7,12 +7,40 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { DeadlineAlertModal } from "@/components/deadlines/deadline-alert-modal"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Modal: abrir se existir prazo vencido ou que vence hoje (e não confirmado)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const { data: modalDeadlinesRaw } = await supabase
+    .from("deadlines")
+    .select("id, title, deadline_date, status, acknowledged_at")
+    .eq("user_id", user!.id)
+    .neq("status", "completed")
+    .limit(200)
+
+  const modalDeadlines =
+    (modalDeadlinesRaw || [])
+      .map((d: any) => {
+        const dd = new Date(d.deadline_date)
+        const daysRemaining = Math.ceil((dd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        return {
+          id: d.id,
+          title: d.title,
+          deadline_date: d.deadline_date,
+          days_remaining: daysRemaining,
+          acknowledged_at: d.acknowledged_at || null,
+          status: d.status,
+        }
+      })
+      .filter((d: any) => d.status !== "completed" && d.days_remaining <= 0)
+      .slice(0, 8) || []
 
   // Fetch dashboard stats
   const [
@@ -173,6 +201,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout userId={user?.id} userEmail={user?.email}>
+      <DeadlineAlertModal deadlines={modalDeadlines} />
       <div className="space-y-4 md:space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>

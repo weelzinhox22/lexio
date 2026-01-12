@@ -15,10 +15,10 @@ import { Progress } from '@/components/ui/progress'
 import {
   CheckCircle2,
   User,
-  ListTodo,
+  Briefcase,
+  Bell,
+  Mail,
   DollarSign,
-  FileText,
-  Users,
   ArrowRight,
 } from 'lucide-react'
 
@@ -40,42 +40,42 @@ interface OnboardingModalProps {
 const STEPS: OnboardingStep[] = [
   {
     id: 1,
-    title: 'Configuração inicial',
-    description: 'Crie sua conta, cadastre processos e defina seu nome para publicações',
+    title: 'Ajustar seu perfil',
+    description: 'Complete suas informações (nome, OAB, telefone) para usar o Themixa com fluidez.',
     icon: <User className="w-6 h-6" />,
-    href: '/onboarding/setup',
+    href: '/dashboard/settings',
     completed: false,
   },
   {
     id: 2,
-    title: 'Adicionar uma tarefa',
-    description: 'Organize seus compromissos criando sua primeira tarefa',
-    icon: <ListTodo className="w-6 h-6" />,
-    href: '/onboarding/task',
+    title: 'Cadastrar um processo',
+    description: 'Centralize seus processos e acompanhe tudo em um só lugar.',
+    icon: <Briefcase className="w-6 h-6" />,
+    href: '/dashboard/processes',
     completed: false,
   },
   {
     id: 3,
-    title: 'Adicionar um honorário',
-    description: 'Controle seus ganhos cadastrando um honorário',
-    icon: <DollarSign className="w-6 h-6" />,
-    href: '/onboarding/fee',
+    title: 'Criar um prazo',
+    description: 'Cadastre prazos e destaque o que é crítico (hoje/amanhã) na sua Dashboard.',
+    icon: <Bell className="w-6 h-6" />,
+    href: '/dashboard/deadlines',
     completed: false,
   },
   {
     id: 4,
-    title: 'Tratar uma publicação',
-    description: 'Mantenha processos em dia tratando sua primeira publicação',
-    icon: <FileText className="w-6 h-6" />,
-    href: '/onboarding/publication',
+    title: 'Ativar alertas por e-mail',
+    description: 'Configure lembretes 7/3/1/0 dias antes e escolha o e-mail de destino.',
+    icon: <Mail className="w-6 h-6" />,
+    href: '/dashboard/settings/notifications',
     completed: false,
   },
   {
     id: 5,
-    title: 'Convidar usuários',
-    description: 'Traga sua equipe para colaborar com você',
-    icon: <Users className="w-6 h-6" />,
-    href: '/onboarding/invite',
+    title: 'Organizar finanças',
+    description: 'Registre receitas/despesas e acompanhe o financeiro do escritório.',
+    icon: <DollarSign className="w-6 h-6" />,
+    href: '/dashboard/financial',
     completed: false,
   },
 ]
@@ -105,11 +105,11 @@ export function OnboardingModal({ open, onOpenChange, completedSteps }: Onboardi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Bem-vindo ao SaaS Jurídico! 🎉</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl">Guia rápido do Themixa</DialogTitle>
           <DialogDescription>
-            Vamos começar com os primeiros passos para configurar sua conta
+            Um passo a passo objetivo para você configurar o essencial e aproveitar a plataforma desde o primeiro dia.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +127,7 @@ export function OnboardingModal({ open, onOpenChange, completedSteps }: Onboardi
         </div>
 
         {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 my-6">
           {steps.map((step) => (
             <Card
               key={step.id}
@@ -163,10 +163,11 @@ export function OnboardingModal({ open, onOpenChange, completedSteps }: Onboardi
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 sm:justify-end">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
           >
             Fechar
           </Button>
@@ -178,13 +179,14 @@ export function OnboardingModal({ open, onOpenChange, completedSteps }: Onboardi
                   handleStepClick(nextIncompleteStep.href)
                 }
               }}
+              className="w-full sm:w-auto"
             >
               Próximo Passo
             </Button>
           )}
           {completedCount === totalSteps && (
-            <Button className="bg-green-600 hover:bg-green-700">
-              ✓ Configuração Completa!
+            <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
+              Configuração completa
             </Button>
           )}
         </div>

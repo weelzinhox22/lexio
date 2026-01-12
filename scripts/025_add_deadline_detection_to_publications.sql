@@ -58,3 +58,4 @@ END $$;
 SELECT 'Script 025_add_deadline_detection_to_publications.sql executado com sucesso!' as status;
 
 
+

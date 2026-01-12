@@ -9,3 +9,5 @@ COMMENT ON COLUMN public.jusbrasil_publications.pje_url IS 'URL para acessar o p
 
 
 
+
+

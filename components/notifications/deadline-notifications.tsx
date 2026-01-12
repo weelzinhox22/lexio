@@ -21,7 +21,7 @@ export function DeadlineNotifications() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Buscar notificações pendentes
+    // Buscar notificações pendentes (in-app)
     const fetchNotifications = async () => {
       const {
         data: { user },
@@ -33,6 +33,7 @@ export function DeadlineNotifications() {
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
+        .eq('channel', 'in_app')
         .eq('notification_status', 'pending')
         .order('created_at', { ascending: false })
         .limit(10)
@@ -43,60 +44,6 @@ export function DeadlineNotifications() {
     }
 
     fetchNotifications()
-
-    // Verificar prazos vencendo hoje
-    const checkDeadlines = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) return
-
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-
-      const { data: deadlines } = await supabase
-        .from('deadlines')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .gte('deadline_date', today.toISOString())
-        .lt('deadline_date', tomorrow.toISOString())
-
-      if (deadlines && deadlines.length > 0) {
-        // Criar notificações para prazos de hoje
-        for (const deadline of deadlines) {
-          const { data: existing } = await supabase
-            .from('notifications')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('entity_type', 'deadline')
-            .eq('entity_id', deadline.id)
-            .eq('notification_status', 'pending')
-            .single()
-
-          if (!existing) {
-            await supabase.from('notifications').insert({
-              user_id: user.id,
-              notification_type: 'deadline_reminder',
-              title: 'Prazo Vencendo Hoje',
-              message: `O prazo "${deadline.title}" vence hoje!`,
-              entity_type: 'deadline',
-              entity_id: deadline.id,
-              channel: 'in_app',
-              notification_status: 'pending',
-            })
-          }
-        }
-
-        fetchNotifications()
-      }
-    }
-
-    checkDeadlines()
-    const interval = setInterval(checkDeadlines, 60000) // Verificar a cada minuto
 
     // Escutar novas notificações
     const setupRealtime = async () => {
@@ -128,7 +75,6 @@ export function DeadlineNotifications() {
     const channelPromise = setupRealtime()
 
     return () => {
-      clearInterval(interval)
       channelPromise.then((channel) => {
         if (channel) supabase.removeChannel(channel)
       })
@@ -139,7 +85,7 @@ export function DeadlineNotifications() {
     const supabase = createClient()
     await supabase
       .from('notifications')
-      .update({ notification_status: 'read' })
+      .update({ notification_status: 'read', read_at: new Date().toISOString() })
       .eq('id', notificationId)
 
     setNotifications((prev) => prev.filter((n) => n.id !== notificationId))
@@ -155,7 +101,7 @@ export function DeadlineNotifications() {
 
     await supabase
       .from('notifications')
-      .update({ notification_status: 'read' })
+      .update({ notification_status: 'read', read_at: new Date().toISOString() })
       .eq('user_id', user.id)
       .eq('notification_status', 'pending')
 

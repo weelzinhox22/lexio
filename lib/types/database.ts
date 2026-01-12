@@ -18,11 +18,19 @@ export type SubscriptionStatus = "trial" | "active" | "expired" | "cancelled"
 
 export type SubscriptionPlan = "free" | "basic" | "premium" | "enterprise"
 
-export type NotificationType = "deadline_reminder" | "payment_reminder" | "process_update"
+export type NotificationType =
+  | "deadline_reminder"
+  | "deadline_due_7d"
+  | "deadline_due_3d"
+  | "deadline_due_1d"
+  | "deadline_due_today"
+  | "deadline_overdue"
+  | "payment_reminder"
+  | "process_update"
 
 export type NotificationChannel = "whatsapp" | "email" | "in_app"
 
-export type NotificationStatus = "pending" | "sent" | "failed"
+export type NotificationStatus = "pending" | "sent" | "failed" | "read"
 
 export interface Profile {
   id: string
@@ -85,6 +93,8 @@ export interface Deadline {
   deadline_date: string
   reminder_date: string | null
   status: DeadlineStatus
+  alert_status?: string
+  acknowledged_at?: string | null
   priority: Priority
   type: string | null
   completed_at: string | null

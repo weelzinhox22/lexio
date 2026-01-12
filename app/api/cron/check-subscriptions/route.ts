@@ -75,13 +75,13 @@ export async function GET(request: Request) {
           // Log notification
           await supabase.from("notifications").insert({
             user_id: sub.user_id,
-            type: "payment_reminder",
+            notification_type: "payment_reminder",
             title: "Licença Expirada",
             message: message,
             entity_type: "subscription",
             entity_id: sub.id,
             channel: "whatsapp",
-            status: "sent",
+            notification_status: "sent",
             sent_at: now,
           })
 
