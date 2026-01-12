@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { gerarDadosProcessoRealista } from '@/lib/process-cache'
+import { detectDeadlineFromText } from '@/lib/deadlines/detectDeadlineFromText'
 
 /**
  * API HÍBRIDA - Sempre funciona!
@@ -58,6 +59,8 @@ export async function POST(request: Request) {
     let savedCount = 0
     for (const pub of publications) {
       try {
+        const detection = detectDeadlineFromText(pub.descricao || pub.content || '')
+
         await supabase.from('jusbrasil_publications').upsert(
           {
             user_id: user.id,
@@ -70,6 +73,9 @@ export async function POST(request: Request) {
             searched_name: processNumber,
             content: pub.descricao || 'Movimentação no processo',
             status: 'untreated',
+            deadline_detected: detection.deadline_detected,
+            deadline_days: detection.deadline_days,
+            confidence_score: detection.confidence_score,
           },
           { onConflict: 'user_id,process_number,publication_date,diary_name' }
         )
@@ -84,7 +90,16 @@ export async function POST(request: Request) {
       processNumber: cleaned,
       results: publications.length,
       saved: savedCount,
-      data: publications,
+      data: publications.map((p) => {
+        const detection = detectDeadlineFromText(p.descricao || '')
+        return {
+          ...p,
+          deadline_detected: detection.deadline_detected,
+          deadline_days: detection.deadline_days,
+          confidence_score: detection.confidence_score,
+          matched_keywords: detection.matched_keywords,
+        }
+      }),
     })
   } catch (error) {
     console.error('[Search Error]:', error)

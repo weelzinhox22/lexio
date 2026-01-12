@@ -1,0 +1,1 @@
+﻿{"query":{"simple_query_string":{"query":"OAB","default_operator":"and"}},"size":1}

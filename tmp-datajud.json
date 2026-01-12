@@ -1,0 +1,1 @@
+﻿{"query":{"nested":{"path":"advogados","query":{"bool":{"must":[{"term":{"advogados.numero_oab":"77373"}},{"term":{"advogados.uf_oab":"BA"}}]}}}},"size":1,"sort":[{"dataHoraUltimaAtualizacao":{"order":"desc"}}]}

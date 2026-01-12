@@ -42,3 +42,7 @@ SELECT 'Script executado! Verifique os índices acima.' as status;
 
 
 
+
+
+
+

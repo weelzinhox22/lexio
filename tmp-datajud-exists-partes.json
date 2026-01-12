@@ -1,0 +1,1 @@
+﻿{"query":{"exists":{"field":"partes"}},"size":1}

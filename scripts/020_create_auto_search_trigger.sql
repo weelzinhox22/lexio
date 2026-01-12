@@ -20,3 +20,7 @@ CREATE TRIGGER trigger_auto_search_publications
   WHEN (NEW.process_number IS NOT NULL)
   EXECUTE FUNCTION auto_search_publications_on_process_insert();
 
+
+
+
+

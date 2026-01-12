@@ -3,99 +3,10 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  ArrowLeft, 
-  CheckCircle2, 
-  XCircle, 
-} from 'lucide-react'
+import { ArrowLeft, Calendar, BookOpen, User, FileText, ExternalLink, CheckCircle2, XCircle } from 'lucide-react'
 import Link from 'next/link'
-import { PublicationActions } from '@/components/publications/publication-actions'
-import { ProcessDetailsDashboard } from '@/components/publications/process-details-dashboard'
-import { searchDataJud, convertDataJudToPublication } from '@/lib/datajud-api'
-import { generateMockProcessDetails } from '@/lib/utils/generate-mock-process'
-import { gerarDadosProcessoRealista } from '@/lib/process-cache'
-
-interface ProcessDetails {
-  numero: string
-  classe: string
-  assunto: string
-  orgaoJulgador: string
-  juiz: string
-  valorCausa: string
-  status: string
-  partes: Array<{
-    tipo: string
-    nome: string
-    advogado: string
-  }>
-  movimentacoes: Array<{
-    data: string
-    descricao: string
-    detalhe?: string
-  }>
-}
-
-/**
- * Converte dados reais da API DataJud para o formato ProcessDetails
- */
-function convertApiDataToProcessDetails(apiData: any): ProcessDetails | null {
-  if (!apiData || !apiData.numeroProcesso) {
-    return null
-  }
-
-  return {
-    numero: apiData.numeroProcesso,
-    classe: apiData.classe || 'Classe não especificada',
-    assunto: apiData.assunto || 'Assunto não especificado',
-    orgaoJulgador: apiData.orgaoJulgador || 'Órgão não especificado',
-    juiz: apiData.juiz || 'Juiz não especificado',
-    valorCausa: apiData.valorCausa ? `R$ ${Number(apiData.valorCausa).toLocaleString('pt-BR')}` : 'Valor não especificado',
-    status: apiData.status || 'Ativo',
-    partes: apiData.partes && Array.isArray(apiData.partes) 
-      ? apiData.partes.map((parte: any) => ({
-          tipo: parte.tipo || 'Parte',
-          nome: parte.nome || 'Nome não especificado',
-          advogado: parte.advogado || 'Advogado não especificado'
-        }))
-      : [],
-    movimentacoes: apiData.movimentacoes && Array.isArray(apiData.movimentacoes)
-      ? apiData.movimentacoes.map((mov: any) => ({
-          data: mov.data ? (mov.data.includes('T') ? mov.data.split('T')[0] : mov.data) : 'Data não especificada',
-          descricao: mov.descricao || mov.tipo || 'Movimentação sem descrição',
-          detalhe: mov.detalhe || undefined
-        }))
-      : []
-  }
-}
-
-/**
- * Converte dados realistas do cache para ProcessDetails
- */
-function convertCacheToProcessDetails(processNumber: string, cacheData: any): ProcessDetails {
-  return {
-    numero: processNumber,
-    classe: cacheData.classe || 'Classe não especificada',
-    assunto: cacheData.assunto || 'Assunto não especificado',
-    orgaoJulgador: 'Tribunal de Justiça',
-    juiz: 'Juiz Designado',
-    valorCausa: 'Valor não especificado',
-    status: 'Ativo',
-    partes: cacheData.partes && Array.isArray(cacheData.partes)
-      ? cacheData.partes.map((nome: string) => ({
-          tipo: 'Parte',
-          nome: nome,
-          advogado: 'Advogado não especificado'
-        }))
-      : [],
-    movimentacoes: cacheData.movimentacoes && Array.isArray(cacheData.movimentacoes)
-      ? cacheData.movimentacoes.map((mov: any) => ({
-          data: mov.data || new Date().toISOString().split('T')[0],
-          descricao: mov.descricao || 'Movimentação processual',
-          detalhe: undefined
-        }))
-      : []
-  }
-}
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default async function PublicationViewPage({
   params,
@@ -123,48 +34,21 @@ export default async function PublicationViewPage({
     redirect('/dashboard/publications')
   }
 
-  // Extrair ou buscar detalhes reais do processo
-  let processDetails: ProcessDetails | null = null
-
+  // Buscar processo relacionado se houver número
+  let relatedProcess = null
   if (publication.process_number) {
-    // PRIORIDADE 1: Tentar buscar dados REAIS da API DataJud
-    console.log(`[DetailPage] 1️⃣ Buscando dados reais da API para ${publication.process_number}`)
-    const realApiData = await searchDataJud(publication.process_number)
+    const { data: process } = await supabase
+      .from('processes')
+      .select('id, title, process_number')
+      .eq('process_number', publication.process_number)
+      .eq('user_id', user.id)
+      .single()
     
-    if (realApiData) {
-      console.log(`[DetailPage] ✅ Dados reais obtidos da API`)
-      processDetails = convertApiDataToProcessDetails(realApiData)
-    }
-    
-    // PRIORIDADE 2: Se não tiver dados reais, tentar extrair do content salvo
-    if (!processDetails) {
-      console.log(`[DetailPage] 2️⃣ Tentando extrair dados do content salvo`)
-      try {
-        const content = publication.content
-        if (content && typeof content === 'string' && content.startsWith('{')) {
-          const parsed = JSON.parse(content)
-          if (parsed._hasFullDetails) {
-            delete parsed._hasFullDetails
-            processDetails = parsed as ProcessDetails
-            console.log(`[DetailPage] ✅ Dados extraídos do content`)
-          }
-        }
-      } catch (e) {
-        console.log(`[DetailPage] Content não é JSON, continuando...`)
-      }
-    }
-
-    // PRIORIDADE 3: Usar dados realistas do cache (não é mock, é gerado consistentemente)
-    if (!processDetails) {
-      console.log(`[DetailPage] 3️⃣ Usando dados realistas do cache`)
-      const cacheData = gerarDadosProcessoRealista(publication.process_number)
-      processDetails = convertCacheToProcessDetails(publication.process_number, cacheData)
-    }
+    relatedProcess = process
   }
 
   return (
     <div className="space-y-6">
-      {/* Header com Botão Voltar */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/publications">
           <Button variant="ghost" size="icon">
@@ -172,19 +56,12 @@ export default async function PublicationViewPage({
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Espelho do Processo</h1>
-          <p className="text-slate-600 mt-1 text-sm md:text-base">Visualização completa dos dados processuais</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Detalhes da Publicação</h1>
+          <p className="text-slate-600 mt-1 text-sm md:text-base">Visualize todas as informações da publicação</p>
         </div>
       </div>
 
-      {/* Dashboard Visual de Detalhes */}
-      <ProcessDetailsDashboard
-        processDetails={processDetails}
-        pjeUrl={publication.pje_url}
-        processNumber={publication.process_number}
-      />
-
-      {/* Status da Publicação */}
+      {/* Status e Ações */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -207,38 +84,194 @@ export default async function PublicationViewPage({
           </div>
         </CardHeader>
         <CardContent>
-          <PublicationActions
-            publicationId={id}
-            processNumber={publication.process_number}
-            pjeUrl={publication.pje_url}
-            status={publication.status}
-          />
-          {publication.status === 'untreated' && (
-            <div className="flex gap-2 pt-4 border-t mt-4">
+          <div className="flex gap-2">
+            {publication.status === 'untreated' && (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  asChild
+                >
+                  <Link href={`/dashboard/publications/${id}/treat`}>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Marcar como Tratada
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-red-600 border-red-600 hover:bg-red-50"
+                  asChild
+                >
+                  <Link href={`/dashboard/publications/${id}/discard`}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Descartar
+                  </Link>
+                </Button>
+              </>
+            )}
+            {publication.pje_url && (
               <Button
                 variant="outline"
-                className="text-green-600 border-green-600 hover:bg-green-50"
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
                 asChild
               >
-                <Link href={`/dashboard/publications/${id}/treat`}>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Marcar como Tratada
-                </Link>
+                <a href={publication.pje_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Acessar no PJe
+                </a>
               </Button>
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-600 hover:bg-red-50"
-                asChild
-              >
-                <Link href={`/dashboard/publications/${id}/discard`}>
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Descartar
-                </Link>
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Informações Principais */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações do Processo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {publication.process_number && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 flex items-center gap-2 mb-1">
+                  <FileText className="h-4 w-4" />
+                  Número do Processo
+                </label>
+                <p className="text-slate-900 font-mono">{publication.process_number}</p>
+                {relatedProcess && (
+                  <Link 
+                    href={`/dashboard/processes/${relatedProcess.id}`}
+                    className="text-sm text-blue-600 hover:text-blue-700 mt-1 inline-block"
+                  >
+                    Ver processo cadastrado →
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {publication.process_title && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 mb-1">Título</label>
+                <p className="text-slate-900">{publication.process_title}</p>
+              </div>
+            )}
+
+            {publication.publication_type && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 mb-1">Tipo de Publicação</label>
+                <Badge variant="outline">{publication.publication_type}</Badge>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Datas e Diário</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {publication.publication_date && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 flex items-center gap-2 mb-1">
+                  <Calendar className="h-4 w-4" />
+                  Data de Publicação
+                </label>
+                <p className="text-slate-900">
+                  {format(new Date(publication.publication_date), 'dd/MM/yyyy', { locale: ptBR })}
+                </p>
+              </div>
+            )}
+
+            {publication.diary_date && publication.diary_date !== publication.publication_date && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 mb-1">Data do Diário</label>
+                <p className="text-slate-900">
+                  {format(new Date(publication.diary_date), 'dd/MM/yyyy', { locale: ptBR })}
+                </p>
+              </div>
+            )}
+
+            {publication.diary_name && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 flex items-center gap-2 mb-1">
+                  <BookOpen className="h-4 w-4" />
+                  Diário Oficial
+                </label>
+                <p className="text-slate-900">{publication.diary_name}</p>
+              </div>
+            )}
+
+            {publication.searched_name && (
+              <div>
+                <label className="text-sm font-medium text-slate-600 flex items-center gap-2 mb-1">
+                  <User className="h-4 w-4" />
+                  Nome Pesquisado
+                </label>
+                <p className="text-slate-900">{publication.searched_name}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Conteúdo */}
+      {publication.content && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Conteúdo da Publicação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose max-w-none">
+              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                {publication.content}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Notas */}
+      {publication.notes && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-700 whitespace-pre-wrap">{publication.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Informações de Tratamento */}
+      {publication.status !== 'untreated' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {publication.status === 'treated' ? 'Informações de Tratamento' : 'Informações de Descarte'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {publication.treated_at && (
+              <div>
+                <label className="text-sm font-medium text-slate-600">Tratada em</label>
+                <p className="text-slate-900">
+                  {format(new Date(publication.treated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+            )}
+            {publication.discarded_at && (
+              <div>
+                <label className="text-sm font-medium text-slate-600">Descartada em</label>
+                <p className="text-slate-900">
+                  {format(new Date(publication.discarded_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
+
