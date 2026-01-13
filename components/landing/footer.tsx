@@ -154,7 +154,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span>Salvador, BA - Brasil</span>
+                <span>Salvador, Bahia - Brasil</span>
               </div>
             </div>
             <p className="text-sm text-slate-500">
