@@ -88,20 +88,32 @@ export default async function SubscriptionPage() {
         </Card>
       )}
 
-      <SubscriptionPlans currentPlan={subscription?.plan} />
-
-      <Card className="border-slate-200 bg-slate-50">
-        <CardHeader>
-          <CardTitle className="text-slate-900">Precisa de Ajuda?</CardTitle>
-        </CardHeader>
-        <CardContent className="text-slate-700 space-y-2">
-          <p>
-            Entre em contato com nosso time de suporte para mais informações sobre planos corporativos ou condições
-            especiais.
+      <div className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Escolha o plano ideal para você</h2>
+          <p className="text-slate-600">
+            Todos os planos incluem alertas automáticos e gestão completa. Upgrade quando precisar de mais recursos.
           </p>
-          <p className="font-semibold">Email: suporte@themixa.com.br | WhatsApp: (11) 99999-9999</p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <SubscriptionPlans currentPlan={subscription?.plan} />
+
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-blue-100 p-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-1">Sem compromisso</h3>
+                <p className="text-sm text-slate-700">
+                  Cancele sua assinatura a qualquer momento. Sem taxas de cancelamento, sem perguntas.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

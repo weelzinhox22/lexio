@@ -41,6 +41,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         process_type: formData.get("process_type") as string,
         matter: formData.get("matter") as string,
         priority: formData.get("priority") as string,
+        polo: formData.get("polo") as string,
         status: "active",
       })
 
@@ -119,6 +120,20 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
               <SelectItem value="urgent">Urgente</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="polo">Tipo de Participação do Cliente *</Label>
+          <Select name="polo" defaultValue="ativo" required>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativo">Polo Ativo</SelectItem>
+              <SelectItem value="passivo">Polo Passivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-slate-500">Indica se o cliente é autor (ativo) ou réu (passivo) no processo</p>
         </div>
 
         <div className="space-y-2">

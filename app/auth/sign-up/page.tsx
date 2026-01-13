@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PasswordInput } from "@/components/ui/password-input"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import { Scale } from "lucide-react"
 
 export default function SignUpPage() {
@@ -20,7 +20,18 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) {
+      setReferralCode(ref)
+      // Salvar no localStorage para usar após signup
+      localStorage.setItem('referral_code', ref)
+    }
+  }, [searchParams])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +46,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -43,10 +54,29 @@ export default function SignUpPage() {
           data: {
             full_name: fullName,
             role: "advogado",
+            referral_code: referralCode || localStorage.getItem('referral_code'),
           },
         },
       })
       if (error) throw error
+
+      // Processar referral se houver código
+      if (referralCode || localStorage.getItem('referral_code')) {
+        const code = referralCode || localStorage.getItem('referral_code')
+        if (code && data.user) {
+          // Chamar API para processar referral
+          await fetch('/api/referrals/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              referralCode: code,
+              userId: data.user.id,
+            }),
+          })
+        }
+        localStorage.removeItem('referral_code')
+      }
+
       router.push("/auth/check-email")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocorreu um erro ao criar conta")

@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/check-subscriptions",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/audience-alerts",
+      "schedule": "0 * * * *"
     }
   ]
 }

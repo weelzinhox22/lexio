@@ -11,8 +11,9 @@ import {
   createEmailNotificationRecord,
   createInAppNotification,
 } from '@/lib/notifications/notification-service'
-import { sendDeadlineAlertEmail } from '@/lib/email/send-deadline-alert'
 import { isEligibleForDeadlineEmail } from '@/lib/email/deadline-email-eligibility'
+import { sendEmailWithRetryAndFallback } from '@/lib/email/retry-with-fallback'
+import { deadlineAlertEmail } from '@/lib/email/templates/alerts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,6 +23,7 @@ type NotificationSettingsRow = {
   email_enabled: boolean
   alert_days: number[]
   email_override: string | null
+  email_fallback: string | null
 }
 
 /**
@@ -274,7 +276,7 @@ export async function GET(request: Request) {
 
     const { data: settingsRows } = await supabase
       .from('notification_settings')
-      .select('user_id, email_enabled, alert_days, email_override')
+      .select('user_id, email_enabled, alert_days, email_override, email_fallback')
       .in('user_id', userIds)
 
     const settingsMap = new Map((settingsRows || []).map((s: any) => [s.user_id, s as NotificationSettingsRow]))
@@ -318,6 +320,7 @@ export async function GET(request: Request) {
       const emailEnabled = settings?.email_enabled ?? true
       const alertDays = (settings?.alert_days?.length ? settings.alert_days : [7, 3, 1, 0]) as number[]
       const toEmail = (settings?.email_override || profile?.email || '').trim()
+      const fallbackEmail = (settings?.email_fallback || '').trim() || null
       const userName = profile?.full_name ?? null
 
       console.log(`   └─ Usuário: ${userName || 'N/A'} (${d.user_id})`)
@@ -408,41 +411,82 @@ export async function GET(request: Request) {
         console.log(`      📨 ENVIANDO E-MAIL via Brevo...`)
         console.log(`         └─ Notification ID: ${record.id}`)
         console.log(`         └─ Para: ${toEmail}`)
+        if (fallbackEmail) {
+          console.log(`         └─ Fallback: ${fallbackEmail}`)
+        }
         console.log(`         └─ Assunto: [Themixa] Prazo ${plan.daysRemaining === 0 ? 'HOJE' : `em ${plan.daysRemaining} dias`} — ${d.title}`)
         console.log(`         └─ Severity: ${plan.severity}`)
 
-        const send = await sendDeadlineAlertEmail({
-          to: toEmail,
-          userName,
-          deadline: {
-            id: plan.deadlineId,
-            title: d.title,
-            deadline_date: d.deadline_date,
-            process_id: d.process_id,
-          },
+        // Preparar conteúdo do e-mail
+        const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+        const processNumber = d.process_number || '—'
+        const link = `${appUrl}/dashboard/deadlines/${plan.deadlineId}`
+        const { html, subject } = deadlineAlertEmail({
+          processNumber,
+          deadlineTitle: d.title,
           daysRemaining: plan.daysRemaining,
-          severity: plan.severity,
+          dueDate: d.deadline_date,
+          link,
         })
 
-        if (send.ok) {
+        // Enviar com retry e fallback
+        const sendResult = await sendEmailWithRetryAndFallback({
+          to: toEmail,
+          fallbackEmail,
+          subject,
+          html,
+          alertId: record.id,
+          userId: plan.userId,
+          deadlineId: plan.deadlineId,
+        })
+
+        // Log padronizado
+        const logEntry = {
+          ...sendResult.log,
+          error_message: sendResult.ok ? null : sendResult.error,
+        }
+        console.log(`      📊 LOG DE ENVIO:`, JSON.stringify(logEntry, null, 2))
+
+        if (sendResult.ok) {
           console.log(`      ✅ BREVO OK - E-mail enviado com sucesso`)
-          console.log(`         └─ Brevo Message ID: ${send.id}`)
+          console.log(`         └─ Brevo Message ID: ${sendResult.messageId}`)
+          console.log(`         └─ Tentativa: ${sendResult.log.attempt}`)
+          if (sendResult.log.fallback_used) {
+            console.log(`         └─ ⚠️  Fallback usado: ${sendResult.log.email_used}`)
+          }
+          
+          // Atualizar notificação com sucesso e log
           await supabase
             .from('notifications')
-            .update({ notification_status: 'sent', sent_at: new Date().toISOString(), error_message: null })
+            .update({
+              notification_status: 'sent',
+              sent_at: new Date().toISOString(),
+              error_message: null,
+              meta: {
+                ...((record.meta as any) || {}),
+                retry_log: logEntry,
+              },
+            })
             .eq('id', record.id)
           emailSent++
         } else {
-          console.log(`      ❌ BREVO FAIL - Erro ao enviar e-mail`)
-          console.log(`         └─ Erro: ${send.error}`)
-          // Para permitir retry no próximo cron sem spam, "liberamos" o dedupe hard
+          console.log(`      ❌ BREVO FAIL - Erro ao enviar e-mail após ${sendResult.log.attempt} tentativa(s)`)
+          console.log(`         └─ Erro: ${sendResult.error}`)
+          console.log(`         └─ Tipo: ${sendResult.log.error_type}`)
+          if (sendResult.log.error_code) {
+            console.log(`         └─ Código: ${sendResult.log.error_code}`)
+          }
+          
+          // Atualizar notificação com falha e log
           await supabase
             .from('notifications')
             .update({
               notification_status: 'failed',
-              error_message: send.error,
-              deadline_id: null,
-              days_remaining: null,
+              error_message: sendResult.error,
+              meta: {
+                ...((record.meta as any) || {}),
+                retry_log: logEntry,
+              },
             })
             .eq('id', record.id)
           emailFailed++

@@ -148,13 +148,13 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                <a href="tel:+5511999999999" className="hover:text-slate-900">
-                  (11) 99999-9999
+                <a href="tel:+5571991373142" className="hover:text-slate-900">
+                  71 99137-3142
                 </a>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span>São Paulo, SP - Brasil</span>
+                <span>Salvador, BA - Brasil</span>
               </div>
             </div>
             <p className="text-sm text-slate-500">

@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Bell, Mail, Save, ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { FeedbackButton } from "@/components/feedback/feedback-button"
+import { ContextualTooltip } from "@/components/ui/tooltip"
 
 type NotificationSettings = {
   id: string
@@ -19,6 +21,7 @@ type NotificationSettings = {
   email_enabled: boolean
   alert_days: number[]
   email_override: string | null
+  email_fallback: string | null
 }
 
 const DEFAULT_ALERT_DAYS = [7, 3, 1, 0]
@@ -29,9 +32,11 @@ export default function NotificationSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [loginEmail, setLoginEmail] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [emailOverride, setEmailOverride] = useState("")
+  const [emailFallback, setEmailFallback] = useState("")
   const [alertDays, setAlertDays] = useState<number[]>(DEFAULT_ALERT_DAYS)
 
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; title: string; message: string } | null>(null)
@@ -45,11 +50,12 @@ export default function NotificationSettingsPage() {
           data: { user },
         } = await supabase.auth.getUser()
         if (!user) return
+        setUserId(user.id)
         setLoginEmail(user.email ?? null)
 
         const { data } = await supabase
           .from("notification_settings")
-          .select("id, user_id, email_enabled, alert_days, email_override")
+          .select("id, user_id, email_enabled, alert_days, email_override, email_fallback")
           .eq("user_id", user.id)
           .maybeSingle()
 
@@ -58,11 +64,13 @@ export default function NotificationSettingsPage() {
           setEmailEnabled(Boolean(s.email_enabled))
           setAlertDays(Array.isArray(s.alert_days) && s.alert_days.length > 0 ? s.alert_days : DEFAULT_ALERT_DAYS)
           setEmailOverride(s.email_override ?? "")
+          setEmailFallback(s.email_fallback ?? "")
         } else {
           // defaults (sem criar registro no DB automaticamente)
           setEmailEnabled(true)
           setAlertDays(DEFAULT_ALERT_DAYS)
           setEmailOverride("")
+          setEmailFallback("")
         }
       } catch (e) {
         console.error("[notifications settings] load error", e)
@@ -94,7 +102,29 @@ export default function NotificationSettingsPage() {
       if (!user) return
 
       const cleanOverride = emailOverride.trim()
+      const cleanFallback = emailFallback.trim()
       const cleanDays = Array.from(new Set(alertDays)).sort((a, b) => b - a)
+
+      // Validar e-mails se fornecidos
+      if (cleanOverride && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanOverride)) {
+        setFeedback({
+          type: "error",
+          title: "E-mail inválido",
+          message: "Por favor, insira um e-mail principal válido.",
+        })
+        setSaving(false)
+        return
+      }
+
+      if (cleanFallback && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanFallback)) {
+        setFeedback({
+          type: "error",
+          title: "E-mail alternativo inválido",
+          message: "Por favor, insira um e-mail alternativo válido.",
+        })
+        setSaving(false)
+        return
+      }
 
       const { error } = await supabase.from("notification_settings").upsert(
         {
@@ -102,6 +132,7 @@ export default function NotificationSettingsPage() {
           email_enabled: emailEnabled,
           alert_days: cleanDays.length ? cleanDays : DEFAULT_ALERT_DAYS,
           email_override: cleanOverride ? cleanOverride : null,
+          email_fallback: cleanFallback ? cleanFallback : null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
@@ -153,12 +184,21 @@ export default function NotificationSettingsPage() {
             Gerencie suas preferências de notificação e alertas por e-mail.
           </p>
         </div>
-        <Button asChild variant="outline" className="shrink-0">
-          <Link href="/dashboard/settings">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {userId && (
+            <FeedbackButton 
+              userId={userId} 
+              variant="outline" 
+              label="Reportar problema"
+            />
+          )}
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href="/dashboard/settings">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {feedback && (
@@ -202,12 +242,12 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          {/* Configuração de E-mail */}
+          {/* Configuração de E-mail Principal */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-slate-500" />
               <Label htmlFor="email_override" className="text-sm font-medium text-slate-900">
-                Endereço de e-mail
+                E-mail principal
               </Label>
             </div>
             <Input
@@ -235,6 +275,32 @@ export default function NotificationSettingsPage() {
             </div>
           </div>
 
+          {/* Configuração de E-mail Alternativo (Fallback) */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-slate-500" />
+              <Label htmlFor="email_fallback" className="text-sm font-medium text-slate-900">
+                E-mail alternativo (opcional)
+              </Label>
+              <ContextualTooltip content="Se o e-mail principal falhar (por exemplo, por instabilidade temporária), o sistema tentará enviar automaticamente para este e-mail alternativo. Isso garante que você não perca nenhum alerta importante." />
+            </div>
+            <Input
+              id="email_fallback"
+              type="email"
+              value={emailFallback}
+              onChange={(e) => setEmailFallback(e.target.value)}
+              placeholder="alternativo@email.com"
+              disabled={!emailEnabled}
+              className="h-10"
+            />
+            <div className="flex items-start gap-2 text-sm text-slate-600">
+              <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0"></div>
+              <p>
+                Se o e-mail principal falhar, tentaremos enviar para este e-mail alternativo. Útil como backup.
+              </p>
+            </div>
+          </div>
+
           {/* Quando Avisar */}
           {emailEnabled && (
             <div className="space-y-3 pt-4 border-t border-slate-200">
@@ -243,6 +309,7 @@ export default function NotificationSettingsPage() {
                 <Badge variant="outline" className="text-xs">
                   {alertDays.length} opções selecionadas
                 </Badge>
+                <ContextualTooltip content="Você receberá alertas por e-mail nos dias selecionados antes do prazo. Por exemplo, se selecionar '7 dias antes', receberá um e-mail exatamente 7 dias antes da data do prazo." />
               </div>
               <div className="grid gap-2.5 sm:grid-cols-2">
                 {orderedDays.map((day) => {

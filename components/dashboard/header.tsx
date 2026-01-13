@@ -13,9 +13,10 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { LogOut, UserIcon } from "lucide-react"
+import { LogOut, UserIcon, MessageSquare } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import { MobileMenu } from "./mobile-menu"
+import { FeedbackButton } from "@/components/feedback/feedback-button"
 
 export function DashboardHeader({ user }: { user: User }) {
   const router = useRouter()
@@ -43,6 +44,12 @@ export function DashboardHeader({ user }: { user: User }) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        <FeedbackButton 
+          userId={user.id} 
+          variant="outline" 
+          label="Feedback"
+          className="hidden md:flex"
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">

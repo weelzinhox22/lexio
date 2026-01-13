@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, CreditCard, Loader2 } from 'lucide-react'
+import { Check, CreditCard, Loader2, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SubscriptionPlansProps {
@@ -13,60 +13,42 @@ interface SubscriptionPlansProps {
 
 const plans = [
   {
-    name: 'Básico',
-    price: 'R$ 89',
+    name: 'Free',
+    price: 'R$ 0',
     period: '/mês',
-    description: 'Ideal para advogados autônomos',
+    description: 'Perfeito para começar',
     features: [
-      'Até 50 processos ativos',
-      'Gestão de clientes',
-      'Controle de prazos',
-      'Gestão financeira básica',
-      '2GB de armazenamento',
-      'Suporte por email',
+      'Até 10 prazos ativos',
+      'Alertas automáticos por e-mail',
+      'Gestão básica de processos',
+      'Até 5 processos cadastrados',
+      'Histórico de alertas (7 dias)',
+      'Suporte por e-mail',
     ],
     popular: false,
-    planId: 'basic',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BASIC || 'price_basic',
+    planId: 'free',
+    priceId: null,
+    cta: 'Já está usando',
   },
   {
-    name: 'Premium',
-    price: 'R$ 174,99',
+    name: 'Pro',
+    price: 'R$ 89',
     period: '/mês',
-    description: 'Para escritórios em crescimento',
+    description: 'Para advogados profissionais',
     features: [
+      'Prazos ilimitados',
       'Processos ilimitados',
-      'Gestão completa de clientes',
-      'Controle avançado de prazos',
+      'Alertas automáticos (e-mail + in-app)',
       'Gestão financeira completa',
-      'CRM e pipeline de leads',
-      '50GB de armazenamento',
-      'Notificações WhatsApp',
       'Relatórios e analytics',
+      'Histórico completo de alertas',
+      'Integração Google Calendar',
       'Suporte prioritário',
     ],
     popular: true,
-    planId: 'premium',
+    planId: 'pro',
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM || 'price_premium',
-  },
-  {
-    name: 'Enterprise',
-    price: 'R$ 260',
-    period: '/mês',
-    description: 'Para grandes escritórios',
-    features: [
-      'Tudo do Premium +',
-      'Usuários ilimitados',
-      'Armazenamento ilimitado',
-      'API de integração',
-      'Suporte dedicado 24/7',
-      'Treinamento personalizado',
-      'White label',
-      'SLA garantido',
-    ],
-    popular: false,
-    planId: 'enterprise',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE || 'price_enterprise',
+    cta: 'Assinar Pro',
   },
 ]
 
@@ -101,7 +83,7 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
       {plans.map((plan) => {
         const isCurrentPlan = currentPlan === plan.planId
         const isLoading = loading === plan.planId
@@ -119,7 +101,7 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
             {plan.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-1 shadow-md">
-                  Mais Popular
+                  Mais Escolhido
                 </Badge>
               </div>
             )}
@@ -142,29 +124,45 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
                   </li>
                 ))}
               </ul>
-              <Button
-                onClick={() => handleCheckout(plan.planId, plan.priceId)}
-                disabled={isCurrentPlan || isLoading}
-                className={cn(
-                  'w-full h-12 text-base font-semibold transition-all duration-300',
-                  plan.popular
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-slate-900 hover:bg-slate-800 text-white hover:scale-105',
-                  isCurrentPlan && 'bg-slate-400 hover:bg-slate-400 cursor-not-allowed',
-                )}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    {isCurrentPlan ? 'Plano Atual' : 'Assinar Agora'}
-                  </>
-                )}
-              </Button>
+              {plan.planId === 'free' ? (
+                <Button
+                  disabled
+                  variant="outline"
+                  className="w-full h-12"
+                >
+                  {plan.cta || 'Plano Atual'}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => handleCheckout(plan.planId, plan.priceId!)}
+                    disabled={isCurrentPlan || isLoading}
+                    className={cn(
+                      'w-full h-12 text-base font-semibold transition-all duration-300',
+                      plan.popular
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white hover:scale-105',
+                      isCurrentPlan && 'bg-slate-400 hover:bg-slate-400 cursor-not-allowed',
+                    )}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        {isCurrentPlan ? 'Plano Atual' : plan.cta || 'Assinar Agora'}
+                        {!isCurrentPlan && <ArrowRight className="ml-2 h-4 w-4" />}
+                      </>
+                    )}
+                  </Button>
+                  <p className="mt-2 text-xs text-center text-slate-500">
+                    Cancele quando quiser • Sem compromisso
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         )

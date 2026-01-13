@@ -95,6 +95,18 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
                       ? "Perdido"
                       : "Arquivado"}
               </Badge>
+              {(process as any).polo && (
+                <Badge
+                  variant="outline"
+                  className={
+                    (process as any).polo === "ativo"
+                      ? "border-green-200 text-green-700"
+                      : "border-orange-200 text-orange-700"
+                  }
+                >
+                  {(process as any).polo === "ativo" ? "Polo Ativo" : "Polo Passivo"}
+                </Badge>
+              )}
               <Badge
                 variant="outline"
                 className={

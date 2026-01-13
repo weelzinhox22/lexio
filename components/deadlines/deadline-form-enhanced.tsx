@@ -158,6 +158,19 @@ export function DeadlineFormEnhanced({
         }
       }
 
+      // Confirmar referral se for primeiro prazo
+      if (newDeadline) {
+        try {
+          await fetch('/api/referrals/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+        } catch (referralError) {
+          // Silencioso - não é crítico
+          console.log('Referral confirmation:', referralError)
+        }
+      }
+
       router.push('/dashboard/deadlines')
       router.refresh()
     } catch (err) {
@@ -325,11 +338,14 @@ export function DeadlineFormEnhanced({
           <Input 
             id="title" 
             name="title" 
-            placeholder={selectedDeadline ? selectedDeadline.type : "Ex: Protocolar Contestação"} 
+            placeholder={selectedDeadline ? selectedDeadline.type : "Ex: Audiência – 15/01 – lembrar 1 dia antes"} 
             defaultValue={isOnboarding ? 'Prazo de resposta - Processo exemplo' : selectedDeadline?.type}
             required
             className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
           />
+          <p className="text-xs text-slate-500">
+            Exemplos: "Audiência – 15/01", "Prazo processual – vence amanhã", "Contestação – 20/01"
+          </p>
         </div>
 
         {/* Lembrete Manual (só aparece se não tiver cálculo automático) */}

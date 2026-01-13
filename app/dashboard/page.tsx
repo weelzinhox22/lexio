@@ -1,16 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Briefcase, Users, Bell, DollarSign, FileText, TrendingUp, Calendar, AlertCircle, Clock, CheckCircle2 } from "lucide-react"
-import { HonorariosCard } from "@/components/dashboard/honorarios-card"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { DeadlineAlertModal } from "@/components/deadlines/deadline-alert-modal"
-import { OnboardingDashboard } from "@/components/onboarding/onboarding-dashboard"
-import { AlertFeedback } from "@/components/deadlines/alert-feedback"
-import { SystemStatus } from "@/components/deadlines/system-status"
+import { NPSChecker } from "@/components/feedback/nps-checker"
+import { MinimalDashboard } from "@/components/dashboard/minimal-dashboard"
+import { GuidedTour } from "@/components/onboarding/guided-tour"
+import { EnrichedDashboard } from "@/components/dashboard/enriched-dashboard"
+import { ReferralSection } from "@/components/dashboard/referral-section"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -45,530 +40,212 @@ export default async function DashboardPage() {
       .filter((d: any) => d.status !== "completed" && d.days_remaining <= 0)
       .slice(0, 8) || []
 
-  // Fetch dashboard stats
+
+  // Buscar próximos prazos (máx 5 para o dashboard minimalista)
+  const { data: upcomingDeadlines } = await supabase
+    .from("deadlines")
+    .select(`
+      id,
+      title,
+      deadline_date,
+      priority,
+      processes (
+        title,
+        process_number
+      )
+    `)
+    .eq("user_id", user!.id)
+    .eq("status", "pending")
+    .gte("deadline_date", new Date().toISOString().split("T")[0])
+    .order("deadline_date", { ascending: true })
+    .limit(5)
+
+  // Buscar último alerta enviado
+  const { data: lastAlert } = await supabase
+    .from("notifications")
+    .select("sent_at, channel")
+    .eq("user_id", user!.id)
+    .eq("channel", "email")
+    .eq("notification_status", "sent")
+    .order("sent_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Calcular status do sistema (últimos 15 minutos)
+  const fifteenMinutesAgo = new Date()
+  fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15)
+
+  const { data: recentAlerts } = await supabase
+    .from("notifications")
+    .select("notification_status")
+    .eq("user_id", user!.id)
+    .eq("channel", "email")
+    .gte("created_at", fifteenMinutesAgo.toISOString())
+
+  const sent = recentAlerts?.filter(a => a.notification_status === 'sent').length || 0
+  const failed = recentAlerts?.filter(a => a.notification_status === 'failed').length || 0
+  const total = sent + failed
+  const failureRate = total > 0 ? (failed / total) * 100 : 0
+
+  const systemStatus: 'healthy' | 'warning' | 'critical' = 
+    failureRate >= 5 ? 'critical' :
+    failureRate > 0 ? 'warning' :
+    'healthy'
+
+  // Contar alertas de hoje
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const { data: todayAlerts } = await supabase
+    .from("notifications")
+    .select("id")
+    .eq("user_id", user!.id)
+    .eq("channel", "email")
+    .eq("notification_status", "sent")
+    .gte("sent_at", todayStart.toISOString())
+
+  // Buscar métricas para dashboard enriquecido
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
   const [
-    processesResult,
-    clientsResult,
-    deadlinesResult,
-    financialResult,
-    documentsResult,
-    leadsResult,
-    recentProcesses,
-    upcomingDeadlines,
-    recentTransactions,
-    overdueDeadlines,
-    wonProcesses,
+    processesCount,
+    clientsCount,
+    clientsThisMonth,
+    recentMovements,
+    upcomingAudiences,
+    monthlyRevenue,
+    recentProcessUpdates,
+    recentNotifications,
   ] = await Promise.all([
-    supabase.from("processes").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
-    supabase.from("clients").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
     supabase
-      .from("deadlines")
+      .from("processes")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
-      .eq("status", "pending"),
-    supabase.from("financial_transactions").select("amount, type, status").eq("user_id", user!.id),
-    supabase.from("documents").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
-    supabase.from("leads").select("id, status", { count: "exact", head: true }).eq("user_id", user!.id),
+      .eq("status", "active"),
     supabase
-      .from("processes")
-      .select("id, title, process_number, priority, status, created_at")
-      .eq("user_id", user!.id)
-      .order("created_at", { ascending: false })
-      .limit(5),
+      .from("clients")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id),
     supabase
-      .from("deadlines")
-      .select("id, title, deadline_date, priority, processes(title, process_number)")
+      .from("clients")
+      .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
-      .eq("status", "pending")
-      .gte("deadline_date", new Date().toISOString().split("T")[0])
-      .order("deadline_date", { ascending: true })
-      .limit(5),
+      .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+    supabase
+      .from("process_updates")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .gte("created_at", sevenDaysAgo.toISOString()),
+    supabase
+      .from("audiences")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .eq("status", "scheduled")
+      .gte("audience_date", new Date().toISOString())
+      .lte("audience_date", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
     supabase
       .from("financial_transactions")
-      .select("id, title, amount, type, status, created_at")
+      .select("amount")
+      .eq("user_id", user!.id)
+      .eq("type", "income")
+      .eq("status", "paid")
+      .gte("paid_date", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+    supabase
+      .from("process_updates")
+      .select("id, process_id, title, update_type, created_at, processes(title, process_number)")
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
-      .from("deadlines")
-      .select("id, title, deadline_date, priority")
+      .from("notifications")
+      .select("id, title, sent_at, deadline_id, deadlines(title)")
       .eq("user_id", user!.id)
-      .eq("status", "pending")
-      .lt("deadline_date", new Date().toISOString().split("T")[0])
+      .eq("notification_status", "sent")
+      .order("sent_at", { ascending: false })
       .limit(5),
-    supabase
-      .from("processes")
-      .select("id, title, process_number, valor_causa, percentual_honorario, honorario_calculado")
-      .eq("user_id", user!.id)
-      .eq("status_ganho", "ganho")
-      .not("honorario_calculado", "is", null)
-      .order("created_at", { ascending: false }),
   ])
 
-  const totalIncome = financialResult.data
-    ?.filter((t) => t.type === "income" && t.status === "paid")
-    .reduce((acc, t) => acc + Number(t.amount), 0) || 0
+  const revenue = monthlyRevenue.data?.reduce((acc, t) => acc + Number(t.amount || 0), 0) || 0
 
-  const totalExpenses = financialResult.data
-    ?.filter((t) => t.type === "expense" && t.status === "paid")
-    .reduce((acc, t) => acc + Number(t.amount), 0) || 0
+  // Construir eventos recentes
+  const recentEvents: Array<{
+    id: string
+    type: 'movement' | 'audience' | 'deadline' | 'alert'
+    title: string
+    description: string
+    date: string
+    link: string
+    isNew?: boolean
+  }> = []
 
-  const pendingIncome = financialResult.data
-    ?.filter((t) => t.type === "income" && t.status === "pending")
-    .reduce((acc, t) => acc + Number(t.amount), 0) || 0
+  // Adicionar movimentações
+  recentProcessUpdates.data?.forEach((update: any) => {
+    recentEvents.push({
+      id: update.id,
+      type: 'movement',
+      title: 'Nova movimentação em processo',
+      description: `${update.processes?.process_number || 'Processo'} - ${update.title || update.update_type || 'Movimentação'}`,
+      date: update.created_at,
+      link: update.process_id ? `/dashboard/processes/${update.process_id}` : '/dashboard/processes',
+      isNew: new Date(update.created_at) > sevenDaysAgo,
+    })
+  })
 
-  // Calcular total de honorários
-  const totalHonorarios = wonProcesses.data?.reduce((acc, p: any) => acc + Number(p.honorario_calculado || 0), 0) || 0
-  
-  // Saldo positivo = Receitas + Honorários - Despesas
-  const saldoPositivo = totalIncome + totalHonorarios - totalExpenses
+  // Adicionar alertas enviados
+  recentNotifications.data?.forEach((notif: any) => {
+    recentEvents.push({
+      id: notif.id,
+      type: 'alert',
+      title: 'Alerta enviado',
+      description: notif.deadlines?.title || notif.title || 'Alerta de prazo',
+      date: notif.sent_at || notif.created_at,
+      link: notif.deadline_id ? `/dashboard/deadlines/${notif.deadline_id}` : '/dashboard/deadlines',
+    })
+  })
 
-  const newLeads = leadsResult.data?.filter((l: any) => l.status === "new").length || 0
-  const convertedLeads = leadsResult.data?.filter((l: any) => l.status === "converted").length || 0
-
-  const stats = [
-    {
-      name: "Processos Ativos",
-      value: processesResult.count || 0,
-      icon: Briefcase,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      link: "/dashboard/processes",
-    },
-    {
-      name: "Clientes",
-      value: clientsResult.count || 0,
-      icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      link: "/dashboard/clients",
-    },
-    {
-      name: "Prazos Pendentes",
-      value: deadlinesResult.count || 0,
-      icon: Bell,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      link: "/dashboard/deadlines",
-    },
-    {
-      name: "Documentos",
-      value: documentsResult.count || 0,
-      icon: FileText,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      link: "/dashboard/documents",
-    },
-    {
-      name: "Receita Total",
-      value: `R$ ${totalIncome.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-      icon: DollarSign,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      link: "/dashboard/financial",
-    },
-    {
-      name: "A Receber",
-      value: `R$ ${pendingIncome.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-      icon: TrendingUp,
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-      link: "/dashboard/financial",
-    },
-    {
-      name: "Honorários Calculados",
-      value: `R$ ${totalHonorarios.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-      icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      link: "/dashboard/financial",
-      description: `${wonProcesses.data?.length || 0} processo(s) ganho(s)`,
-    },
-    {
-      name: "Leads Novos",
-      value: newLeads,
-      icon: Users,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      link: "/dashboard/leads",
-    },
-    {
-      name: "Leads Convertidos",
-      value: convertedLeads,
-      icon: CheckCircle2,
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
-      link: "/dashboard/leads",
-    },
-  ]
-
-  // Verificar se é usuário novo (sem prazos)
-  const { data: deadlinesCount } = await supabase
-    .from("deadlines")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-
-  const isNewUser = (deadlinesCount || 0) === 0
+  // Ordenar eventos por data
+  recentEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return (
     <DashboardLayout userId={user?.id} userEmail={user?.email}>
       <DeadlineAlertModal deadlines={modalDeadlines} />
-      <div className="space-y-4 md:space-y-6">
+      <GuidedTour userId={user!.id} />
+      <NPSChecker userId={user!.id} />
+      
+      <div className="space-y-6 max-w-7xl">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-1 text-sm md:text-base">Visão geral do seu escritório jurídico</p>
+          <p className="text-slate-600 mt-1 text-sm">Visão geral do seu escritório jurídico</p>
         </div>
 
-        {/* Status do Sistema */}
-        <SystemStatus userId={user!.id} />
-
-        {/* Dashboard de Onboarding para usuários novos */}
-        {isNewUser && <OnboardingDashboard userId={user!.id} />}
-
-        <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Link key={stat.name} href={stat.link || "#"}>
-            <Card className="border-slate-200 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-3 md:p-6">
-                <CardTitle className="text-xs font-medium text-slate-600 truncate pr-2">{stat.name}</CardTitle>
-                <div className={cn("rounded-lg p-1.5 shrink-0", stat.bgColor)}>
-                  <stat.icon className={cn("h-3 w-3 md:h-4 md:w-4", stat.color)} />
-                </div>
-              </CardHeader>
-              <CardContent className="p-3 md:p-6 pt-0">
-                <div className="text-lg md:text-xl font-bold text-slate-900">{stat.value}</div>
-                {stat.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{stat.description}</p>}
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      {/* Financial Summary */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="border-slate-200 lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900">Resumo Financeiro</CardTitle>
-              <Link href="/dashboard/financial">
-                <Button variant="outline" size="sm">
-                  Ver todos
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-slate-600">Receitas</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    R$ {totalIncome.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-slate-600">Despesas</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    R$ {totalExpenses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-red-600 rotate-180" />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-slate-600">Saldo Líquido</p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      saldoPositivo >= 0 ? "text-emerald-600" : "text-red-600"
-                    }`}
-                  >
-                    R$ {saldoPositivo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                  {totalHonorarios > 0 && (
-                    <p className="text-xs text-slate-500 mt-1">
-                      Inclui R$ {totalHonorarios.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em honorários
-                    </p>
-                  )}
-                </div>
-                <DollarSign className="h-8 w-8 text-slate-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900">Status</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">Prazos Vencidos</span>
-              <Badge variant="destructive">{overdueDeadlines.data?.length || 0}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">Prazos Hoje</span>
-              <Badge variant="outline" className="border-orange-200 text-orange-700">
-                {upcomingDeadlines.data?.filter(
-                  (d: any) => new Date(d.deadline_date).toISOString().split("T")[0] === new Date().toISOString().split("T")[0]
-                ).length || 0}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">Processos Urgentes</span>
-              <Badge variant="outline" className="border-red-200 text-red-700">
-                {recentProcesses.data?.filter((p: any) => p.priority === "urgent").length || 0}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">A Receber</span>
-              <Badge variant="outline" className="border-amber-200 text-amber-700">
-                R$ {pendingIncome.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Card de Honorários */}
-      {wonProcesses.data && wonProcesses.data.length > 0 && (
-        <HonorariosCard 
-          processes={wonProcesses.data} 
-          totalHonorarios={totalHonorarios}
+        {/* Dashboard Enriquecido */}
+        <EnrichedDashboard
+          metrics={{
+            activeProcesses: processesCount.count || 0,
+            totalClients: clientsCount.count || 0,
+            clientsGrowth: clientsThisMonth.count || undefined,
+            recentMovements: recentMovements.count || 0,
+            upcomingAudiences: upcomingAudiences.count || 0,
+            monthlyRevenue: revenue > 0 ? revenue : undefined,
+          }}
+          recentEvents={recentEvents.slice(0, 5)}
         />
-      )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Próximos Prazos */}
-        <Card className="border-slate-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900 flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Próximos Prazos
-              </CardTitle>
-              <Link href="/dashboard/deadlines">
-                <Button variant="outline" size="sm">
-                  Ver todos
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {upcomingDeadlines.data && upcomingDeadlines.data.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingDeadlines.data.map((deadline: any) => {
-                  const deadlineDate = new Date(deadline.deadline_date)
-                  const today = new Date()
-                  const daysDiff = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-                  const isToday = daysDiff === 0
-                  const isUrgent = daysDiff <= 3
+        {/* Dashboard Minimalista (Prazos e Status) */}
+        <MinimalDashboard
+          userId={user!.id}
+          upcomingDeadlines={upcomingDeadlines || []}
+          lastAlert={lastAlert || null}
+          systemStatus={{
+            status: systemStatus,
+            alertsToday: todayAlerts?.length || 0,
+          }}
+        />
 
-                  return (
-                    <div
-                      key={deadline.id}
-                      className={`p-3 rounded-lg border ${
-                        isToday ? "bg-red-50 border-red-200" : isUrgent ? "bg-orange-50 border-orange-200" : "bg-slate-50 border-slate-200"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{deadline.title}</p>
-                          {deadline.processes && (
-                            <p className="text-xs text-slate-600 mt-1">
-                              {deadline.processes.title} - {deadline.processes.process_number}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2">
-                            <Clock className="h-3 w-3 text-slate-500" />
-                            <span className="text-xs text-slate-600">
-                              {deadlineDate.toLocaleDateString("pt-BR")} {isToday && "(Hoje)"}
-                              {!isToday && daysDiff > 0 && `(${daysDiff} ${daysDiff === 1 ? "dia" : "dias"})`}
-                            </span>
-                          </div>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={
-                            deadline.priority === "urgent"
-                              ? "border-red-200 text-red-700"
-                              : deadline.priority === "high"
-                                ? "border-orange-200 text-orange-700"
-                                : "border-slate-200 text-slate-700"
-                          }
-                        >
-                          {deadline.priority === "urgent" ? "Urgente" : deadline.priority === "high" ? "Alta" : "Normal"}
-                        </Badge>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-600 text-center py-4">Nenhum prazo próximo</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Processos Recentes */}
-        <Card className="border-slate-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900 flex items-center gap-2">
-                <Briefcase className="h-5 w-5" />
-                Processos Recentes
-              </CardTitle>
-              <Link href="/dashboard/processes">
-                <Button variant="outline" size="sm">
-                  Ver todos
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentProcesses.data && recentProcesses.data.length > 0 ? (
-              <div className="space-y-3">
-                {recentProcesses.data.map((process: any) => (
-                  <Link key={process.id} href={`/dashboard/processes/${process.id}`}>
-                    <div className="p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{process.title}</p>
-                          <p className="text-xs text-slate-600 mt-1">{process.process_number}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {new Date(process.created_at).toLocaleDateString("pt-BR")}
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <Badge
-                            variant="outline"
-                            className={
-                              process.priority === "urgent"
-                                ? "border-red-200 text-red-700"
-                                : process.priority === "high"
-                                  ? "border-orange-200 text-orange-700"
-                                  : "border-slate-200 text-slate-700"
-                            }
-                          >
-                            {process.priority === "urgent" ? "Urgente" : process.priority === "high" ? "Alta" : "Normal"}
-                          </Badge>
-                          <Badge
-                            variant={process.status === "active" ? "default" : "secondary"}
-                            className={process.status === "active" ? "bg-blue-100 text-blue-700" : ""}
-                          >
-                            {process.status === "active" ? "Ativo" : "Arquivado"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-600 text-center py-4">Nenhum processo cadastrado</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Seção de Referral */}
+        <ReferralSection userId={user!.id} />
       </div>
-
-      {/* Feedback de Alertas */}
-      {!isNewUser && (
-        <AlertFeedback userId={user!.id} />
-      )}
-
-      {/* Prazos Vencidos e Transações Recentes */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {overdueDeadlines.data && overdueDeadlines.data.length > 0 && (
-          <Card className="border-slate-200 border-red-200 bg-red-50/50">
-            <CardHeader>
-              <CardTitle className="text-slate-900 flex items-center gap-2 text-red-700">
-                <AlertCircle className="h-5 w-5" />
-                Prazos Vencidos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {overdueDeadlines.data.map((deadline: any) => (
-                  <div key={deadline.id} className="p-3 rounded-lg bg-white border border-red-200">
-                    <p className="font-medium text-slate-900">{deadline.title}</p>
-                    <p className="text-xs text-red-600 mt-1">
-                      Vencido em {new Date(deadline.deadline_date).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                ))}
-                <Link href="/dashboard/deadlines">
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    Ver todos os prazos
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="border-slate-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900 flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Transações Recentes
-              </CardTitle>
-              <Link href="/dashboard/financial">
-                <Button variant="outline" size="sm">
-                  Ver todas
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentTransactions.data && recentTransactions.data.length > 0 ? (
-              <div className="space-y-3">
-                {recentTransactions.data.map((transaction: any) => (
-                  <div key={transaction.id} className="p-3 rounded-lg border border-slate-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-900">{transaction.title}</p>
-                        <p className="text-xs text-slate-600 mt-1">
-                          {new Date(transaction.created_at).toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`font-semibold ${
-                            transaction.type === "income" ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {transaction.type === "income" ? "+" : "-"}R${" "}
-                          {Number(transaction.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </p>
-                        <Badge
-                          variant="outline"
-                          className={
-                            transaction.status === "paid"
-                              ? "border-green-200 text-green-700"
-                              : transaction.status === "pending"
-                                ? "border-orange-200 text-orange-700"
-                                : "border-slate-200 text-slate-700"
-                          }
-                        >
-                          {transaction.status === "paid" ? "Pago" : transaction.status === "pending" ? "Pendente" : "Atrasado"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-600 text-center py-4">Nenhuma transação recente</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
     </DashboardLayout>
   )
 }

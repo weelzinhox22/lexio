@@ -8,6 +8,7 @@ import { DeadlineHub } from "@/components/deadlines/deadline-hub"
 import { DeadlineStats } from "@/components/deadlines/deadline-stats"
 import { DeadlineCalendar } from "@/components/deadlines/deadline-calendar"
 import { DeadlineEmailSettings } from "@/components/deadlines/deadline-email-settings"
+import { FeedbackButton } from "@/components/feedback/feedback-button"
 
 export default async function DeadlinesPage() {
   const supabase = await createClient()
@@ -67,13 +68,21 @@ export default async function DeadlinesPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Prazos</h1>
           <p className="text-slate-600 mt-1 text-sm md:text-base">Nunca perca um prazo importante</p>
         </div>
-        <Link href="/dashboard/deadlines/new" className="flex-1 sm:flex-initial">
-          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Novo Prazo</span>
-            <span className="sm:hidden">Novo</span>
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <FeedbackButton 
+            userId={user!.id} 
+            variant="bug" 
+            label="Reportar problema"
+            className="hidden sm:flex"
+          />
+          <Link href="/dashboard/deadlines/new" className="flex-1 sm:flex-initial">
+            <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Novo Prazo</span>
+              <span className="sm:hidden">Novo</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <DeadlineStats
