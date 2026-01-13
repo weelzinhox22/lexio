@@ -85,3 +85,4 @@ CREATE POLICY "referrals_insert_own" ON public.referrals
 
 SELECT 'Sistema de referral criado com sucesso!' as status;
 
+

@@ -44,3 +44,4 @@ CREATE INDEX IF NOT EXISTS idx_profiles_referred_by ON public.profiles(referred_
 
 SELECT 'Índices de performance criados com sucesso!' as status;
 
+
