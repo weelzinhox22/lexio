@@ -14,6 +14,7 @@ import {
 import { isEligibleForDeadlineEmail } from '@/lib/email/deadline-email-eligibility'
 import { sendEmailWithRetryAndFallback } from '@/lib/email/retry-with-fallback'
 import { deadlineAlertEmail } from '@/lib/email/templates/alerts'
+import { renderBaseEmail } from '@/lib/email/templates/base'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -494,6 +495,160 @@ export async function GET(request: Request) {
       }
     }
 
+    // Processar também alertas de audiências (combinado para economizar crons)
+    let audienceAlertsSent = 0
+    let audienceAlertsFailed = 0
+    
+    try {
+      const today = new Date(nowUTC.getFullYear(), nowUTC.getMonth(), nowUTC.getDate())
+      const sevenDaysLater = new Date(today)
+      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
+      
+      const { data: audiences } = await supabase
+        .from('audiences')
+        .select(`
+          id,
+          user_id,
+          title,
+          audience_date,
+          location,
+          location_type,
+          meeting_link,
+          processes (
+            process_number,
+            title
+          ),
+          clients (
+            name
+          )
+        `)
+        .eq('status', 'scheduled')
+        .gte('audience_date', today.toISOString())
+        .lte('audience_date', sevenDaysLater.toISOString())
+
+      if (audiences && audiences.length > 0) {
+        console.log(`\n📅 [AudienceAlerts] Processando ${audiences.length} audiência(s)`)
+        
+        for (const audience of audiences) {
+          const audienceDate = new Date(audience.audience_date)
+          const daysUntil = Math.ceil((audienceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+          if (![7, 1, 0].includes(daysUntil)) continue
+
+          const profile = profileMap.get(audience.user_id)
+          const settings = settingsMap.get(audience.user_id)
+
+          if (!profile || !settings?.email_enabled) continue
+
+          const toEmail = (settings?.email_override || profile.email || '').trim()
+          const fallbackEmail = (settings?.email_fallback || '').trim() || null
+
+          if (!toEmail) continue
+
+          const dedupeKey = `audience:${audience.id}:${daysUntil}`
+          const { data: existing } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('user_id', audience.user_id)
+            .eq('dedupe_key', dedupeKey)
+            .limit(1)
+
+          if (existing && existing.length > 0) continue
+
+          const { data: notification } = await supabase
+            .from('notifications')
+            .insert({
+              user_id: audience.user_id,
+              entity_type: 'audience',
+              entity_id: audience.id,
+              notification_type: daysUntil === 0 ? 'audience_today' : daysUntil === 1 ? 'audience_tomorrow' : 'audience_week',
+              severity: daysUntil === 0 ? 'danger' : daysUntil === 1 ? 'warning' : 'info',
+              title: daysUntil === 0 
+                ? `Audiência hoje: ${audience.title}`
+                : daysUntil === 1
+                ? `Audiência amanhã: ${audience.title}`
+                : `Audiência em 7 dias: ${audience.title}`,
+              message: `Lembrete: ${audience.title}`,
+              dedupe_key: dedupeKey,
+              notification_status: 'pending',
+              channel: 'email',
+            })
+            .select()
+            .single()
+
+          if (!notification) continue
+
+          const processInfo = audience.processes 
+            ? `${audience.processes.process_number} - ${audience.processes.title}`
+            : 'Não vinculado a processo'
+          const locationInfo = audience.location_type === 'virtual' && audience.meeting_link
+            ? `Link: ${audience.meeting_link}`
+            : audience.location || 'Local a confirmar'
+
+          const dateStr = audienceDate.toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+
+          const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+          const bodyHtml = `
+            <p style="margin: 0 0 16px 0;">Olá ${profile.full_name || 'Advogado(a)'},</p>
+            <p style="margin: 0 0 16px 0;"><strong>Lembrete de Audiência</strong></p>
+            <p style="margin: 0 0 16px 0;"><strong>${audience.title}</strong></p>
+            <p style="margin: 0 0 8px 0;"><strong>Data e Hora:</strong> ${dateStr}</p>
+            <p style="margin: 0 0 8px 0;"><strong>Processo:</strong> ${processInfo}</p>
+            <p style="margin: 0 0 8px 0;"><strong>Local:</strong> ${locationInfo}</p>
+            <p style="margin: 16px 0 0 0;">
+              <a href="${appUrl}/dashboard/audiences/${audience.id}" style="color: #2563eb; text-decoration: underline;">
+                Ver detalhes da audiência
+              </a>
+            </p>
+          `
+
+          const html = renderBaseEmail({
+            title: daysUntil === 0 ? 'Audiência Hoje' : daysUntil === 1 ? 'Audiência Amanhã' : 'Audiência em 7 Dias',
+            preheader: audience.title,
+            body: bodyHtml,
+          })
+
+          const subject = `[Themixa] ${daysUntil === 0 ? 'Audiência HOJE' : daysUntil === 1 ? 'Audiência amanhã' : 'Audiência em 7 dias'}: ${audience.title}`
+
+          const sendResult = await sendEmailWithRetryAndFallback({
+            to: toEmail,
+            fallbackEmail,
+            subject,
+            html,
+            alertId: notification.id,
+            userId: audience.user_id,
+            deadlineId: null,
+          })
+
+          if (sendResult.ok) {
+            await supabase
+              .from('notifications')
+              .update({ notification_status: 'sent', sent_at: new Date().toISOString() })
+              .eq('id', notification.id)
+            audienceAlertsSent++
+            console.log(`   └─ ✅ Alerta enviado: ${audience.title} (${daysUntil} dias)`)
+          } else {
+            await supabase
+              .from('notifications')
+              .update({ notification_status: 'failed', error_message: sendResult.error })
+              .eq('id', notification.id)
+            audienceAlertsFailed++
+            console.log(`   └─ ❌ Falha ao enviar: ${audience.title} (${daysUntil} dias)`)
+          }
+        }
+        console.log(`📊 [AudienceAlerts] Enviados: ${audienceAlertsSent}, Falhas: ${audienceAlertsFailed}`)
+      }
+    } catch (audienceError) {
+      console.error('[DeadlineAlerts Cron] ❌ Erro ao processar audiências:', audienceError)
+    }
+
     const duration = Date.now() - startTime
     const summary = {
       success: true,
@@ -505,6 +660,8 @@ export async function GET(request: Request) {
       email_sent: emailSent,
       email_failed: emailFailed,
       email_skipped: emailSkipped,
+      audience_alerts_sent: audienceAlertsSent,
+      audience_alerts_failed: audienceAlertsFailed,
       notes: {
         consent_default_email_enabled: true,
         overdue_email_default: 'disabled',
