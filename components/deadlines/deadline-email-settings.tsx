@@ -120,7 +120,7 @@ export function DeadlineEmailSettings() {
           <div className="flex-1">
             <CardTitle className="text-lg font-semibold text-slate-900">E-mail para Notificações</CardTitle>
             <CardDescription className="text-slate-600 mt-0.5">
-              Configure o e-mail que receberá alertas de prazos
+              Seus alertas serão enviados para este endereço. Você receberá notificações em 7, 3, 1 dia e no dia do prazo.
             </CardDescription>
           </div>
         </div>
@@ -155,7 +155,7 @@ export function DeadlineEmailSettings() {
             className="h-10"
           />
           <p className="text-xs text-slate-600 leading-relaxed">
-            Este e-mail será usado para receber alertas de prazos e notificações importantes do Themixa.
+            Você receberá alertas automáticos quando seus prazos estiverem se aproximando. Deixe em branco para usar o e-mail da sua conta.
           </p>
         </div>
 
@@ -184,4 +184,5 @@ export function DeadlineEmailSettings() {
     </Card>
   )
 }
+
 

@@ -59,7 +59,7 @@ export function DeadlineAlertModal({ deadlines }: { deadlines: ModalDeadline[] }
             Prazos Críticos
           </AlertDialogTitle>
           <AlertDialogDescription className="text-red-100 mt-2">
-            Você tem {criticalDeadlines.length} prazo{criticalDeadlines.length > 1 ? 's' : ''} vencendo hoje ou já vencido{criticalDeadlines.length > 1 ? 's' : ''}. Confira o teor da publicação.
+            Você tem {criticalDeadlines.length} prazo{criticalDeadlines.length > 1 ? 's' : ''} vencendo hoje ou já vencido{criticalDeadlines.length > 1 ? 's' : ''}. Verifique os autos do processo imediatamente.
           </AlertDialogDescription>
         </div>
 
@@ -134,7 +134,7 @@ export function DeadlineAlertModal({ deadlines }: { deadlines: ModalDeadline[] }
 
         <div className="mt-6 rounded-lg bg-amber-50 border border-amber-200 p-4">
           <p className="text-sm text-amber-900">
-            <strong>⚠️ Importante:</strong> Este alerta é auxiliar e não substitui a conferência nos autos do processo.
+            <strong>⚠️ Importante:</strong> Este alerta é auxiliar e não substitui a conferência nos autos do processo. Sempre confira o teor da publicação/andamento.
           </p>
         </div>
 

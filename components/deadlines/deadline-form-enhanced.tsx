@@ -18,7 +18,19 @@ type Process = {
   process_number: string
 }
 
-export function DeadlineFormEnhanced({ processes, userId }: { processes: Process[]; userId: string }) {
+export function DeadlineFormEnhanced({ 
+  processes, 
+  userId,
+  isOnboarding = false,
+  prefillDate,
+  prefillTime = '09:00'
+}: { 
+  processes: Process[]
+  userId: string
+  isOnboarding?: boolean
+  prefillDate?: string
+  prefillTime?: string
+}) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +40,26 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
   const [calculatedReminder, setCalculatedReminder] = useState<Date | null>(null)
   const [useManualDate, setUseManualDate] = useState(false)
   const [selectedDeadline, setSelectedDeadline] = useState<typeof LEGAL_DEADLINES[0] | null>(null)
+  
+  // Pré-preencher para onboarding
+  useEffect(() => {
+    if (isOnboarding && prefillDate) {
+      // Aguardar um pouco para garantir que o DOM está pronto
+      setTimeout(() => {
+        const dateTime = `${prefillDate}T${prefillTime}`
+        const input = document.getElementById('deadline_date') as HTMLInputElement
+        if (input) {
+          // Formato datetime-local: YYYY-MM-DDTHH:mm
+          input.value = dateTime
+        }
+        // Pré-preencher título também
+        const titleInput = document.getElementById('title') as HTMLInputElement
+        if (titleInput && !titleInput.value) {
+          titleInput.value = 'Prazo de resposta - Processo exemplo'
+        }
+      }, 100)
+    }
+  }, [isOnboarding, prefillDate, prefillTime])
 
   useEffect(() => {
     if (selectedDeadlineType && selectedDeadlineType !== 'manual') {
@@ -107,6 +139,22 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
         } catch (syncError) {
           console.log('Não foi possível sincronizar com Google Calendar:', syncError)
           // Não lança erro, apenas registra
+        }
+      }
+
+      // Se for onboarding, enviar e-mail de teste
+      if (isOnboarding && newDeadline) {
+        try {
+          await fetch('/api/deadlines/send-test-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              deadlineId: newDeadline.id,
+            }),
+          })
+        } catch (emailError) {
+          console.log('Não foi possível enviar e-mail de teste:', emailError)
+          // Não bloqueia o fluxo
         }
       }
 
@@ -242,6 +290,7 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
               id="deadline_date" 
               name="deadline_date" 
               type="datetime-local" 
+              defaultValue={isOnboarding && prefillDate ? `${prefillDate}T${prefillTime}` : undefined}
               required
               className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
             />
@@ -277,7 +326,7 @@ export function DeadlineFormEnhanced({ processes, userId }: { processes: Process
             id="title" 
             name="title" 
             placeholder={selectedDeadline ? selectedDeadline.type : "Ex: Protocolar Contestação"} 
-            defaultValue={selectedDeadline?.type}
+            defaultValue={isOnboarding ? 'Prazo de resposta - Processo exemplo' : selectedDeadline?.type}
             required
             className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
           />

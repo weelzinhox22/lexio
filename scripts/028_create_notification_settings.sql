@@ -42,3 +42,4 @@ CREATE TRIGGER trigger_notification_settings_updated_at
 SELECT 'Script 028_create_notification_settings.sql executado com sucesso!' as status;
 
 
+

@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DeadlineAlertModal } from "@/components/deadlines/deadline-alert-modal"
+import { OnboardingDashboard } from "@/components/onboarding/onboarding-dashboard"
+import { AlertFeedback } from "@/components/deadlines/alert-feedback"
+import { SystemStatus } from "@/components/deadlines/system-status"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -199,6 +202,14 @@ export default async function DashboardPage() {
     },
   ]
 
+  // Verificar se é usuário novo (sem prazos)
+  const { data: deadlinesCount } = await supabase
+    .from("deadlines")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user!.id)
+
+  const isNewUser = (deadlinesCount || 0) === 0
+
   return (
     <DashboardLayout userId={user?.id} userEmail={user?.email}>
       <DeadlineAlertModal deadlines={modalDeadlines} />
@@ -207,6 +218,12 @@ export default async function DashboardPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-600 mt-1 text-sm md:text-base">Visão geral do seu escritório jurídico</p>
         </div>
+
+        {/* Status do Sistema */}
+        <SystemStatus userId={user!.id} />
+
+        {/* Dashboard de Onboarding para usuários novos */}
+        {isNewUser && <OnboardingDashboard userId={user!.id} />}
 
         <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
@@ -457,6 +474,11 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Feedback de Alertas */}
+      {!isNewUser && (
+        <AlertFeedback userId={user!.id} />
+      )}
 
       {/* Prazos Vencidos e Transações Recentes */}
       <div className="grid gap-6 lg:grid-cols-2">
