@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { TemplatesManager } from "@/components/templates/templates-manager"
+import { TemplatesListAdvanced } from "@/components/templates/templates-list-advanced"
 
 export default async function TemplatesPage() {
   const supabase = await createClient()
@@ -17,28 +17,12 @@ export default async function TemplatesPage() {
     .order("category", { ascending: true })
     .order("name", { ascending: true })
 
-  // Buscar papéis timbrados
-  const { data: letterheads } = await supabase
-    .from("letterheads")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Modelos de Documentos</h1>
-        <p className="text-slate-600 mt-1 text-sm md:text-base">
-          Crie e gerencie templates de documentos jurídicos com preenchimento automático
-        </p>
-      </div>
-
-      <TemplatesManager
-        initialTemplates={templates || []}
-        initialLetterheads={letterheads || []}
-        userId={user.id}
-      />
-    </div>
+    <TemplatesListAdvanced
+      initialTemplates={templates || []}
+      userId={user.id}
+      userEmail={user.email}
+    />
   )
 }
 
