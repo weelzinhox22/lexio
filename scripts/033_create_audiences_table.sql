@@ -58,3 +58,4 @@ CREATE TRIGGER audiences_updated_at
 SELECT 'Tabela de audiências criada com sucesso!' as status;
 
 
+

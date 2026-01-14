@@ -57,3 +57,4 @@ SELECT 'Tabela de leis favoritas criada com sucesso!' as status;
 
 
 
+

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { TemplateRichEditor } from "../templates/template-rich-editor"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 import { Upload } from "lucide-react"
@@ -189,7 +189,13 @@ export function DocumentForm({
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="description">Descrição</Label>
-          <Textarea id="description" name="description" placeholder="Detalhes sobre o documento..." rows={4} />
+          <TemplateRichEditor
+            content={""}
+            onChange={() => {}}
+            placeholder="Detalhes sobre o documento..."
+            className="min-h-[120px]"
+            readOnly={false}
+          />
         </div>
       </div>
 

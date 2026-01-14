@@ -117,3 +117,4 @@ Execute no Supabase SQL Editor:
 **Tudo implementado e pronto para uso!** 🚀
 
 
+

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { TemplateRichEditor } from '../templates/template-rich-editor'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import type { Document } from '@/lib/types/database'
@@ -81,11 +81,12 @@ export function DocumentEditForm({
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="description">Descrição</Label>
-          <Textarea
-            id="description"
-            name="description"
-            defaultValue={document.description || ''}
-            rows={4}
+          <TemplateRichEditor
+            content={document.description || ''}
+            onChange={() => {}}
+            placeholder="Detalhes sobre o documento..."
+            className="min-h-[120px]"
+            readOnly={true}
           />
         </div>
 
@@ -158,6 +159,7 @@ export function DocumentEditForm({
     </form>
   )
 }
+
 
 
 

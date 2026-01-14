@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Save, Loader2, History, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { TemplateRichEditor } from './template-rich-editor'
+import { TemplateTipTapEditor } from './template-tiptap-editor'
 import { TemplateVersionsPanel } from './template-versions-panel'
 import { TEMPLATE_CATEGORIES } from '@/lib/constants/templates'
 
@@ -288,7 +288,7 @@ export function TemplateEditPage({ templateId, userId, isAdmin = false }: Templa
             </CardHeader>
             <CardContent>
               {canEdit ? (
-                <TemplateRichEditor
+                <TemplateTipTapEditor
                   content={formData.content}
                   onChange={handleContentChange}
                   placeholder="Digite o conteúdo do template usando placeholders como {{NOME_CLIENTE}}..."

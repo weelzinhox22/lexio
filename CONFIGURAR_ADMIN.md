@@ -54,3 +54,4 @@ ADMIN_USER_IDS=uuid-1,uuid-2,uuid-3
 **Pronto!** O e-mail já está configurado no `env.example` e o código foi atualizado para aceitar e-mails. 🎉
 
 
+

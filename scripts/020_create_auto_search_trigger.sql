@@ -28,3 +28,4 @@ CREATE TRIGGER trigger_auto_search_publications
 
 
 
+

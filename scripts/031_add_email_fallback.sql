@@ -12,3 +12,4 @@ COMMENT ON COLUMN public.notification_settings.email_fallback IS 'E-mail alterna
 SELECT 'Campo email_fallback adicionado com sucesso!' as status;
 
 
+

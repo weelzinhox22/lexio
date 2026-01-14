@@ -48,3 +48,4 @@ CREATE POLICY "feedback_insert_own" ON public.feedback
 SELECT 'Tabelas de feedback criadas com sucesso!' as status;
 
 
+

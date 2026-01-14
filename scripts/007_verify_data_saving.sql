@@ -151,3 +151,4 @@ SELECT '✅ Verificação concluída! Revise os resultados acima.' as resultado;
 
 
 
+

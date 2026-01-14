@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { TemplateTipTapEditor } from './template-tiptap-editor'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -196,11 +196,11 @@ export function TemplateEditor({
             <CardTitle>Conteúdo do Documento</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={formData.content}
-              onChange={(e) => handleContentChange(e.target.value)}
+            <TemplateTipTapEditor
+              content={formData.content}
+              onChange={handleContentChange}
               placeholder="Digite o conteúdo do template usando placeholders como {{NOME_CLIENTE}}, {{CPF_CLIENTE}}, etc."
-              className="font-mono text-sm min-h-[500px]"
+              className="min-h-[500px]"
             />
           </CardContent>
         </Card>
@@ -208,6 +208,7 @@ export function TemplateEditor({
     </div>
   )
 }
+
 
 
 

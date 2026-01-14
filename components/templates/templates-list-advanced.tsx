@@ -99,13 +99,34 @@ export function TemplatesListAdvanced({
     router.push(`/dashboard/templates/${template.id}`)
   }
 
-  const handleEditTemplate = (template: Template) => {
-    router.push(`/dashboard/templates/${template.id}/edit`)
+  const handleEditTemplate = async (template: Template) => {
+    // Se for template do sistema e não for admin, criar cópia primeiro
+    if (template.is_system && !userIsAdmin) {
+      try {
+        const response = await fetch(`/api/templates/${template.id}/duplicate`, {
+          method: 'POST',
+        })
+
+        if (!response.ok) {
+          throw new Error('Erro ao criar cópia do template')
+        }
+
+        const data = await response.json()
+        // Redirecionar para edição da cópia
+        router.push(`/dashboard/templates/${data.template.id}/edit`)
+      } catch (error) {
+        console.error('Erro ao duplicar template:', error)
+        // Em caso de erro, tentar editar direto (pode ser que já exista uma cópia)
+        router.push(`/dashboard/templates/${template.id}/edit`)
+      }
+    } else {
+      // Template próprio ou admin editando sistema
+      router.push(`/dashboard/templates/${template.id}/edit`)
+    }
   }
 
-  const canEdit = (template: Template) => {
-    return template.user_id === userId || userIsAdmin || !template.is_system
-  }
+  // Todos podem editar (cria cópia se for template do sistema)
+  const canEdit = () => true
 
   return (
     <div className="space-y-6">
@@ -266,15 +287,13 @@ export function TemplatesListAdvanced({
                           <Eye className="h-3 w-3 mr-1" />
                           Usar
                         </Button>
-                        {canEdit(template) && (
-                          <Button
-                            onClick={() => handleEditTemplate(template)}
-                            size="sm"
-                            variant="outline"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        )}
+                        <Button
+                          onClick={() => handleEditTemplate(template)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
