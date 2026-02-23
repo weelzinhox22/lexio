@@ -17,6 +17,8 @@ import {
   UserCircle,
   CreditCard,
   FileEdit,
+  Clock,
+  Bot,
 } from "lucide-react"
 
 const navigation = [
@@ -27,14 +29,20 @@ const navigation = [
   { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
   { name: "Documentos", href: "/dashboard/documents", icon: FileText },
   { name: "Templates", href: "/dashboard/templates", icon: FileEdit },
+  { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
   { name: "Financeiro", href: "/dashboard/financial", icon: DollarSign },
   { name: "Leads", href: "/dashboard/leads", icon: UserCircle },
   { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
   { name: "Assinatura", href: "/dashboard/subscription", icon: CreditCard },
   { name: "Configurações", href: "/dashboard/settings", icon: Settings },
+  { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
 ]
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  isAdmin?: boolean;
+}
+
+export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -47,6 +55,8 @@ export function DashboardSidebar() {
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto min-w-0">
         {navigation.map((item) => {
+          if (item.name === "Treinamento IA" && !isAdmin) return null;
+
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
           return (
             <Link

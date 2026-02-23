@@ -27,6 +27,16 @@ export function ClientForm({ userId }: { userId: string }) {
     const supabase = createClient()
 
     try {
+      const addressLine = (formData.get("address") as string)?.trim()
+      const city = (formData.get("city") as string)?.trim()
+      const address =
+        addressLine || city
+          ? {
+              line1: addressLine || null,
+              city: city || null,
+            }
+          : null
+
       const { error } = await supabase.from("clients").insert({
         user_id: userId,
         name: formData.get("name") as string,
@@ -36,12 +46,13 @@ export function ClientForm({ userId }: { userId: string }) {
         client_type: formData.get("client_type") as string,
         status: formData.get("status") as string,
         notes: formData.get("notes") as string,
-        address: formData.get("address") as string || null,
-        city: formData.get("city") as string || null,
-        birth_date: formData.get("birth_date") as string || null,
+        address,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error(error)
+        throw error
+      }
 
       router.push("/dashboard/clients")
       router.refresh()

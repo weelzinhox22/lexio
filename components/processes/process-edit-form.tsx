@@ -34,6 +34,7 @@ export function ProcessEditForm({
   const [valorCausa, setValorCausa] = useState((process as any).valor_causa || 0)
   const [percentualHonorario, setPercentualHonorario] = useState((process as any).percentual_honorario || 0)
   const [currency, setCurrency] = useState('BRL')
+  const [statusGanho, setStatusGanho] = useState((process as any).status_ganho || 'em_andamento')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -210,7 +211,7 @@ export function ProcessEditForm({
 
         <div className="space-y-2">
           <Label htmlFor="status_ganho">Status da Causa</Label>
-          <Select name="status_ganho" defaultValue={(process as any).status_ganho || 'em_andamento'}>
+          <Select name="status_ganho" defaultValue={(process as any).status_ganho || 'em_andamento'} onValueChange={setStatusGanho}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

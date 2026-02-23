@@ -3,8 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Briefcase, Users, TrendingUp, Calendar, DollarSign, 
+import {
+  Briefcase, Users, TrendingUp, Calendar, DollarSign,
   Bell, ArrowRight, Clock, FileText, Activity
 } from "lucide-react"
 import Link from "next/link"
@@ -67,14 +67,6 @@ export function EnrichedDashboard({ metrics, recentEvents }: EnrichedDashboardPr
       value: metrics.upcomingAudiences,
       icon: Calendar,
       link: "/dashboard/audiences",
-    },
-    {
-      name: "Receita do Mês",
-      value: metrics.monthlyRevenue 
-        ? `R$ ${metrics.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-        : "Em breve",
-      icon: DollarSign,
-      link: "/dashboard/financial",
     },
   ]
 

@@ -6,6 +6,10 @@ import { MinimalDashboard } from "@/components/dashboard/minimal-dashboard"
 import { GuidedTour } from "@/components/onboarding/guided-tour"
 import { EnrichedDashboard } from "@/components/dashboard/enriched-dashboard"
 import { ReferralSection } from "@/components/dashboard/referral-section"
+import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting"
+import { GlobalSearch } from "@/components/dashboard/global-search"
+import { WeekCalendar } from "@/components/dashboard/week-calendar"
+import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -87,10 +91,10 @@ export default async function DashboardPage() {
   const total = sent + failed
   const failureRate = total > 0 ? (failed / total) * 100 : 0
 
-  const systemStatus: 'healthy' | 'warning' | 'critical' = 
+  const systemStatus: 'healthy' | 'warning' | 'critical' =
     failureRate >= 5 ? 'critical' :
-    failureRate > 0 ? 'warning' :
-    'healthy'
+      failureRate > 0 ? 'warning' :
+        'healthy'
 
   // Contar alertas de hoje
   const todayStart = new Date()
@@ -108,6 +112,9 @@ export default async function DashboardPage() {
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
+  const sevenDaysLater = new Date()
+  sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
+
   const [
     processesCount,
     clientsCount,
@@ -117,6 +124,9 @@ export default async function DashboardPage() {
     monthlyRevenue,
     recentProcessUpdates,
     recentNotifications,
+    userProfile,
+    weekDeadlines,
+    weekAudiences,
   ] = await Promise.all([
     supabase
       .from("processes")
@@ -143,7 +153,7 @@ export default async function DashboardPage() {
       .eq("user_id", user!.id)
       .eq("status", "scheduled")
       .gte("audience_date", new Date().toISOString())
-      .lte("audience_date", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
+      .lte("audience_date", sevenDaysLater.toISOString()),
     supabase
       .from("financial_transactions")
       .select("amount")
@@ -164,7 +174,101 @@ export default async function DashboardPage() {
       .eq("notification_status", "sent")
       .order("sent_at", { ascending: false })
       .limit(5),
+    // Perfil do usuário (para saudação)
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user!.id)
+      .single(),
+    // Prazos dos próximos 7 dias (para mini calendário)
+    supabase
+      .from("deadlines")
+      .select("id, title, deadline_date, priority")
+      .eq("user_id", user!.id)
+      .neq("status", "completed")
+      .gte("deadline_date", today.toISOString())
+      .lte("deadline_date", sevenDaysLater.toISOString())
+      .order("deadline_date", { ascending: true }),
+    // Audiências dos próximos 7 dias (para mini calendário)
+    supabase
+      .from("audiences")
+      .select("id, title, audience_date")
+      .eq("user_id", user!.id)
+      .eq("status", "scheduled")
+      .gte("audience_date", today.toISOString())
+      .lte("audience_date", sevenDaysLater.toISOString())
+      .order("audience_date", { ascending: true }),
   ])
+
+  // ==== Charts data ====
+  // Processes by status
+  const { data: allProcesses } = await supabase
+    .from("processes")
+    .select("status, process_type")
+    .eq("user_id", user!.id)
+
+  const processByStatus: Record<string, number> = {}
+  const processByType: Record<string, number> = {}
+    ; (allProcesses || []).forEach((p: any) => {
+      const s = p.status || 'active'
+      processByStatus[s] = (processByStatus[s] || 0) + 1
+      if (p.process_type) {
+        processByType[p.process_type] = (processByType[p.process_type] || 0) + 1
+      }
+    })
+
+  // Monthly revenue for last 6 months
+  const monthlyRevenueData: number[] = []
+  const monthLabels: string[] = []
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date()
+    d.setMonth(d.getMonth() - i)
+    const start = new Date(d.getFullYear(), d.getMonth(), 1)
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+    monthLabels.push(monthNames[d.getMonth()])
+
+    const { data: mrev } = await supabase
+      .from("financial_transactions")
+      .select("amount")
+      .eq("user_id", user!.id)
+      .eq("type", "income")
+      .eq("status", "paid")
+      .gte("paid_date", start.toISOString())
+      .lte("paid_date", end.toISOString())
+
+    monthlyRevenueData.push((mrev || []).reduce((acc, t) => acc + Number(t.amount || 0), 0))
+  }
+
+  // Deadlines stats
+  const { data: allDeadlines } = await supabase
+    .from("deadlines")
+    .select("status, deadline_date")
+    .eq("user_id", user!.id)
+
+  const deadlineStats = { completed: 0, pending: 0, overdue: 0 }
+    ; (allDeadlines || []).forEach((d: any) => {
+      if (d.status === 'completed') {
+        deadlineStats.completed++
+      } else {
+        const dd = new Date(d.deadline_date)
+        if (dd < today) deadlineStats.overdue++
+        else deadlineStats.pending++
+      }
+    })
+
+  // Calcular contagens para saudação
+  const todayDeadlineCount = (modalDeadlinesRaw || []).filter((d: any) => {
+    const dd = new Date(d.deadline_date)
+    const daysUntil = Math.ceil((dd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return daysUntil === 0 && d.status !== "completed"
+  }).length
+
+  const urgentDeadlineCount = (upcomingDeadlines || []).filter((d: any) => {
+    const dd = new Date(d.deadline_date)
+    const daysUntil = Math.ceil((dd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return daysUntil > 0 && daysUntil <= 3
+  }).length
 
   const revenue = monthlyRevenue.data?.reduce((acc, t) => acc + Number(t.amount || 0), 0) || 0
 
@@ -212,12 +316,17 @@ export default async function DashboardPage() {
       <DeadlineAlertModal deadlines={modalDeadlines} />
       <GuidedTour userId={user!.id} />
       <NPSChecker userId={user!.id} />
-      
-      <div className="space-y-6 max-w-7xl">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-1 text-sm">Visão geral do seu escritório jurídico</p>
-        </div>
+
+      <div className="space-y-4 sm:space-y-6 max-w-7xl">
+        {/* Saudação personalizada */}
+        <DashboardGreeting
+          userName={userProfile.data?.full_name || null}
+          urgentDeadlineCount={urgentDeadlineCount}
+          todayDeadlineCount={todayDeadlineCount}
+        />
+
+        {/* Busca Global */}
+        <GlobalSearch />
 
         {/* Dashboard Enriquecido */}
         <EnrichedDashboard
@@ -232,16 +341,34 @@ export default async function DashboardPage() {
           recentEvents={recentEvents.slice(0, 5)}
         />
 
-        {/* Dashboard Minimalista (Prazos e Status) */}
-        <MinimalDashboard
-          userId={user!.id}
-          upcomingDeadlines={upcomingDeadlines || []}
-          lastAlert={lastAlert || null}
-          systemStatus={{
-            status: systemStatus,
-            alertsToday: todayAlerts?.length || 0,
-          }}
+        {/* Gráficos */}
+        <DashboardCharts
+          processByStatus={processByStatus}
+          processByType={processByType}
+          monthlyRevenue={monthlyRevenueData}
+          monthLabels={monthLabels}
+          deadlineStats={deadlineStats}
         />
+
+        {/* Layout 2 colunas: Calendário + Prazos */}
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+          {/* Mini Calendário Semanal */}
+          <WeekCalendar
+            deadlines={weekDeadlines.data || []}
+            audiences={weekAudiences.data || []}
+          />
+
+          {/* Dashboard Minimalista (Prazos e Status) */}
+          <MinimalDashboard
+            userId={user!.id}
+            upcomingDeadlines={(upcomingDeadlines || []) as any}
+            lastAlert={lastAlert || null}
+            systemStatus={{
+              status: systemStatus,
+              alertsToday: todayAlerts?.length || 0,
+            }}
+          />
+        </div>
 
         {/* Seção de Referral */}
         <ReferralSection userId={user!.id} />

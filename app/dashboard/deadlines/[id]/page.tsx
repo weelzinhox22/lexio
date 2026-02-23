@@ -6,11 +6,16 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { DeleteDeadlineButton } from "@/components/deadlines/delete-deadline-button"
 
-export default async function DeadlineViewPage({ params }: { params: { id: string } }) {
+export default async function DeadlineViewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const { id } = await params
 
   const { data: deadline } = await supabase
     .from("deadlines")
@@ -24,7 +29,7 @@ export default async function DeadlineViewPage({ params }: { params: { id: strin
       )
     `,
     )
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", user!.id)
     .single()
 

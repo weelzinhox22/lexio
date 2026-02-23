@@ -64,7 +64,7 @@ function validateCronAuth(request: Request): { valid: boolean; reason?: string }
     .trim()
     .replace(/^bearer\s+/i, '')
     .trim()
-  
+
   const secretToken = cronSecretHeader.trim()
 
   const receivedToken = authToken || secretToken
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
+
     if (!supabaseUrl) {
       console.error('[DeadlineAlerts Cron] ❌ ENV VAR MISSING: NEXT_PUBLIC_SUPABASE_URL')
       return NextResponse.json(
@@ -155,7 +155,7 @@ export async function GET(request: Request) {
         { status: 500 }
       )
     }
-    
+
     if (!serviceKey) {
       console.error('[DeadlineAlerts Cron] ❌ ENV VAR MISSING: SUPABASE_SERVICE_ROLE_KEY')
       return NextResponse.json(
@@ -163,7 +163,7 @@ export async function GET(request: Request) {
         { status: 500 }
       )
     }
-    
+
     // Validar formato básico da Service Role Key (deve ser um JWT)
     if (!serviceKey.startsWith('eyJ')) {
       console.error('[DeadlineAlerts Cron] ❌ SERVICE KEY FORMATO INVÁLIDO')
@@ -195,11 +195,11 @@ export async function GET(request: Request) {
       console.error('[DeadlineAlerts Cron] ❌ Erro message:', testError.message)
       console.error('[DeadlineAlerts Cron] ❌ Erro details:', testError.details)
       console.error('[DeadlineAlerts Cron] ❌ Erro hint:', testError.hint)
-      
+
       // Mensagem mais clara para erro de API key
       if (testError.message?.includes('Invalid API key') || testError.message?.includes('JWT')) {
         return NextResponse.json(
-          { 
+          {
             error: 'SUPABASE_SERVICE_ROLE_KEY inválida',
             details: 'A Service Role Key configurada no Vercel está incorreta ou expirada. Verifique em: Vercel → Settings → Environment Variables → SUPABASE_SERVICE_ROLE_KEY',
             code: testError.code,
@@ -208,9 +208,9 @@ export async function GET(request: Request) {
           { status: 500 }
         )
       }
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'Erro ao conectar ao Supabase',
           details: testError.message,
           code: testError.code,
@@ -219,14 +219,14 @@ export async function GET(request: Request) {
         { status: 500 }
       )
     }
-    
+
     console.log('✅ [DeadlineAlerts Cron] Conexão Supabase OK')
 
     // Buscar deadlines ativos (não concluídos)
     console.log('📋 [DeadlineAlerts Cron] Buscando deadlines ativos...')
     const { data: deadlines, error: dlError } = await supabase
       .from('deadlines')
-      .select('id, user_id, process_id, title, description, deadline_date, status, acknowledged_at, alert_status')
+      .select('id, user_id, process_id, title, description, deadline_date, status, acknowledged_at, alert_status, processes ( process_number )')
       .neq('status', 'completed')
 
     if (dlError) {
@@ -235,11 +235,11 @@ export async function GET(request: Request) {
       console.error('[DeadlineAlerts Cron] ❌ Erro message:', dlError.message)
       console.error('[DeadlineAlerts Cron] ❌ Erro details:', dlError.details)
       console.error('[DeadlineAlerts Cron] ❌ Erro hint:', dlError.hint)
-      
+
       // Mensagem mais clara para erro de API key
       if (dlError.message?.includes('Invalid API key') || dlError.message?.includes('JWT')) {
         return NextResponse.json(
-          { 
+          {
             error: 'SUPABASE_SERVICE_ROLE_KEY inválida',
             details: 'A Service Role Key configurada no Vercel está incorreta ou expirada. Verifique em: Vercel → Settings → Environment Variables → SUPABASE_SERVICE_ROLE_KEY',
             code: dlError.code,
@@ -248,9 +248,9 @@ export async function GET(request: Request) {
           { status: 500 }
         )
       }
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to fetch deadlines',
           details: dlError.message,
           code: dlError.code,
@@ -291,6 +291,7 @@ export async function GET(request: Request) {
     for (const d of deadlines as any[]) {
       const deadlineDate = new Date(d.deadline_date)
       const daysUntil = daysUntilUTC(d.deadline_date, now)
+      const processNumber = String(d.process_number || d.processes?.process_number || '').trim()
 
       console.log(`\n📅 [DeadlineAlerts Cron] Processando deadline: ${d.id}`)
       console.log(`   └─ Título: ${d.title}`)
@@ -325,6 +326,7 @@ export async function GET(request: Request) {
       const userName = profile?.full_name ?? null
 
       console.log(`   └─ Usuário: ${userName || 'N/A'} (${d.user_id})`)
+      console.log(`   └─ Processo: ${d.process_id || 'N/A'} ${processNumber ? `(${processNumber})` : ''}`)
       console.log(`   └─ E-mail: ${toEmail || '[VAZIO]'}`)
       console.log(`   └─ E-mail habilitado: ${emailEnabled}`)
       console.log(`   └─ Dias configurados: [${alertDays.join(', ')}]`)
@@ -363,16 +365,16 @@ export async function GET(request: Request) {
         })
 
         if (!eligibleForEmail) {
-          const reason = !emailEnabled 
+          const reason = !emailEnabled
             ? 'email desabilitado nas configurações'
             : !toEmail
-            ? 'e-mail de destino vazio'
-            : !alertDays.includes(plan.daysRemaining)
-            ? `diasRemaining (${plan.daysRemaining}) não está em alertDays [${alertDays.join(', ')}]`
-            : plan.daysRemaining < 0
-            ? 'OVERDUE não envia por padrão (evita spam)'
-            : 'razão desconhecida'
-          
+              ? 'e-mail de destino vazio'
+              : !alertDays.includes(plan.daysRemaining)
+                ? `diasRemaining (${plan.daysRemaining}) não está em alertDays [${alertDays.join(', ')}]`
+                : plan.daysRemaining < 0
+                  ? 'OVERDUE não envia por padrão (evita spam)'
+                  : 'razão desconhecida'
+
           console.log(`      ⛔ Email SKIP: ${reason}`)
           emailSkipped++
           continue
@@ -420,10 +422,9 @@ export async function GET(request: Request) {
 
         // Preparar conteúdo do e-mail
         const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
-        const processNumber = d.process_number || '—'
         const link = `${appUrl}/dashboard/deadlines/${plan.deadlineId}`
         const { html, subject } = deadlineAlertEmail({
-          processNumber,
+          processNumber: processNumber || 'Sem processo',
           deadlineTitle: d.title,
           daysRemaining: plan.daysRemaining,
           dueDate: d.deadline_date,
@@ -438,6 +439,7 @@ export async function GET(request: Request) {
           html,
           alertId: record.id,
           userId: plan.userId,
+          processId: plan.processId,
           deadlineId: plan.deadlineId,
         })
 
@@ -445,6 +447,8 @@ export async function GET(request: Request) {
         const logEntry = {
           ...sendResult.log,
           error_message: sendResult.ok ? null : sendResult.error,
+          user_id: plan.userId,
+          process_id: plan.processId,
         }
         console.log(`      📊 LOG DE ENVIO:`, JSON.stringify(logEntry, null, 2))
 
@@ -455,7 +459,7 @@ export async function GET(request: Request) {
           if (sendResult.log.fallback_used) {
             console.log(`         └─ ⚠️  Fallback usado: ${sendResult.log.email_used}`)
           }
-          
+
           // Atualizar notificação com sucesso e log
           await supabase
             .from('notifications')
@@ -477,7 +481,7 @@ export async function GET(request: Request) {
           if (sendResult.log.error_code) {
             console.log(`         └─ Código: ${sendResult.log.error_code}`)
           }
-          
+
           // Atualizar notificação com falha e log
           await supabase
             .from('notifications')
@@ -498,12 +502,12 @@ export async function GET(request: Request) {
     // Processar também alertas de audiências (combinado para economizar crons)
     let audienceAlertsSent = 0
     let audienceAlertsFailed = 0
-    
+
     try {
       const today = new Date(nowUTC.getFullYear(), nowUTC.getMonth(), nowUTC.getDate())
       const sevenDaysLater = new Date(today)
       sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
-      
+
       const { data: audiences } = await supabase
         .from('audiences')
         .select(`
@@ -528,7 +532,7 @@ export async function GET(request: Request) {
 
       if (audiences && audiences.length > 0) {
         console.log(`\n📅 [AudienceAlerts] Processando ${audiences.length} audiência(s)`)
-        
+
         for (const audience of audiences) {
           const audienceDate = new Date(audience.audience_date)
           const daysUntil = Math.ceil((audienceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
@@ -563,11 +567,11 @@ export async function GET(request: Request) {
               entity_id: audience.id,
               notification_type: daysUntil === 0 ? 'audience_today' : daysUntil === 1 ? 'audience_tomorrow' : 'audience_week',
               severity: daysUntil === 0 ? 'danger' : daysUntil === 1 ? 'warning' : 'info',
-              title: daysUntil === 0 
+              title: daysUntil === 0
                 ? `Audiência hoje: ${audience.title}`
                 : daysUntil === 1
-                ? `Audiência amanhã: ${audience.title}`
-                : `Audiência em 7 dias: ${audience.title}`,
+                  ? `Audiência amanhã: ${audience.title}`
+                  : `Audiência em 7 dias: ${audience.title}`,
               message: `Lembrete: ${audience.title}`,
               dedupe_key: dedupeKey,
               notification_status: 'pending',
@@ -578,7 +582,7 @@ export async function GET(request: Request) {
 
           if (!notification) continue
 
-          const processInfo = audience.processes 
+          const processInfo = audience.processes
             ? `${audience.processes.process_number} - ${audience.processes.title}`
             : 'Não vinculado a processo'
           const locationInfo = audience.location_type === 'virtual' && audience.meeting_link

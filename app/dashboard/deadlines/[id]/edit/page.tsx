@@ -5,17 +5,22 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { DeadlineEditForm } from "@/components/deadlines/deadline-edit-form"
 
-export default async function DeadlineEditPage({ params }: { params: { id: string } }) {
+export default async function DeadlineEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const { id } = await params
 
   const [{ data: deadline }, { data: processes }] = await Promise.all([
     supabase
       .from("deadlines")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", user!.id)
       .single(),
     supabase.from("processes").select("id, title, process_number").eq("user_id", user!.id),

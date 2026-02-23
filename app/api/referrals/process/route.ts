@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
+/**
+ * POST /api/referrals/process
+ * 
+ * Chamado no momento do sign-up quando há ?ref=CODE na URL.
+ * Registra a indicação como 'pending'.
+ * 
+ * Usa service role porque o usuário acabou de se cadastrar e pode
+ * não ter sessão autenticada ainda (RLS bloquearia o INSERT).
+ */
 export async function POST(request: Request) {
   try {
     const { referralCode, userId } = await request.json()
@@ -9,7 +18,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceKey) {
+      console.error('[Referral Process] Missing Supabase env vars')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
 
     // Buscar referrer pelo código
     const { data: referrer } = await supabase
@@ -19,7 +38,14 @@ export async function POST(request: Request) {
       .single()
 
     if (!referrer) {
+      console.log(`[Referral Process] Código inválido: ${referralCode}`)
       return NextResponse.json({ error: 'Invalid referral code' }, { status: 400 })
+    }
+
+    // Não permitir auto-indicação
+    if (referrer.id === userId) {
+      console.log(`[Referral Process] Auto-indicação bloqueada: ${userId}`)
+      return NextResponse.json({ error: 'Cannot refer yourself' }, { status: 400 })
     }
 
     // Verificar se já foi referido
@@ -27,7 +53,7 @@ export async function POST(request: Request) {
       .from('referrals')
       .select('id')
       .eq('referred_id', userId)
-      .single()
+      .maybeSingle()
 
     if (existing) {
       return NextResponse.json({ message: 'Already referred' }, { status: 200 })
@@ -46,25 +72,24 @@ export async function POST(request: Request) {
       })
 
     if (referralError) {
-      console.error('Erro ao criar referral:', referralError)
+      console.error('[Referral Process] Erro ao criar referral:', referralError)
       return NextResponse.json({ error: referralError.message }, { status: 500 })
     }
 
-    // Atualizar perfil do usuário
+    // Atualizar perfil do usuário indicado
     await supabase
       .from('profiles')
       .update({ referred_by: referrer.id })
       .eq('id', userId)
 
+    console.log(`✅ [Referral Process] Referral registrado: ${referrer.id} indicou ${userId} (código: ${referralCode})`)
+
     return NextResponse.json({ message: 'Referral processed successfully' })
   } catch (error) {
-    console.error('Erro ao processar referral:', error)
+    console.error('[Referral Process] Erro:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     )
   }
 }
-
-
-

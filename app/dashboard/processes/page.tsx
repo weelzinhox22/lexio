@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, List, Kanban, Upload } from "lucide-react"
 import Link from "next/link"
 import { ProcessList } from "@/components/processes/process-list"
 import { getPaginationParams, buildPaginatedResult } from "@/lib/supabase/pagination"
@@ -9,16 +9,17 @@ import { getPaginationParams, buildPaginatedResult } from "@/lib/supabase/pagina
 export default async function ProcessesPage({
   searchParams,
 }: {
-  searchParams?: { page?: string; limit?: string }
+  searchParams?: Promise<{ page?: string; limit?: string }>
 }) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const params = await searchParams
   const { page, limit, from, to } = getPaginationParams({
-    page: searchParams?.page ? parseInt(searchParams.page) : 1,
-    limit: searchParams?.limit ? parseInt(searchParams.limit) : 20,
+    page: params?.page ? parseInt(params.page) : 1,
+    limit: params?.limit ? parseInt(params.limit) : 20,
   })
 
   // Buscar total para paginação
@@ -48,20 +49,39 @@ export default async function ProcessesPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Processos</h1>
           <p className="text-slate-600 mt-1">Gerencie todos os seus processos jurídicos</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+            <Button variant="ghost" size="sm" className="rounded-none border-r border-slate-200 h-9 px-3 bg-slate-100 text-slate-900 font-semibold" disabled>
+              <List className="h-4 w-4 mr-1.5" />
+              Lista
+            </Button>
+            <Link href="/dashboard/processes/kanban">
+              <Button variant="ghost" size="sm" className="rounded-none h-9 px-3">
+                <Kanban className="h-4 w-4 mr-1.5" />
+                Kanban
+              </Button>
+            </Link>
+          </div>
           <Link href="/dashboard/processes/search">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Search className="mr-2 h-4 w-4" />
               Pesquisar no DataJud (Processo)
             </Button>
           </Link>
+          <Link href="/dashboard/processes/import">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar em Lote
+            </Button>
+          </Link>
           <Link href="/dashboard/processes/new">
-            <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+            <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Novo Processo
             </Button>
@@ -75,7 +95,7 @@ export default async function ProcessesPage({
 
       {/* Paginação */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-600">
             Mostrando {from + 1} a {Math.min(to + 1, pagination.total)} de {pagination.total}
           </p>

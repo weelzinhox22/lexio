@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 
 interface CurrencyInputProps {
   value?: number | string
@@ -23,6 +22,19 @@ const currencies = [
   { code: 'GBP', symbol: '£', name: 'Libra Esterlina' },
 ]
 
+function formatInitial(value: number | string | undefined): string {
+  if (typeof value === 'number' && value > 0) {
+    return value.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  }
+  if (typeof value === 'string' && value) {
+    return value
+  }
+  return ''
+}
+
 export function CurrencyInput({
   value = 0,
   onChange,
@@ -33,47 +45,61 @@ export function CurrencyInput({
   id,
   name,
 }: CurrencyInputProps) {
-  const [displayValue, setDisplayValue] = useState('')
+  // Only format the initial value once, then let the user type freely
+  const [displayValue, setDisplayValue] = useState(() => formatInitial(value))
+  const initializedRef = useRef(false)
 
-  useEffect(() => {
-    if (typeof value === 'number' && value > 0) {
-      const formatted = value.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
+  // If the external value changes and user hasn't interacted yet, update display
+  // But once user starts typing, we don't override
+  if (!initializedRef.current && typeof value === 'number' && value > 0 && displayValue === '') {
+    const formatted = formatInitial(value)
+    if (formatted !== displayValue) {
       setDisplayValue(formatted)
-    } else if (typeof value === 'string' && value) {
-      setDisplayValue(value)
-    } else {
-      setDisplayValue('')
     }
-  }, [value])
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    initializedRef.current = true
     let inputValue = e.target.value
 
-    // Remove tudo exceto números e vírgula
-    inputValue = inputValue.replace(/[^\d,]/g, '')
+    // Allow digits, comma, and dot
+    inputValue = inputValue.replace(/[^\d.,]/g, '')
 
-    // Garante apenas uma vírgula
+    // Replace dot with comma for consistency in pt-BR
+    inputValue = inputValue.replace(/\./g, ',')
+
+    // Ensure only one comma
     const parts = inputValue.split(',')
     if (parts.length > 2) {
       inputValue = parts[0] + ',' + parts.slice(1).join('')
     }
 
-    // Limita a 2 casas decimais
+    // Limit to 2 decimal places
     if (parts[1] && parts[1].length > 2) {
       inputValue = parts[0] + ',' + parts[1].substring(0, 2)
     }
 
     setDisplayValue(inputValue)
 
-    // Converte para número (substitui vírgula por ponto)
+    // Convert to number
     const numericValue = parseFloat(inputValue.replace(',', '.')) || 0
     onChange?.(numericValue)
-  }
+  }, [onChange])
 
-  const selectedCurrency = currencies.find((c) => c.code === currency) || currencies[0]
+  const handleBlur = useCallback(() => {
+    // On blur, format nicely if there's a value
+    const numericValue = parseFloat(displayValue.replace(',', '.')) || 0
+    if (numericValue > 0) {
+      setDisplayValue(
+        numericValue.toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      )
+    } else {
+      setDisplayValue('')
+    }
+  }, [displayValue])
 
   return (
     <div className="flex gap-2">
@@ -82,8 +108,10 @@ export function CurrencyInput({
           id={id}
           name={name}
           type="text"
+          inputMode="decimal"
           value={displayValue}
           onChange={handleChange}
+          onBlur={handleBlur}
           placeholder="0,00"
           required={required}
           className={className}
@@ -104,15 +132,3 @@ export function CurrencyInput({
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-

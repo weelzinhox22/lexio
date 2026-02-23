@@ -63,12 +63,12 @@ export default async function DeadlinesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Prazos</h1>
           <p className="text-slate-600 mt-1 text-sm md:text-base">Nunca perca um prazo importante</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <FeedbackButton 
             userId={user!.id} 
             variant="bug" 
@@ -76,7 +76,7 @@ export default async function DeadlinesPage() {
             className="hidden sm:flex"
           />
           <Link href="/dashboard/deadlines/new" className="flex-1 sm:flex-initial">
-            <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
+            <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 sm:w-auto text-sm">
               <Plus className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Novo Prazo</span>
               <span className="sm:hidden">Novo</span>

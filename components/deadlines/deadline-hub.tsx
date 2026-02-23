@@ -123,9 +123,9 @@ export function DeadlineHub({ deadlines }: { deadlines: DeadlineWithProcess[] })
   return (
     <>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-slate-900">Central de Prazos</CardTitle>
-          <div className="flex items-center gap-2 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-green-600"></div>
               {grouped.ok?.length || 0} OK
@@ -156,7 +156,7 @@ export function DeadlineHub({ deadlines }: { deadlines: DeadlineWithProcess[] })
           
           return (
             <div key={state} className="space-y-3">
-              <div className={`flex items-center justify-between p-3 rounded-lg ${config.cardClass}`}>
+              <div className={`flex flex-col gap-2 p-3 rounded-lg sm:flex-row sm:items-center sm:justify-between ${config.cardClass}`}>
                 <div className="flex items-center gap-3">
                   <div className={`rounded-lg p-2 ${config.badgeClass}`}>
                     <Icon className="h-4 w-4 text-white" />
@@ -177,7 +177,7 @@ export function DeadlineHub({ deadlines }: { deadlines: DeadlineWithProcess[] })
                   
                   return (
                     <div
-                      key={deadline.id}
+                      key={`${deadline.id}-${deadline.processes?.process_number ?? "no-process"}`}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         isVencido
                           ? 'border-red-200 bg-red-50/30'
@@ -186,7 +186,7 @@ export function DeadlineHub({ deadlines }: { deadlines: DeadlineWithProcess[] })
                           : 'border-slate-200 bg-white'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start gap-2">
                             <h4 className="font-semibold text-slate-900 flex-1">
@@ -244,7 +244,7 @@ export function DeadlineHub({ deadlines }: { deadlines: DeadlineWithProcess[] })
                           )}
                         </div>
                         
-                        <div className="flex items-start gap-2 shrink-0">
+                        <div className="flex items-center gap-2 sm:items-start sm:justify-end">
                           {(isVencido || isCritico) && (
                             <ConfirmAwarenessButton 
                               deadlineId={deadline.id} 

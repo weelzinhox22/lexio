@@ -29,11 +29,11 @@ type MinimalDashboardProps = {
   }
 }
 
-export function MinimalDashboard({ 
-  userId, 
-  upcomingDeadlines, 
+export function MinimalDashboard({
+  userId,
+  upcomingDeadlines,
   lastAlert,
-  systemStatus 
+  systemStatus
 }: MinimalDashboardProps) {
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return '—'
@@ -50,7 +50,7 @@ export function MinimalDashboard({
     const now = new Date()
     const deadline = new Date(deadlineDate)
     const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    
+
     if (daysUntil < 0) return `Vencido há ${Math.abs(daysUntil)} dias`
     if (daysUntil === 0) return 'Hoje'
     if (daysUntil === 1) return 'Amanhã'
@@ -69,34 +69,36 @@ export function MinimalDashboard({
   return (
     <div className="space-y-6">
       {/* CTA Principal - Criar Prazo */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50" id="tour-create-deadline">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">
-                Comece criando seu primeiro prazo
-              </h2>
-              <p className="text-sm text-slate-600">
-                Você receberá alertas automáticos por e-mail quando o prazo estiver se aproximando.
-              </p>
+      {/* CTA Principal - Criar Prazo */}
+      {upcomingDeadlines.length === 0 && (
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50" id="tour-create-deadline">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-slate-900 mb-1">
+                  Comece criando seu primeiro prazo
+                </h2>
+                <p className="text-sm text-slate-600">
+                  Você receberá alertas automáticos por e-mail quando o prazo estiver se aproximando.
+                </p>
+              </div>
+              <Link href="/dashboard/deadlines/new">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Criar novo prazo
+                </Button>
+              </Link>
             </div>
-            <Link href="/dashboard/deadlines/new">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all">
-                <Plus className="mr-2 h-5 w-5" />
-                Criar novo prazo
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Status do Sistema - Simplificado */}
       <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200" id="tour-alerts-info">
-        <div className={`rounded-full p-1.5 ${
-          systemStatus.status === 'healthy' ? 'bg-green-100' :
-          systemStatus.status === 'warning' ? 'bg-yellow-100' :
-          'bg-red-100'
-        }`}>
+        <div className={`rounded-full p-1.5 ${systemStatus.status === 'healthy' ? 'bg-green-100' :
+            systemStatus.status === 'warning' ? 'bg-yellow-100' :
+              'bg-red-100'
+          }`}>
           {systemStatus.status === 'healthy' ? (
             <CheckCircle2 className="h-4 w-4 text-green-600" />
           ) : systemStatus.status === 'warning' ? (
@@ -108,8 +110,8 @@ export function MinimalDashboard({
         <div className="flex-1">
           <span className="text-sm font-medium text-slate-900">
             {systemStatus.status === 'healthy' ? 'Sistema operacional' :
-             systemStatus.status === 'warning' ? 'Atenção necessária' :
-             'Sistema com problemas'}
+              systemStatus.status === 'warning' ? 'Atenção necessária' :
+                'Sistema com problemas'}
           </span>
           {systemStatus.alertsToday > 0 && (
             <span className="text-xs text-slate-600 ml-2">
@@ -151,7 +153,7 @@ export function MinimalDashboard({
                 const deadlineDate = new Date(deadline.deadline_date)
                 const now = new Date()
                 const daysUntil = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-                
+
                 return (
                   <Link key={deadline.id} href={`/dashboard/deadlines/${deadline.id}`}>
                     <div className={`p-4 hover:bg-slate-50 transition-colors ${getStatusColor(daysUntil)}`}>
@@ -176,8 +178,8 @@ export function MinimalDashboard({
                         {daysUntil <= 3 && (
                           <Badge className={
                             daysUntil < 0 ? 'bg-red-600 text-white' :
-                            daysUntil === 0 ? 'bg-red-600 text-white' :
-                            'bg-orange-600 text-white'
+                              daysUntil === 0 ? 'bg-red-600 text-white' :
+                                'bg-orange-600 text-white'
                           }>
                             {daysUntil < 0 ? 'Vencido' : daysUntil === 0 ? 'Hoje' : 'Urgente'}
                           </Badge>

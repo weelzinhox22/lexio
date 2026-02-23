@@ -10,15 +10,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { LogOut, UserIcon, MessageSquare } from "lucide-react"
+import { LogOut, Settings, UserIcon } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import { MobileMenu } from "./mobile-menu"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
-export function DashboardHeader({ user }: { user: User }) {
+interface DashboardHeaderProps {
+  user: User
+  profileName?: string | null
+  avatarUrl?: string | null
+}
+
+export function DashboardHeader({ user, profileName, avatarUrl }: DashboardHeaderProps) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,7 +34,10 @@ export function DashboardHeader({ user }: { user: User }) {
     router.push("/auth/login")
   }
 
-  const initials = user.email?.substring(0, 2).toUpperCase() || "US"
+  const displayName = profileName || user.email?.split("@")[0] || "Usuário"
+  const initials = profileName
+    ? profileName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : user.email?.substring(0, 2).toUpperCase() || "US"
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-6">
@@ -37,42 +47,61 @@ export function DashboardHeader({ user }: { user: User }) {
           Bem-vindo ao Themixa
         </h2>
       </div>
-      
+
       {/* Barra de Pesquisa Global */}
       <div className="flex-1 max-w-2xl">
         <GlobalSearch />
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
-        <FeedbackButton 
-          userId={user.id} 
-          variant="outline" 
+      <div className="flex items-center gap-2 md:gap-3">
+        <NotificationBell userId={user.id} />
+        <FeedbackButton
+          userId={user.id}
+          variant="outline"
           label="Feedback"
           className="hidden md:flex"
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar>
-                <AvatarFallback className="bg-slate-900 text-white">{initials}</AvatarFallback>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-slate-200 transition-all">
+              <Avatar className="h-10 w-10">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-sm font-semibold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium text-slate-900">Minha Conta</p>
-                <p className="text-xs text-slate-600">{user.email}</p>
+          <DropdownMenuContent align="end" className="w-64 shadow-xl border-slate-200">
+            <DropdownMenuLabel className="p-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                  <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-sm font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <p className="text-sm font-semibold text-slate-900">{displayName}</p>
+                  <p className="text-xs text-slate-500 truncate max-w-[160px]">{user.email}</p>
+                </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <UserIcon className="mr-2 h-4 w-4" />
-              Perfil
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/settings")}
+              className="cursor-pointer py-2.5"
+            >
+              <Settings className="mr-2.5 h-4 w-4 text-slate-500" />
+              Minha Conta
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 py-2.5"
+            >
+              <LogOut className="mr-2.5 h-4 w-4" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

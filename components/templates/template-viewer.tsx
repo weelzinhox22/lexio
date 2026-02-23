@@ -186,8 +186,8 @@ export function TemplateViewer({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button onClick={onClose} variant="outline" size="sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Button onClick={onClose} variant="outline" size="sm" className="w-full sm:w-auto">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
@@ -195,9 +195,9 @@ export function TemplateViewer({
           <h2 className="text-2xl font-bold text-slate-900">{template.name}</h2>
           <p className="text-sm text-slate-600">Preencha os campos para gerar o documento</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Select value={exportFormat} onValueChange={(v: any) => setExportFormat(v)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -221,7 +221,11 @@ export function TemplateViewer({
               </SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handleExport} disabled={isExporting} className="bg-green-600 hover:bg-green-700">
+          <Button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
+          >
             <Download className="h-4 w-4 mr-2" />
             {isExporting ? 'Exportando...' : `Exportar ${exportFormat.toUpperCase()}`}
           </Button>
@@ -232,20 +236,20 @@ export function TemplateViewer({
         {/* Formulário */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Campos do Documento
               </span>
               {clientData && (
-                <Button onClick={autoFillFromClient} size="sm" variant="outline">
+                <Button onClick={autoFillFromClient} size="sm" variant="outline" className="w-full sm:w-auto">
                   <Wand2 className="h-4 w-4 mr-2" />
                   Auto-preencher
                 </Button>
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[50vh] overflow-y-auto sm:max-h-[600px]">
             {placeholders.map((placeholder) => {
               const isMultiline = placeholder.includes('DESCRICAO') || placeholder.includes('TEXTO')
               
@@ -291,7 +295,7 @@ export function TemplateViewer({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-white border-2 border-slate-200 rounded-lg p-6 min-h-[600px] max-h-[600px] overflow-y-auto font-mono text-sm whitespace-pre-wrap">
+            <div className="bg-white border-2 border-slate-200 rounded-lg p-4 sm:p-6 min-h-[320px] max-h-[60vh] overflow-y-auto font-mono text-sm whitespace-pre-wrap sm:min-h-[600px] sm:max-h-[600px]">
               {filledContent}
             </div>
           </CardContent>

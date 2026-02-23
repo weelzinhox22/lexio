@@ -92,7 +92,10 @@ export function DeadlineList({ deadlines }: { deadlines: DeadlineWithProcess[] }
       <CardContent>
         <div className="divide-y divide-slate-200">
           {deadlines.map((deadline) => (
-            <div key={deadline.id} className="flex items-center justify-between py-4 first:pt-0">
+            <div
+              key={`${deadline.id}-${deadline.processes?.process_number ?? "no-process"}`}
+              className="flex items-center justify-between py-4 first:pt-0"
+            >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-slate-900">{deadline.title}</h3>

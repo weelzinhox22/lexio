@@ -16,6 +16,7 @@ export type ErrorType = 'temporary' | 'permanent'
 export type RetryLog = {
   alert_id: string
   user_id: string
+  process_id: string | null
   deadline_id: string | null
   provider: 'brevo'
   error_type: ErrorType
@@ -72,6 +73,7 @@ export async function sendEmailWithRetryAndFallback(params: {
   html: string
   alertId: string
   userId: string
+  processId: string | null
   deadlineId: string | null
 }): Promise<{
   ok: boolean
@@ -79,7 +81,7 @@ export async function sendEmailWithRetryAndFallback(params: {
   error?: string
   log: RetryLog
 }> {
-  const { to, fallbackEmail, subject, html, alertId, userId, deadlineId } = params
+  const { to, fallbackEmail, subject, html, alertId, userId, processId, deadlineId } = params
   const timestamp = new Date().toISOString()
   
   // Tentativa 1: E-mail principal
@@ -92,6 +94,7 @@ export async function sendEmailWithRetryAndFallback(params: {
       log: {
         alert_id: alertId,
         user_id: userId,
+        process_id: processId,
         deadline_id: deadlineId,
         provider: 'brevo',
         error_type: 'temporary',
@@ -121,6 +124,7 @@ export async function sendEmailWithRetryAndFallback(params: {
           log: {
             alert_id: alertId,
             user_id: userId,
+            process_id: processId,
             deadline_id: deadlineId,
             provider: 'brevo',
             error_type: 'permanent',
@@ -141,6 +145,7 @@ export async function sendEmailWithRetryAndFallback(params: {
       log: {
         alert_id: alertId,
         user_id: userId,
+        process_id: processId,
         deadline_id: deadlineId,
         provider: 'brevo',
         error_type: 'permanent',
@@ -167,6 +172,7 @@ export async function sendEmailWithRetryAndFallback(params: {
       log: {
         alert_id: alertId,
         user_id: userId,
+        process_id: processId,
         deadline_id: deadlineId,
         provider: 'brevo',
         error_type: 'temporary',
@@ -191,6 +197,7 @@ export async function sendEmailWithRetryAndFallback(params: {
         log: {
           alert_id: alertId,
           user_id: userId,
+          process_id: processId,
           deadline_id: deadlineId,
           provider: 'brevo',
           error_type: 'temporary',
@@ -212,6 +219,7 @@ export async function sendEmailWithRetryAndFallback(params: {
     log: {
       alert_id: alertId,
       user_id: userId,
+      process_id: processId,
       deadline_id: deadlineId,
       provider: 'brevo',
       error_type: 'temporary',

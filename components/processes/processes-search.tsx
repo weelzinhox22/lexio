@@ -403,7 +403,7 @@ export function ProcessSearch() {
                 <div className="space-y-2 pr-4">
                   {searchResults.map((result, index) => (
                     <div
-                      key={index}
+                      key={`${result.processNumber}-${index}`}
                       onClick={() => setSelectedProcess(result)}
                       className={`p-3 rounded border cursor-pointer transition-colors ${
                         selectedProcess?.processNumber === result.processNumber

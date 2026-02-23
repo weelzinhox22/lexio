@@ -22,6 +22,7 @@ import {
   BookOpen,
   FileStack,
   Star,
+  Clock,
 } from "lucide-react"
 
 const navigation = [
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Modelos", href: "/dashboard/templates", icon: FileStack },
   { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
   { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
+  { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
   { name: "Financeiro", href: "/dashboard/financial", icon: DollarSign },
   { name: "Leads", href: "/dashboard/leads", icon: UserCircle },
   { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
@@ -94,7 +96,7 @@ export function MobileMenu() {
             onClick={handleClose}
             aria-hidden="true"
           />
-          
+
           {/* Menu lateral com slide */}
           <div
             className={cn(

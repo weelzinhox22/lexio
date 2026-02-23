@@ -56,7 +56,9 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <p className="text-slate-600">Nenhum processo cadastrado ainda.</p>
         <Link href="/dashboard/processes/new">
-          <Button className="mt-4 bg-slate-900 hover:bg-slate-800 text-white">Criar primeiro processo</Button>
+          <Button className="mt-4 w-full bg-slate-900 text-white hover:bg-slate-800 sm:w-auto">
+            Criar primeiro processo
+          </Button>
         </Link>
       </div>
     )
@@ -65,9 +67,12 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
   return (
     <div className="divide-y divide-slate-200">
       {processes.map((process) => (
-        <div key={process.id} className="flex items-center justify-between p-4 hover:bg-slate-50">
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
+        <div
+          key={process.id}
+          className="flex flex-col gap-3 p-4 hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-semibold text-slate-900">{process.title}</h3>
               <Badge
                 variant={
@@ -126,7 +131,7 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
                       : "Baixa"}
               </Badge>
             </div>
-            <div className="flex items-center gap-4 text-sm text-slate-600">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
               <span>Processo: {process.process_number}</span>
               <span>•</span>
               <span>Cliente: {process.clients.name}</span>
@@ -162,7 +167,7 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:self-auto">
             <Link href={`/dashboard/processes/${process.id}`}>
               <Button variant="ghost" size="icon">
                 <Eye className="h-4 w-4" />
