@@ -33,9 +33,13 @@ async function getDynamicKnowledgeBase() {
     }))
 }
 
+function removeAccents(text: string): string {
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}
+
 async function findBestResponse(userInput: string) {
     // Limpar acentuação, colocar minúsculas para padronizar
-    const normalizedInput = userInput.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+    const normalizedInput = removeAccents(userInput)
 
     let bestMatchScore = 0
     let bestResponse = fallbackResponse
@@ -46,12 +50,25 @@ async function findBestResponse(userInput: string) {
         let currentScore = 0
         for (const keyword of item.keywords) {
             // Remover acentos da keyword também
-            const normalizedKeyword = keyword.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+            const normalizedKeyword = removeAccents(keyword)
 
-            // Se a frase contiver a palavra como uma palavra solta isolada ou sub-frase (evita que 's' dispare se o cara disser 'sol', ou 'rs' no meio de 'recurso')
-            const regex = new RegExp(`\\b${normalizedKeyword}\\b`, 'i')
-            if (regex.test(normalizedInput)) {
-                // Palavras maiores valem mais pontos para priorizar tópicos sobre onomatopéias fracas
+            if (normalizedKeyword.length < 2) continue // Ignorar keywords de 1 caractere
+
+            // Tentar match por word boundary primeiro
+            try {
+                const escapedKeyword = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i')
+                if (regex.test(normalizedInput)) {
+                    // Palavras maiores valem mais pontos para priorizar tópicos sobre onomatopéias fracas
+                    currentScore += normalizedKeyword.length * 2
+                    continue
+                }
+            } catch {
+                // Se o regex falhar, tentar substring match abaixo
+            }
+
+            // Fallback: se a keyword tem 3+ caracteres, checar como substring (ajuda com português)
+            if (normalizedKeyword.length >= 3 && normalizedInput.includes(normalizedKeyword)) {
                 currentScore += normalizedKeyword.length
             }
         }
