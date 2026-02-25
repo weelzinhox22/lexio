@@ -36,18 +36,25 @@ export function TemplatePreview({
   const [finalName, setFinalName] = useState(name || '')
   const [finalDescription, setFinalDescription] = useState(description || '')
 
-  // Renderizar conteúdo com placeholders destacados usando dangerouslySetInnerHTML
+  // Sanitize + render content with placeholders highlighted
   const renderContentWithHighlights = () => {
-    let highlightedContent = content
-    const placeholderRegex = /{{([A-Z_]+)}}/g
-    
-    highlightedContent = highlightedContent.replace(
+    // IMPORTANT: Escape HTML entities first to prevent XSS
+    let sanitized = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+
+    const placeholderRegex = /\{\{([A-Z_]+)\}\}/g
+
+    sanitized = sanitized.replace(
       placeholderRegex,
       (match) =>
         `<span class="inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-1.5 py-0.5 rounded font-mono text-sm font-semibold border border-yellow-300 dark:border-yellow-700">${match}</span>`
     )
-    
-    return highlightedContent
+
+    return sanitized
   }
 
   const handleSave = async () => {

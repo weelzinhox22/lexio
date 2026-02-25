@@ -6,21 +6,8 @@ import { Scale, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } fr
 const footerLinks = {
   produto: [
     { name: 'Funcionalidades', href: '#features' },
+    { name: 'Como funciona', href: '#how-it-works' },
     { name: 'Preços', href: '#pricing' },
-    { name: 'FAQ', href: '#faq' },
-    { name: 'Depoimentos', href: '#testimonials' },
-  ],
-  empresa: [
-    { name: 'Sobre Nós', href: '/about' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Carreiras', href: '/careers' },
-    { name: 'Contato', href: '/contact' },
-  ],
-  recursos: [
-    { name: 'Documentação', href: '/docs' },
-    { name: 'API', href: '/api' },
-    { name: 'Integrações', href: '/integrations' },
-    { name: 'Suporte', href: '/support' },
   ],
   legal: [
     { name: 'Termos de Uso', href: '/terms' },
@@ -31,17 +18,15 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { name: 'Facebook', icon: Facebook, href: 'https://facebook.com' },
-  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com' },
-  { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com' },
-  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com' },
+  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/themixa' },
+  { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com/company/themixa' },
 ]
 
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50">
       <div className="container mx-auto px-6 py-12">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="mb-4 flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
@@ -88,38 +73,6 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold text-slate-900">Empresa</h3>
-            <ul className="space-y-2">
-              {footerLinks.empresa.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 font-semibold text-slate-900">Recursos</h3>
-            <ul className="space-y-2">
-              {footerLinks.recursos.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-slate-600 transition-all hover:text-slate-900 hover:translate-x-1 inline-block"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
             <h3 className="mb-4 font-semibold text-slate-900">Legal</h3>
             <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
@@ -148,8 +101,8 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                <a href="tel:+5571991373142" className="hover:text-slate-900">
-                  71 99137-3142
+                <a href="tel:+5511955821293" className="hover:text-slate-900">
+                  11 95582-1293
                 </a>
               </div>
               <div className="flex items-center gap-2">

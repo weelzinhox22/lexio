@@ -48,17 +48,17 @@ export function FinancialForm({
     try {
       const { error } = await supabase.from("financial_transactions").insert({
         user_id: userId,
-        client_id: formData.get("client_id") ? (formData.get("client_id") as string) : null,
-        process_id: formData.get("process_id") ? (formData.get("process_id") as string) : null,
+        client_id: formData.get("client_id") || null,
+        process_id: formData.get("process_id") || null,
         title: formData.get("title") as string,
         description: formData.get("description") as string,
         amount: amount,
         currency: currency,
         type: formData.get("type") as string,
-        category: formData.get("category") as string,
+        category: formData.get("category") || null,
         status: formData.get("status") as string,
-        due_date: formData.get("due_date") as string,
-        payment_method: formData.get("payment_method") as string,
+        due_date: formData.get("due_date") || null,
+        payment_method: formData.get("payment_method") || null,
       })
 
       if (error) throw error

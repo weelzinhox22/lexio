@@ -98,7 +98,7 @@ export default function SettingsPage() {
           isMobile,
           isCurrent: true,
           lastActive: new Date().toISOString(),
-          createdAt: session.created_at ? new Date(Number(session.created_at) * 1000).toISOString() : new Date().toISOString(),
+          createdAt: session.user?.created_at ? new Date(session.user.created_at).toISOString() : new Date().toISOString(),
         }])
       }
     } catch (error) {
@@ -290,15 +290,15 @@ export default function SettingsPage() {
       </div>
 
       {/* Perfil com foto */}
-      <Card className="border-slate-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200">
-          <CardTitle className="flex items-center gap-3 text-slate-900">
-            <div className="rounded-lg bg-blue-100 p-2">
+      <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border-b border-slate-100/60 pb-5">
+          <CardTitle className="flex items-center gap-3 text-slate-900 text-xl">
+            <div className="rounded-xl bg-blue-100/80 p-2.5 shadow-sm">
               <User className="h-5 w-5 text-blue-600" />
             </div>
             Informações Pessoais
           </CardTitle>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-slate-600 font-medium">
             Atualize seus dados pessoais, de contato e profissionais
           </CardDescription>
         </CardHeader>
@@ -338,7 +338,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 text-xs"
+                className="mt-2 text-xs rounded-full shadow-sm font-semibold"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
               >
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                 value={profile?.full_name || ""}
                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                 placeholder="Seu nome completo"
-                className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+                className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
               />
             </div>
             <div className="space-y-2">
@@ -380,7 +380,7 @@ export default function SettingsPage() {
                 type="email"
                 value={profile?.email || ""}
                 disabled
-                className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed"
+                className="rounded-full shadow-sm bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed"
               />
               <p className="text-xs text-slate-500">Email não pode ser alterado</p>
             </div>
@@ -398,7 +398,7 @@ export default function SettingsPage() {
                 value={profile?.phone || ""}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                 placeholder="(71) 99999-9999"
-                className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+                className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
               />
             </div>
             <div className="space-y-2">
@@ -407,7 +407,7 @@ export default function SettingsPage() {
                 Estado da OAB
               </Label>
               <Select value={oabState} onValueChange={handleOabChange}>
-                <SelectTrigger className="border-slate-300 focus:border-blue-400 focus:ring-blue-200">
+                <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -427,7 +427,7 @@ export default function SettingsPage() {
               Número da OAB
             </Label>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-slate-600 font-medium">
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-300 shadow-sm rounded-full text-slate-600 font-semibold text-sm">
                 OAB/{oabState}
               </div>
               <Input
@@ -435,7 +435,7 @@ export default function SettingsPage() {
                 value={profile?.oab_number?.replace(`OAB/${oabState} `, '') || ""}
                 onChange={handleOabNumberChange}
                 placeholder="12345"
-                className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+                className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
                 maxLength={10}
               />
             </div>
@@ -457,7 +457,7 @@ export default function SettingsPage() {
               }
               placeholder="Ex: Direito Civil, Direito Trabalhista, Direito de Família..."
               rows={3}
-              className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+              className="rounded-2xl shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
             />
             <p className="text-xs text-slate-500">Separe por vírgula</p>
           </div>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
           <Button
             onClick={() => handleSave("personal")}
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 hover:scale-105 hover:shadow-lg transition-all duration-300 text-white w-full sm:w-auto"
+            className="rounded-full bg-blue-600 hover:bg-blue-700 font-semibold shadow-sm hover:translate-y-0 transition-transform hover:-translate-y-0.5 text-white w-full sm:w-auto mt-4 px-6"
           >
             <Save className="h-4 w-4 mr-2" />
             {saving ? "Salvando..." : "Salvar Alterações"}
@@ -474,15 +474,15 @@ export default function SettingsPage() {
       </Card>
 
       {/* Alertas de Prazo por E-mail */}
-      <Card className="border-slate-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-slate-200">
-          <CardTitle className="flex items-center gap-3 text-slate-900">
-            <div className="rounded-lg bg-purple-100 p-2">
+      <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-purple-50/50 to-pink-50/50 border-b border-slate-100/60 pb-5">
+          <CardTitle className="flex items-center gap-3 text-slate-900 text-xl">
+            <div className="rounded-xl bg-purple-100/80 p-2.5 shadow-sm">
               <Mail className="h-5 w-5 text-purple-600" />
             </div>
             Alertas de Prazo por E-mail
           </CardTitle>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-slate-600 font-medium">
             Configure lembretes automáticos para seus prazos processuais
           </CardDescription>
         </CardHeader>
@@ -495,7 +495,7 @@ export default function SettingsPage() {
                   Defina lembretes 7/3/1/0 dias antes do prazo e o e-mail de destino.
                 </p>
               </div>
-              <Button asChild variant="outline" className="shrink-0">
+              <Button asChild variant="outline" className="shrink-0 rounded-full font-semibold shadow-sm border-slate-200">
                 <Link href="/dashboard/settings/notifications">
                   Configurar <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
@@ -506,15 +506,15 @@ export default function SettingsPage() {
       </Card>
 
       {/* Integrações */}
-      <Card className="border-slate-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-200">
-          <CardTitle className="flex items-center gap-3 text-slate-900">
-            <div className="rounded-lg bg-green-100 p-2">
-              <Calendar className="h-5 w-5 text-green-600" />
+      <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-emerald-50/50 to-teal-50/50 border-b border-slate-100/60 pb-5">
+          <CardTitle className="flex items-center gap-3 text-slate-900 text-xl">
+            <div className="rounded-xl bg-emerald-100/80 p-2.5 shadow-sm">
+              <Calendar className="h-5 w-5 text-emerald-600" />
             </div>
             Integrações
           </CardTitle>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-slate-600 font-medium">
             Conecte o Themixa com outras ferramentas que você usa
           </CardDescription>
         </CardHeader>
@@ -541,7 +541,7 @@ export default function SettingsPage() {
                     onClick={handleDisconnectGoogleCalendar}
                     variant="outline"
                     size="sm"
-                    className="border-red-300 text-red-700 hover:bg-red-50"
+                    className="border-red-300 text-red-700 hover:bg-red-50 rounded-full shadow-sm font-semibold"
                   >
                     Desconectar
                   </Button>
@@ -550,7 +550,7 @@ export default function SettingsPage() {
                     onClick={handleConnectGoogleCalendar}
                     disabled={connectingGoogleCalendar}
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-sm font-semibold"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     {connectingGoogleCalendar ? 'Conectando...' : 'Conectar Google Calendar'}
@@ -563,15 +563,15 @@ export default function SettingsPage() {
       </Card>
 
       {/* Segurança — Alterar Senha */}
-      <Card className="border-slate-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-slate-200">
-          <CardTitle className="flex items-center gap-3 text-slate-900">
-            <div className="rounded-lg bg-amber-100 p-2">
+      <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-amber-50/50 to-orange-50/50 border-b border-slate-100/60 pb-5">
+          <CardTitle className="flex items-center gap-3 text-slate-900 text-xl">
+            <div className="rounded-xl bg-amber-100/80 p-2.5 shadow-sm">
               <Shield className="h-5 w-5 text-amber-600" />
             </div>
             Segurança
           </CardTitle>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-slate-600 font-medium">
             Gerencie sua senha e dispositivos conectados
           </CardDescription>
         </CardHeader>
@@ -591,7 +591,7 @@ export default function SettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="border-slate-300"
+                  className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
                 />
               </div>
               <div className="space-y-2">
@@ -602,14 +602,14 @@ export default function SettingsPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a nova senha"
-                  className="border-slate-300"
+                  className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
                 />
               </div>
             </div>
             {passwordMessage && (
               <div className={`rounded-lg p-3 text-sm ${passwordMessage.type === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
                 }`}>
                 {passwordMessage.text}
               </div>
@@ -618,7 +618,7 @@ export default function SettingsPage() {
               onClick={handlePasswordChange}
               disabled={changingPassword || !newPassword}
               variant="outline"
-              className="border-amber-300 hover:bg-amber-50"
+              className="border-amber-300 hover:bg-amber-50 rounded-full shadow-sm font-semibold text-amber-700"
             >
               {changingPassword ? (
                 <>
@@ -685,15 +685,15 @@ export default function SettingsPage() {
       </Card>
 
       {/* Sair */}
-      <Card className="border-red-200 bg-red-50/50 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-red-700 flex items-center gap-3">
-            <div className="rounded-lg bg-red-100 p-2">
+      <Card className="rounded-3xl border-red-200/60 bg-red-50/50 shadow-sm overflow-hidden">
+        <CardHeader className="pb-5">
+          <CardTitle className="text-red-700 flex items-center gap-3 text-xl">
+            <div className="rounded-xl bg-red-100/80 p-2.5 shadow-sm">
               <LogOut className="h-5 w-5" />
             </div>
             Sair da Conta
           </CardTitle>
-          <CardDescription className="text-red-600">
+          <CardDescription className="text-red-600/80 font-medium">
             Faça logout para encerrar sua sessão atual
           </CardDescription>
         </CardHeader>
@@ -701,7 +701,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSignOut}
             variant="outline"
-            className="border-red-300 text-red-700 hover:bg-red-100 hover:scale-105 transition-all duration-300 bg-white"
+            className="rounded-full shadow-sm font-semibold border-red-300 text-red-700 hover:bg-red-100 hover:translate-y-0 transition-transform hover:-translate-y-0.5 bg-white px-6"
           >
             <LogOut className="h-4 w-4 mr-2" />
             Sair do Sistema

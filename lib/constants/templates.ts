@@ -3,13 +3,13 @@
  */
 
 export const TEMPLATE_CATEGORIES = [
-  { value: 'kit_basico', label: 'Kit Básico', icon: '📋' },
-  { value: 'direito_consumidor', label: 'Direito do Consumidor', icon: '🛒' },
-  { value: 'direito_familia', label: 'Direito de Família', icon: '👨‍👩‍👧' },
-  { value: 'direito_trabalhista', label: 'Direito Trabalhista', icon: '👷' },
-  { value: 'direito_civil', label: 'Direito Cível', icon: '⚖️' },
-  { value: 'direito_penal', label: 'Direito Penal', icon: '🔒' },
-  { value: 'custom', label: 'Personalizados', icon: '✨' },
+  { value: 'kit_basico', label: 'Kit Básico' },
+  { value: 'direito_consumidor', label: 'Direito do Consumidor' },
+  { value: 'direito_familia', label: 'Direito de Família' },
+  { value: 'direito_trabalhista', label: 'Direito Trabalhista' },
+  { value: 'direito_civil', label: 'Direito Cível' },
+  { value: 'direito_penal', label: 'Direito Penal' },
+  { value: 'custom', label: 'Personalizados' },
 ] as const
 
 export const TEMPLATE_TYPES = [

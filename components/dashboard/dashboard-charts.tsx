@@ -164,11 +164,11 @@ export function DashboardCharts({
     ]
 
     return (
-        <div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">📊 Análise e Gráficos</h2>
+        <div className="mt-8">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4 px-1">📊 Análise e Gráficos</h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {/* 1. Processos por Status */}
-                <Card className="border-slate-200 shadow-sm">
+                <Card className="rounded-2xl border-slate-200/60 bg-white/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-slate-700">Processos por Status</CardTitle>
                     </CardHeader>
@@ -186,7 +186,7 @@ export function DashboardCharts({
                 </Card>
 
                 {/* 2. Processos por Tipo */}
-                <Card className="border-slate-200 shadow-sm">
+                <Card className="rounded-2xl border-slate-200/60 bg-white/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-slate-700">Por Tipo / Área</CardTitle>
                     </CardHeader>
@@ -202,7 +202,7 @@ export function DashboardCharts({
                 </Card>
 
                 {/* 3. Receita Mensal */}
-                <Card className="border-slate-200 shadow-sm">
+                <Card className="rounded-2xl border-slate-200/60 bg-white/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-slate-700">Receita Mensal</CardTitle>
                     </CardHeader>
@@ -210,14 +210,14 @@ export function DashboardCharts({
                         <div className="mb-2">
                             <MiniLineChart data={monthlyRevenue} color="#22c55e" />
                         </div>
-                        <div className="flex justify-between text-[10px] text-slate-500 px-1">
+                        <div className="flex justify-between text-[10px] text-slate-500 px-1 font-medium">
                             {monthLabels.map((m, i) => (
                                 <span key={i}>{m}</span>
                             ))}
                         </div>
                         <div className="mt-2 text-center">
-                            <p className="text-xs text-slate-500">Este mês</p>
-                            <p className="text-lg font-bold text-green-600">
+                            <p className="text-xs text-slate-500 font-medium">Este mês</p>
+                            <p className="text-lg font-bold text-green-600 tracking-tight">
                                 R$ {(monthlyRevenue[monthlyRevenue.length - 1] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
@@ -225,7 +225,7 @@ export function DashboardCharts({
                 </Card>
 
                 {/* 4. Prazos */}
-                <Card className="border-slate-200 shadow-sm">
+                <Card className="rounded-2xl border-slate-200/60 bg-white/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-slate-700">Prazos</CardTitle>
                     </CardHeader>

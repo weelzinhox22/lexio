@@ -6,6 +6,8 @@ import { DollarSign, TrendingUp, TrendingDown, Plus, Briefcase, Scale } from "lu
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 
+export const dynamic = "force-dynamic"
+
 export default async function FinancialPage() {
   const supabase = await createClient()
   const {
@@ -19,7 +21,7 @@ export default async function FinancialPage() {
     .from("financial_transactions")
     .select("*")
     .eq("user_id", user.id)
-    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
 
   // Buscar honorários de processos ganhos
   const { data: wonProcesses } = await supabase
@@ -31,11 +33,11 @@ export default async function FinancialPage() {
 
   // Calcular totais
   const totalReceitas = transactions
-    ?.filter((t) => t.type === "receita")
+    ?.filter((t) => t.type === "income" || t.type === "receita")
     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0
 
   const totalDespesas = transactions
-    ?.filter((t) => t.type === "despesa")
+    ?.filter((t) => t.type === "expense" || t.type === "despesa")
     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0
 
   const totalHonorarios = wonProcesses?.reduce((sum, p) => sum + (p.honorario_calculado || 0), 0) || 0
@@ -70,7 +72,7 @@ export default async function FinancialPage() {
               R$ {totalReceitas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-green-600 mt-1">
-              {transactions?.filter((t) => t.type === "receita").length || 0} transações
+              {transactions?.filter((t) => t.type === "income" || t.type === "receita").length || 0} transações
             </p>
           </CardContent>
         </Card>
@@ -85,7 +87,7 @@ export default async function FinancialPage() {
               R$ {totalDespesas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-red-600 mt-1">
-              {transactions?.filter((t) => t.type === "despesa").length || 0} transações
+              {transactions?.filter((t) => t.type === "expense" || t.type === "despesa").length || 0} transações
             </p>
           </CardContent>
         </Card>
@@ -106,11 +108,10 @@ export default async function FinancialPage() {
         </Card>
 
         <Card
-          className={`border-2 ${
-            saldo >= 0
-              ? "border-green-300 bg-gradient-to-br from-green-100 to-emerald-100"
-              : "border-red-300 bg-gradient-to-br from-red-100 to-rose-100"
-          }`}
+          className={`border-2 ${saldo >= 0
+            ? "border-green-300 bg-gradient-to-br from-green-100 to-emerald-100"
+            : "border-red-300 bg-gradient-to-br from-red-100 to-rose-100"
+            }`}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className={`text-sm font-medium ${saldo >= 0 ? "text-green-900" : "text-red-900"}`}>
@@ -196,21 +197,20 @@ export default async function FinancialPage() {
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900">{transaction.description}</p>
                     <p className="text-sm text-slate-600">
-                      {new Date(transaction.date).toLocaleDateString("pt-BR")}
+                      {new Date(transaction.due_date || transaction.created_at).toLocaleDateString("pt-BR")}
                       {transaction.category && ` • ${transaction.category}`}
                     </p>
                   </div>
                   <div className="text-right">
                     <p
-                      className={`text-lg font-bold ${
-                        transaction.type === "receita" ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`text-lg font-bold ${(transaction.type === "income" || transaction.type === "receita") ? "text-green-600" : "text-red-600"
+                        }`}
                     >
-                      {transaction.type === "receita" ? "+" : "-"} R${" "}
+                      {(transaction.type === "income" || transaction.type === "receita") ? "+" : "-"} R${" "}
                       {(transaction.amount || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
-                    <Badge variant={transaction.type === "receita" ? "default" : "destructive"}>
-                      {transaction.type}
+                    <Badge variant={(transaction.type === "income" || transaction.type === "receita") ? "default" : "destructive"}>
+                      {(transaction.type === "income" || transaction.type === "receita") ? "Receita" : "Despesa"}
                     </Badge>
                   </div>
                 </div>

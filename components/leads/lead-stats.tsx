@@ -44,17 +44,17 @@ export function LeadStats({
   ]
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.name} className="border-slate-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-700">{stat.name}</CardTitle>
-            <div className={`rounded-lg p-2 ${stat.bgColor}`}>
+        <Card key={stat.name} className="rounded-2xl border-slate-200/60 shadow-sm bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5 px-5">
+            <CardTitle className="text-sm font-semibold text-slate-600">{stat.name}</CardTitle>
+            <div className={`rounded-xl p-2.5 shadow-sm ${stat.bgColor}`}>
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+          <CardContent className="px-5 pb-5">
+            <div className={`text-3xl font-bold tracking-tight ${stat.color}`}>{stat.value}</div>
           </CardContent>
         </Card>
       ))}

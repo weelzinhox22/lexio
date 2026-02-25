@@ -115,22 +115,21 @@ export function DeadlineNotifications() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <div className="relative">
-        {/* Botão Flutuante */}
         <Button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "h-14 w-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 relative",
-            "hover:scale-105 active:scale-95",
-            isOpen && "bg-slate-800"
+            "h-14 w-14 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/60 text-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 relative",
+            "hover:scale-105 hover:bg-white active:scale-95",
+            isOpen && "bg-slate-50 border-slate-300 shadow-sm"
           )}
         >
-          <Bell className={cn("h-5 w-5 transition-transform duration-200", isOpen && "rotate-12")} />
+          <Bell className={cn("h-6 w-6 transition-transform duration-300", isOpen ? "rotate-12 text-blue-600" : "text-slate-600")} />
           {notifications.length > 0 && (
             <Badge
               variant="destructive"
               className={cn(
-                "absolute -top-1 -right-1 h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full text-[10px] font-semibold",
-                "transition-all duration-200",
+                "absolute -top-1.5 -right-1.5 h-6 min-w-6 px-1.5 flex items-center justify-center rounded-full text-[11px] font-bold shadow-sm border-2 border-white",
+                "bg-red-500 transition-all duration-300",
                 isOpen && "scale-110"
               )}
             >
@@ -143,8 +142,8 @@ export function DeadlineNotifications() {
         {isOpen && (
           <div
             className={cn(
-              "absolute bottom-20 right-0 w-96 rounded-xl border border-slate-200 bg-white shadow-2xl",
-              "transform transition-all duration-200 ease-out",
+              "absolute bottom-20 right-0 w-96 rounded-2xl border border-slate-200/60 bg-white/95 backdrop-blur-xl shadow-2xl",
+              "transform transition-all duration-300 ease-out origin-bottom-right",
               "overflow-hidden"
             )}
           >

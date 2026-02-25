@@ -83,6 +83,14 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       className="border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
                     />
+                    <div className="flex justify-end">
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs text-slate-500 hover:text-slate-900 transition-colors"
+                      >
+                        Esqueceu a senha?
+                      </Link>
+                    </div>
                   </div>
                   {error && (
                     <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">{error}</div>

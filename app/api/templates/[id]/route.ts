@@ -54,6 +54,12 @@ export async function GET(
       return attachSupabaseCookies(resp, cookieResponse)
     }
 
+    // Prevents IDOR: user can only see their own templates or system templates
+    if (template.user_id !== user.id && !template.is_system) {
+      const resp = NextResponse.json({ error: 'Sem permissão para visualizar este template' }, { status: 403 })
+      return attachSupabaseCookies(resp, cookieResponse)
+    }
+
     const resp = NextResponse.json({ template }, { headers: { 'Cache-Control': 'no-store' } })
     return attachSupabaseCookies(resp, cookieResponse)
   } catch (error) {
@@ -111,12 +117,15 @@ export async function PUT(
     const userEmail = user.email?.toLowerCase() || ''
     const isAdmin = ADMIN_USER_IDS.includes(user.id) || ADMIN_EMAILS.includes(userEmail) || userEmail.endsWith('@themixa.com')
 
-    if (currentTemplate.user_id !== user.id && !isAdmin && currentTemplate.is_system) {
-      const resp = NextResponse.json(
-        { error: 'Sem permissão para editar este template' },
-        { status: 403 }
-      )
-      return attachSupabaseCookies(resp, cookieResponse)
+    // Previne IDOR: usuário só pode editar se for o dono ou admin (para templates do sistema)
+    if (currentTemplate.user_id !== user.id) {
+      if (!isAdmin || !currentTemplate.is_system) {
+        const resp = NextResponse.json(
+          { error: 'Sem permissão para atualizar este template' },
+          { status: 403 }
+        )
+        return attachSupabaseCookies(resp, cookieResponse)
+      }
     }
 
     // Usar Service Role para criar versão (contorna RLS)

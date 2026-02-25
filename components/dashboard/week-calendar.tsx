@@ -86,15 +86,15 @@ export function WeekCalendar({ deadlines, audiences }: WeekCalendarProps) {
     const totalEvents = Array.from(events.values()).flat().length
 
     return (
-        <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3">
+        <Card className="rounded-2xl border-slate-200/60 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+            <CardHeader className="p-4 sm:p-5 border-b border-slate-100/60 bg-slate-50/50 pb-4">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-base sm:text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+                    <CardTitle className="text-base sm:text-[17px] font-semibold text-slate-900 flex items-center gap-2 tracking-tight">
+                        <Calendar className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-slate-500" />
                         Próximos 7 Dias
                     </CardTitle>
                     {totalEvents > 0 && (
-                        <Badge variant="outline" className="text-xs bg-slate-50">
+                        <Badge variant="outline" className="text-xs bg-white text-slate-600 shadow-sm px-2.5 rounded-full border-slate-200/60">
                             {totalEvents} evento{totalEvents > 1 ? "s" : ""}
                         </Badge>
                     )}
@@ -118,14 +118,14 @@ export function WeekCalendar({ deadlines, audiences }: WeekCalendarProps) {
                             <div
                                 key={dateKey}
                                 className={cn(
-                                    "flex flex-col items-center min-w-[44px] sm:min-w-[52px] flex-1 rounded-xl p-1.5 sm:p-2 transition-all border",
+                                    "flex flex-col items-center min-w-[44px] sm:min-w-[56px] flex-1 rounded-xl p-2 transition-all border",
                                     isToday
-                                        ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+                                        ? "bg-slate-900 text-white border-slate-800 shadow-md transform -translate-y-0.5"
                                         : dayEvents.length > 0
                                             ? hasUrgent
-                                                ? "bg-red-50 border-red-200 hover:border-red-300"
-                                                : "bg-blue-50 border-blue-200 hover:border-blue-300"
-                                            : "bg-white border-slate-100 hover:border-slate-200"
+                                                ? "bg-red-50/50 border-red-200 hover:border-red-300 hover:bg-red-50"
+                                                : "bg-blue-50/50 border-blue-200 hover:border-blue-300 hover:bg-blue-50"
+                                            : "bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50"
                                 )}
                             >
                                 {/* Nome do dia */}
@@ -205,14 +205,14 @@ export function WeekCalendar({ deadlines, audiences }: WeekCalendarProps) {
                             if (dayEvents.length === 0) return null
 
                             return dayEvents.map((event) => (
-                                <Link key={event.id} href={event.link}>
-                                    <div className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                                <Link key={event.id} href={event.link} className="block group">
+                                    <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all duration-200">
                                         <div
                                             className={cn(
-                                                "shrink-0 rounded-md p-1.5",
+                                                "shrink-0 rounded-lg p-2 shadow-sm border border-black/5",
                                                 event.type === "deadline"
-                                                    ? "bg-orange-100 text-orange-600"
-                                                    : "bg-purple-100 text-purple-600"
+                                                    ? "bg-orange-50 text-orange-600"
+                                                    : "bg-purple-50 text-purple-600"
                                             )}
                                         >
                                             {event.type === "deadline" ? (

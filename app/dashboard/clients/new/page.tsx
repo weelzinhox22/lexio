@@ -10,7 +10,7 @@ export default async function NewClientPage() {
 
   return (
     <div className="max-w-5xl space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+      <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl p-6 border border-blue-200/60 shadow-sm">
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
           <div className="rounded-lg bg-blue-100 p-2">
             <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -23,8 +23,8 @@ export default async function NewClientPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="border-slate-200 shadow-lg lg:col-span-2">
-          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+        <Card className="rounded-2xl border-slate-200/60 shadow-sm lg:col-span-2 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100/60 pb-4">
             <CardTitle className="text-slate-900 flex items-center gap-2">
               <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -37,8 +37,8 @@ export default async function NewClientPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200">
+        <Card className="rounded-2xl border-slate-200/60 shadow-sm overflow-hidden h-fit">
+          <CardHeader className="bg-blue-50/50 border-b border-blue-100/60 pb-4">
             <CardTitle className="text-sm font-semibold text-slate-900">💡 Dicas</CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4 text-sm text-slate-600">

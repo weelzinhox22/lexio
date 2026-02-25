@@ -7,7 +7,6 @@ import { GuidedTour } from "@/components/onboarding/guided-tour"
 import { EnrichedDashboard } from "@/components/dashboard/enriched-dashboard"
 import { ReferralSection } from "@/components/dashboard/referral-section"
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting"
-import { GlobalSearch } from "@/components/dashboard/global-search"
 import { WeekCalendar } from "@/components/dashboard/week-calendar"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 
@@ -158,9 +157,8 @@ export default async function DashboardPage() {
       .from("financial_transactions")
       .select("amount")
       .eq("user_id", user!.id)
-      .eq("type", "income")
-      .eq("status", "paid")
-      .gte("paid_date", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      .in("type", ["income", "receita"])
+      .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     supabase
       .from("process_updates")
       .select("id, process_id, title, update_type, created_at, processes(title, process_number)")
@@ -232,10 +230,9 @@ export default async function DashboardPage() {
       .from("financial_transactions")
       .select("amount")
       .eq("user_id", user!.id)
-      .eq("type", "income")
-      .eq("status", "paid")
-      .gte("paid_date", start.toISOString())
-      .lte("paid_date", end.toISOString())
+      .in("type", ["income", "receita"])
+      .gte("created_at", start.toISOString())
+      .lte("created_at", end.toISOString())
 
     monthlyRevenueData.push((mrev || []).reduce((acc, t) => acc + Number(t.amount || 0), 0))
   }
@@ -324,9 +321,6 @@ export default async function DashboardPage() {
           urgentDeadlineCount={urgentDeadlineCount}
           todayDeadlineCount={todayDeadlineCount}
         />
-
-        {/* Busca Global */}
-        <GlobalSearch />
 
         {/* Dashboard Enriquecido */}
         <EnrichedDashboard

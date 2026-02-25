@@ -1,12 +1,26 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
     try {
+        // Auth check — prevent anonymous abuse of AI API
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const body = await req.json()
         const apiKey = process.env.GROQ_API_KEY
 
         if (!apiKey) {
             return NextResponse.json({ error: 'GROQ_API_KEY não configurada.' }, { status: 500 })
+        }
+
+        // Input validation — prevent excessively large payloads
+        const bodyStr = JSON.stringify(body)
+        if (bodyStr.length > 10000) {
+            return NextResponse.json({ error: 'Payload muito grande.' }, { status: 400 })
         }
 
         const prompt = `Você é um assistente virtual jurídico chamado Themixa AI. A sua tarefa é receber informações técnicas do andamento de um processo e reescrevê-las em uma linguagem simples, amigável e acessível para o cliente leigo entender via WhatsApp.
@@ -15,7 +29,7 @@ Por favor, gere uma ÚNICA MENSAGEM de WhatsApp usando as informações abaixo. 
 NÃO adicione introduções ou conclusões como "Aqui está a resposta", apenas gere o texto final exato que será enviado ao cliente. 
 
 Dados do Processo:
-${JSON.stringify(body, null, 2)}
+${bodyStr}
 `
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -25,7 +39,7 @@ ${JSON.stringify(body, null, 2)}
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama-3.1-8b-instant', // Fast model for simple rewriting
+                model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.7,
                 max_tokens: 500
@@ -47,3 +61,4 @@ ${JSON.stringify(body, null, 2)}
         return NextResponse.json({ error: 'Falha ao reescrever mensagem.' }, { status: 500 })
     }
 }
+

@@ -6,6 +6,7 @@ import { AlertCircle, Sparkles } from "lucide-react"
 import { redirect } from "next/navigation"
 import { CountdownTimer } from "@/components/subscription/countdown-timer"
 import { SubscriptionPlans } from "@/components/subscription/subscription-plans"
+import { CancelSubscriptionButton } from "@/components/subscription/cancel-subscription-button"
 
 export default async function SubscriptionPage() {
   const supabase = await createClient()
@@ -30,9 +31,9 @@ export default async function SubscriptionPage() {
       </div>
 
       {isExpired && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-red-600" />
+        <Card className="rounded-2xl border-red-200/60 bg-red-50/50 shadow-sm">
+          <CardContent className="flex items-center gap-3 p-5">
+            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
             <div>
               <p className="font-semibold text-red-900">Sua licença expirou</p>
               <p className="text-sm text-red-700">Renove sua assinatura para continuar usando o sistema</p>
@@ -42,27 +43,27 @@ export default async function SubscriptionPage() {
       )}
 
       {subscription && !isExpired && (
-        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Card className="rounded-2xl border-emerald-200/60 bg-gradient-to-br from-emerald-50/50 to-green-50/50 shadow-sm overflow-hidden">
+          <CardHeader className="pb-4 bg-emerald-50/30 border-b border-emerald-100/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-green-100 p-2">
-                  <Sparkles className="h-5 w-5 text-green-600" />
+                <div className="rounded-lg bg-emerald-100 p-2 shrink-0">
+                  <Sparkles className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-green-900">Assinatura Ativa</CardTitle>
-                  <CardDescription className="text-green-700">
-                    Plano: <span className="font-semibold capitalize">{subscription.plan}</span>
+                  <CardTitle className="text-emerald-900 text-lg">Assinatura Ativa</CardTitle>
+                  <CardDescription className="text-emerald-700 font-medium">
+                    Plano: <span className="font-bold capitalize">{subscription.plan}</span>
                   </CardDescription>
                 </div>
               </div>
-              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
+              <Badge variant="outline" className="bg-emerald-100/80 text-emerald-700 border-emerald-300/60 text-xs px-3 py-1 font-semibold rounded-full shadow-sm w-fit">
                 {subscription.status}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
+          <CardContent className="space-y-4 pt-5">
+            <div className="bg-white rounded-xl p-5 border border-emerald-100/60 shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Válido até:</p>
               <p className="text-lg font-semibold text-slate-900 mb-3">
                 {new Date(subscription.current_period_end).toLocaleDateString("pt-BR", {
@@ -84,6 +85,11 @@ export default async function SubscriptionPage() {
                 </p>
               </div>
             )}
+            {!subscription.cancel_at_period_end && subscription.plan !== "free" && (
+              <div className="flex justify-end pt-2">
+                <CancelSubscriptionButton />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -98,15 +104,15 @@ export default async function SubscriptionPage() {
 
         <SubscriptionPlans currentPlan={subscription?.plan} />
 
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="rounded-2xl border-slate-200/60 bg-slate-50 shadow-sm">
           <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-blue-100 p-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
+            <div className="flex items-start gap-4">
+              <div className="rounded-lg bg-slate-200 p-2 shrink-0">
+                <Sparkles className="h-5 w-5 text-slate-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 mb-1">Sem compromisso</h3>
-                <p className="text-sm text-slate-700">
+                <h3 className="font-bold text-slate-900 mb-1">Sem compromisso</h3>
+                <p className="text-sm text-slate-600 font-medium">
                   Cancele sua assinatura a qualquer momento. Sem taxas de cancelamento, sem perguntas.
                 </p>
               </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
 import { DeadlineEmailOnboardingModal } from '@/components/onboarding/deadline-email-onboarding-modal'
 import { createClient } from '@/lib/supabase/client'
@@ -12,46 +11,40 @@ interface DashboardLayoutProps {
   userEmail: string | undefined
 }
 
+const ONBOARDING_KEY = 'themixa-onboarding-completed'
+const EMAIL_ALERTS_KEY = 'themixa-email-alerts-onboarding-seen'
+
 export function DashboardLayout({ children, userId, userEmail }: DashboardLayoutProps) {
-  const router = useRouter()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [loading, setLoading] = useState(true)
 
   const [showEmailOnboarding, setShowEmailOnboarding] = useState(false)
   const [emailTarget, setEmailTarget] = useState<string>('')
 
-  const onboardingSeenKey = 'themixa-dashboard-onboarding-seen'
-  const emailAlertsSeenKey = 'themixa-email-alerts-onboarding-seen'
-
   useEffect(() => {
-    // Verificar se é primeira vez do usuário
-    if (!userId) {
-      setLoading(false)
-      return
-    }
+    if (!userId) return
+
+    // Se o usuário já fechou o onboarding, não mostrar mais
+    const alreadyDismissed = localStorage.getItem(ONBOARDING_KEY) === 'true'
+    if (alreadyDismissed) return
 
     const checkOnboardingStatus = async () => {
       try {
-        const onboardingAlreadySeen = localStorage.getItem(onboardingSeenKey) === 'true'
-
-        const response = await fetch('/api/onboarding/status', {
-          method: 'GET',
-        })
-
+        const response = await fetch('/api/onboarding/status')
         if (response.ok) {
           const data = await response.json()
           setCompletedSteps(data.completedSteps || [])
-          
-          // Mostrar modal se usuário é novo (nenhuma etapa completa)
-          if (data.isNewUser && !onboardingAlreadySeen) {
+
+          // Mostrar somente se é novo usuário (nunca viu o modal)
+          if (data.isNewUser) {
             setShowOnboarding(true)
+          } else {
+            // Se já completou algum passo, marca como visto
+            localStorage.setItem(ONBOARDING_KEY, 'true')
           }
         }
       } catch (err) {
         console.error('Error checking onboarding status:', err)
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -63,12 +56,12 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
 
     const run = async () => {
       try {
-        const emailOnboardingAlreadySeen = localStorage.getItem(emailAlertsSeenKey) === 'true'
+        const emailOnboardingAlreadySeen = localStorage.getItem(EMAIL_ALERTS_KEY) === 'true'
         if (emailOnboardingAlreadySeen) return
 
         const supabase = createClient()
 
-        // Só faz sentido mostrar se o usuário tem pelo menos 1 prazo ativo
+        // Só mostra se tem pelo menos 1 prazo ativo
         const { data: anyDeadline } = await supabase
           .from('deadlines')
           .select('id')
@@ -84,21 +77,18 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
           .eq('user_id', userId)
           .maybeSingle()
 
-        // Se ainda não configurou (sem registro), mostramos 1x como sugestão.
+        // Se ainda não configurou, mostra 1x como sugestão
         if (!settings) {
           setEmailTarget(String(userEmail || '').trim())
           setShowEmailOnboarding(true)
           return
         }
 
-        // Se desativou alertas, não incomoda.
         if ((settings as any).email_enabled === false) return
 
-        // Se já tem override, assume configurado.
         const override = String((settings as any).email_override || '').trim()
         if (override) return
 
-        // Se não tem override, ainda pode querer configurar o e-mail (opcional). Mostra 1x.
         setEmailTarget(String(userEmail || '').trim())
         setShowEmailOnboarding(true)
       } catch (e) {
@@ -109,10 +99,6 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
     run()
   }, [userId, userEmail])
 
-  if (loading) {
-    return <div>{children}</div>
-  }
-
   return (
     <>
       {children}
@@ -120,7 +106,7 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
         open={showOnboarding}
         onOpenChange={(open) => {
           setShowOnboarding(open)
-          if (!open) localStorage.setItem(onboardingSeenKey, 'true')
+          if (!open) localStorage.setItem(ONBOARDING_KEY, 'true')
         }}
         completedSteps={completedSteps}
       />
@@ -128,7 +114,7 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
         open={showEmailOnboarding}
         onOpenChange={(open) => {
           setShowEmailOnboarding(open)
-          if (!open) localStorage.setItem(emailAlertsSeenKey, 'true')
+          if (!open) localStorage.setItem(EMAIL_ALERTS_KEY, 'true')
         }}
         targetEmail={emailTarget}
       />

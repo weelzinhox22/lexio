@@ -13,12 +13,12 @@ export async function updateSession(request: NextRequest) {
     const errorMessage = process.env.NODE_ENV === "production"
       ? "Supabase environment variables not configured"
       : "❌ Variáveis de ambiente do Supabase não configuradas!\n\n" +
-        "1. Abra o arquivo .env.local na raiz do projeto\n" +
-        "2. Adicione suas credenciais do Supabase:\n" +
-        "   NEXT_PUBLIC_SUPABASE_URL=https://hvpbouaonwolixgedjaf.supabase.co\n" +
-        "   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2cGJvdWFvbndvbGl4Z2VkamFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1OTkzNDIsImV4cCI6MjA3OTE3NTM0Mn0.RlMMMVdj4CJH916sUu4d_gCgVZ3sEeriZ627ybanEsw\n\n" +
-        "Obtenha em: https://supabase.com/dashboard/project/_/settings/api\n" +
-        "Depois reinicie o servidor: npm run dev"
+      "1. Abra o arquivo .env.local na raiz do projeto\n" +
+      "2. Adicione suas credenciais do Supabase:\n" +
+      "   NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co\n" +
+      "   NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key-aqui\n\n" +
+      "Obtenha em: https://supabase.com/dashboard/project/_/settings/api\n" +
+      "Depois reinicie o servidor: npm run dev"
     throw new Error(errorMessage)
   }
 
@@ -27,9 +27,9 @@ export async function updateSession(request: NextRequest) {
     const errorMessage = process.env.NODE_ENV === "production"
       ? "Invalid Supabase URL format"
       : "❌ NEXT_PUBLIC_SUPABASE_URL inválido!\n\n" +
-        "A URL deve começar com http:// ou https://\n" +
-        "Exemplo: https://seu-projeto.supabase.co\n\n" +
-        "Verifique o arquivo .env.local e reinicie o servidor."
+      "A URL deve começar com http:// ou https://\n" +
+      "Exemplo: https://seu-projeto.supabase.co\n\n" +
+      "Verifique o arquivo .env.local e reinicie o servidor."
     throw new Error(errorMessage)
   }
 
@@ -38,8 +38,8 @@ export async function updateSession(request: NextRequest) {
     const errorMessage = process.env.NODE_ENV === "production"
       ? "Supabase URL contains example placeholder"
       : "❌ NEXT_PUBLIC_SUPABASE_URL ainda está com valor de exemplo!\n\n" +
-        "Substitua 'your-supabase-project-url' pela URL real do seu projeto Supabase.\n" +
-        "Obtenha em: https://supabase.com/dashboard/project/_/settings/api"
+      "Substitua 'your-supabase-project-url' pela URL real do seu projeto Supabase.\n" +
+      "Obtenha em: https://supabase.com/dashboard/project/_/settings/api"
     throw new Error(errorMessage)
   }
 

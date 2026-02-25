@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Eye, Edit, Plus, Filter, X, Sparkles } from 'lucide-react'
+import { Search, Eye, Edit, Plus, X, Sparkles, FileText, FolderOpen } from 'lucide-react'
 import { TEMPLATE_CATEGORIES, TEMPLATE_TYPES } from '@/lib/constants/templates'
 import { isAdmin } from '@/lib/utils/admin'
 
@@ -86,8 +86,7 @@ export function TemplatesListAdvanced({
   }, [filteredTemplates])
 
   const getCategoryIcon = (category: string) => {
-    const cat = TEMPLATE_CATEGORIES.find((c) => c.value === category)
-    return cat?.icon || '📄'
+    return <FolderOpen className="w-5 h-5 text-blue-600 mr-2" />
   }
 
   const getCategoryLabel = (category: string) => {
@@ -131,26 +130,26 @@ export function TemplatesListAdvanced({
   return (
     <div className="space-y-6">
       {/* Header e ações */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Templates</h1>
           <p className="text-slate-600 mt-1 text-sm md:text-base">
-            {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} encontrado
+            {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} encontrado{filteredTemplates.length !== 1 ? 's' : ''}
             {filteredTemplates.length !== initialTemplates.length ? ` de ${initialTemplates.length}` : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {userIsAdmin && (
             <Button
               onClick={() => router.push('/dashboard/admin/templates/generate')}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-indigo-600 hover:bg-indigo-700 rounded-full shadow-sm font-semibold transition-transform hover:-translate-y-0.5"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              Gerar com IA
+              Gerar com IA (Admin)
             </Button>
           )}
-          <Button onClick={() => router.push('/dashboard/templates/new')} size="sm">
+          <Button onClick={() => router.push('/dashboard/templates/new')} size="sm" className="bg-slate-900 hover:bg-slate-800 rounded-full shadow-sm font-semibold transition-transform hover:-translate-y-0.5">
             <Plus className="h-4 w-4 mr-2" />
             Novo Template
           </Button>
@@ -158,7 +157,7 @@ export function TemplatesListAdvanced({
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card className="rounded-2xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4 flex-wrap">
             {/* Busca */}
@@ -169,7 +168,7 @@ export function TemplatesListAdvanced({
                   placeholder="Buscar templates..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 rounded-full border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm h-10"
                 />
               </div>
             </div>
@@ -177,14 +176,14 @@ export function TemplatesListAdvanced({
             {/* Categoria */}
             <div className="w-[180px]">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200 h-10 font-medium">
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as categorias</SelectItem>
                   {TEMPLATE_CATEGORIES.map((category) => (
                     <SelectItem key={category.value} value={category.value}>
-                      {category.icon} {category.label}
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -194,7 +193,7 @@ export function TemplatesListAdvanced({
             {/* Tipo */}
             <div className="w-[180px]">
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200 h-10 font-medium">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -218,6 +217,7 @@ export function TemplatesListAdvanced({
                 }}
                 variant="outline"
                 size="sm"
+                className="rounded-full h-10 px-4 text-slate-600 font-semibold"
               >
                 <X className="h-4 w-4 mr-2" />
                 Limpar
@@ -229,8 +229,8 @@ export function TemplatesListAdvanced({
 
       {/* Lista de templates */}
       {filteredTemplates.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
+        <Card className="rounded-2xl border-slate-200/60 shadow-sm overflow-hidden bg-slate-50 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <Search className="h-12 w-12 text-slate-300 mb-4" />
             <p className="text-slate-600 font-medium">Nenhum template encontrado</p>
             <p className="text-sm text-slate-500 mt-2">
@@ -241,58 +241,60 @@ export function TemplatesListAdvanced({
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedTemplates).map(([category, categoryTemplates]) => (
-            <div key={category}>
-              <h2 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                <span>{getCategoryIcon(category)}</span>
+            <div key={category} className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 sm:p-6 mb-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center">
+                {getCategoryIcon(category)}
                 {getCategoryLabel(category)}
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-3 bg-slate-100 text-slate-600 shadow-none hover:bg-slate-200">
                   {categoryTemplates.length}
                 </Badge>
               </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {categoryTemplates.map((template) => (
-                  <Card key={template.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-base mb-1">{template.name}</CardTitle>
-                          <CardDescription className="text-xs line-clamp-2">
+                  <Card key={template.id} className="rounded-2xl border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group overflow-hidden flex flex-col">
+                    <CardHeader className="pb-3 bg-slate-50/50 group-hover:bg-blue-50/30 transition-colors border-b border-slate-100">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base mb-1 truncate font-bold text-slate-800">{template.name}</CardTitle>
+                          <CardDescription className="text-xs line-clamp-2 text-slate-500 font-medium">
                             {template.description || 'Sem descrição'}
                           </CardDescription>
                         </div>
                         {template.is_system && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-[10px] shrink-0 bg-indigo-50 text-indigo-700 shadow-none border-indigo-100 border">
                             Sistema
                           </Badge>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="pt-4 flex-1 flex flex-col justify-between space-y-4">
                       <div className="flex flex-wrap gap-2">
                         {template.subcategory && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] shadow-none border-slate-200 text-slate-600 bg-white">
                             {template.subcategory}
                           </Badge>
                         )}
-                        <Badge variant="outline" className="text-xs">
-                          {(template.placeholders as string[])?.length || 0} campos
+                        <Badge variant="outline" className="text-[10px] shadow-none border-slate-200 text-slate-600 bg-white flex items-center">
+                          <FileText className="w-3 h-3 mr-1 opacity-50" /> {(template.placeholders as string[])?.length || 0} campos
                         </Badge>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full mt-auto pt-2">
                         <Button
                           onClick={() => handleUseTemplate(template)}
                           size="sm"
-                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          className="flex-1 rounded-full bg-blue-600 hover:bg-blue-700 font-semibold shadow-sm transition-transform hover:-translate-y-0.5 w-full"
                         >
-                          <Eye className="h-3 w-3 mr-1" />
-                          Usar
+                          <Eye className="h-3.5 w-3.5 mr-1.5" />
+                          Usar Template
                         </Button>
                         <Button
                           onClick={() => handleEditTemplate(template)}
                           size="sm"
                           variant="outline"
+                          className="rounded-full w-10 h-9 p-0 shadow-sm border-slate-200 hover:bg-slate-50 shrink-0"
+                          title="Editar/Duplicar Template"
                         >
-                          <Edit className="h-3 w-3" />
+                          <Edit className="h-4 w-4 text-slate-500" />
                         </Button>
                       </div>
                     </CardContent>

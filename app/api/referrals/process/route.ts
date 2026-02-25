@@ -18,6 +18,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
+    // Input validation — prevent injection and enumeration
+    if (typeof referralCode !== 'string' || referralCode.length > 50) {
+      return NextResponse.json({ error: 'Invalid referral code' }, { status: 400 })
+    }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (typeof userId !== 'string' || !uuidRegex.test(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 

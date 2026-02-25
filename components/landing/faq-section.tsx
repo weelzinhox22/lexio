@@ -19,15 +19,15 @@ const faqs = [
   {
     question: 'Posso integrar com outros sistemas?',
     answer:
-      'Sim, o Themixa oferece integrações com WhatsApp, sistemas de pagamento e APIs para conectar com outros softwares jurídicos. Estamos sempre expandindo nossas integrações.',
+      'Sim, o Themixa possui integração com o Google Calendar para a sua agenda e Stripe para gestão segura de pagamentos. Você também pode enviar links de andamentos processuais via WhatsApp para seus clientes diretamente da plataforma.',
   },
   {
-    question: 'Como funciona o sistema de notificações via WhatsApp?',
+    question: 'Como funciona o sistema de alertas de prazos?',
     answer:
-      'O Themixa envia automaticamente alertas de prazos, lembretes de pagamento e atualizações de processos via WhatsApp. Você pode configurar os horários e tipos de notificações que deseja receber.',
+      'O Themixa envia automaticamente alertas de prazos diretamente para o seu e-mail (7, 3, 1 dia antes e no vencimento). Você pode personalizar quais e-mails receber diretamente pelas configurações.',
   },
   {
-    question: 'Posso usar o Lexio em múltiplos dispositivos?',
+    question: 'Posso usar o Themixa em múltiplos dispositivos?',
     answer:
       'Sim! O Themixa é uma plataforma web responsiva que funciona perfeitamente em computadores, tablets e smartphones. Acesse seus dados de qualquer lugar, a qualquer hora.',
   },

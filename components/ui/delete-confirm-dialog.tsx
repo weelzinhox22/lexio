@@ -12,7 +12,7 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => void
   title: string
   itemName: string
-  itemType: 'processo' | 'cliente' | 'documento' | 'prazo' | 'lead' | 'transação'
+  itemType: 'processo' | 'cliente' | 'documento' | 'prazo' | 'lead' | 'transação' | 'registro'
   isLoading?: boolean
 }
 

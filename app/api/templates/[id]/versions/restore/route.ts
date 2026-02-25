@@ -75,12 +75,15 @@ export async function POST(
     const userEmail = user.email?.toLowerCase() || ''
     const isAdmin = ADMIN_USER_IDS.includes(user.id) || ADMIN_EMAILS.includes(userEmail) || userEmail.endsWith('@themixa.com')
 
-    if (template.user_id !== user.id && !isAdmin && template.is_system) {
-      const resp = NextResponse.json(
-        { error: 'Sem permissão para restaurar versão' },
-        { status: 403 }
-      )
-      return attachSupabaseCookies(resp, cookieResponse)
+    // Previne IDOR: usuário só pode restaurar se for o dono ou admin (para templates do sistema)
+    if (template.user_id !== user.id) {
+      if (!isAdmin || !template.is_system) {
+        const resp = NextResponse.json(
+          { error: 'Sem permissão para restaurar versão deste template' },
+          { status: 403 }
+        )
+        return attachSupabaseCookies(resp, cookieResponse)
+      }
     }
 
     // Usar Service Role para criar versão

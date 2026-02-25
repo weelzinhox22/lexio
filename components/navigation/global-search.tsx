@@ -36,6 +36,17 @@ export function GlobalSearch({ placeholder = 'Pesquisar processos, contatos ou t
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setOpen((open) => !open)
+      }
+    }
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
+  }, [])
+
+  useEffect(() => {
     const searchAll = async () => {
       if (!query || query.length < 2) {
         setResults([])
@@ -101,12 +112,12 @@ export function GlobalSearch({ placeholder = 'Pesquisar processos, contatos ou t
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="relative w-full md:w-96 justify-start text-sm text-muted-foreground bg-slate-50 hover:bg-slate-100"
+          className="relative w-full md:w-96 justify-start text-sm text-slate-500 bg-slate-50/50 hover:bg-slate-100/50 border-slate-200/60 rounded-full h-10 px-4 transition-all duration-200 hover:shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
         >
-          <Search className="w-4 h-4 mr-2 text-slate-600" />
+          <Search className="w-4 h-4 mr-2.5 text-slate-400" />
           <span className="hidden sm:inline-flex">{placeholder}</span>
           <span className="inline-flex sm:hidden">Pesquisar...</span>
-          <kbd className="pointer-events-none absolute right-1.5 hidden h-6 select-none items-center gap-1 rounded border border-slate-200 bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 sm:flex">
+          <kbd className="pointer-events-none absolute right-2 hidden h-6 select-none items-center gap-1 rounded-full border border-slate-200/60 bg-white px-2 font-mono text-[10px] font-medium text-slate-500 opacity-100 sm:flex shadow-sm">
             <span className="text-xs">⌘</span>K
           </kbd>
         </Button>
@@ -115,6 +126,7 @@ export function GlobalSearch({ placeholder = 'Pesquisar processos, contatos ou t
       <PopoverContent className="w-full md:w-96 p-0 shadow-lg">
         <Command shouldFilter={false}>
           <CommandInput
+            autoFocus
             placeholder={placeholder}
             value={query}
             onValueChange={setQuery}

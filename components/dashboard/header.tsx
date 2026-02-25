@@ -40,34 +40,34 @@ export function DashboardHeader({ user, profileName, avatarUrl }: DashboardHeade
     : user.email?.substring(0, 2).toUpperCase() || "US"
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 md:px-6">
       <div className="flex items-center gap-3 md:gap-4">
         <MobileMenu />
-        <h2 className="text-base md:text-lg font-semibold text-slate-900 hidden sm:block">
+        <h2 className="text-base md:text-lg font-semibold text-slate-800 tracking-tight hidden sm:block">
           Bem-vindo ao Themixa
         </h2>
       </div>
 
       {/* Barra de Pesquisa Global */}
-      <div className="flex-1 max-w-2xl">
+      <div className="flex-1 max-w-2xl px-2 md:px-8">
         <GlobalSearch />
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex items-center gap-2 md:gap-4">
         <NotificationBell userId={user.id} />
         <FeedbackButton
           userId={user.id}
           variant="outline"
           label="Feedback"
-          className="hidden md:flex"
+          className="hidden lg:flex border-slate-200/60 shadow-sm"
         />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-slate-200 transition-all">
-              <Avatar className="h-10 w-10">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-4 hover:ring-slate-100 transition-all duration-200">
+              <Avatar className="h-10 w-10 border border-slate-200 shadow-sm">
                 {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-                <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-sm font-semibold">
+                <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-sm font-medium">
                   {initials}
                 </AvatarFallback>
               </Avatar>

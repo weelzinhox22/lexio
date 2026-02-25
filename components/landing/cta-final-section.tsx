@@ -1,21 +1,56 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
+import gsap from 'gsap'
 
 export function CTAFinalSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!sectionRef.current || !contentRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            gsap.fromTo(
+              contentRef.current!.children,
+              { opacity: 0, y: 30 },
+              {
+                opacity: 1,
+                y: 0,
+                stagger: 0.15,
+                duration: 0.8,
+                ease: 'power3.out',
+              }
+            )
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+
+    observer.observe(sectionRef.current)
+
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section className="bg-white border-t border-slate-200 py-20">
+    <section ref={sectionRef} className="bg-white border-t border-slate-200 py-24 overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="mx-auto max-w-3xl text-center">
+        <div ref={contentRef} className="mx-auto max-w-3xl text-center">
           <h2 className="mb-6 text-4xl font-bold text-slate-900 sm:text-5xl">
             Pronto para nunca mais perder um prazo?
           </h2>
           <p className="mb-8 text-xl text-slate-600">
             Comece grátis hoje e veja como o Themixa pode transformar a gestão do seu escritório jurídico.
           </p>
-          <div className="mb-8 flex flex-wrap justify-center gap-6 text-sm text-slate-600">
+          <div className="mb-10 flex flex-wrap justify-center gap-6 text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <Check className="h-5 w-5 text-green-600" />
               <span>Sem cartão de crédito</span>

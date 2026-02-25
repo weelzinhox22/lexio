@@ -54,24 +54,24 @@ export function LeadEditForm({ lead, userId }: { lead: Lead; userId: string }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="name">Nome Completo *</Label>
-          <Input id="name" name="name" defaultValue={lead.name} required />
+          <Label htmlFor="name" className="text-slate-700 font-semibold">Nome Completo *</Label>
+          <Input id="name" name="name" defaultValue={lead.name} className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" required />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" defaultValue={lead.email || ''} />
+          <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
+          <Input id="email" name="email" type="email" defaultValue={lead.email || ''} className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Telefone</Label>
-          <Input id="phone" name="phone" type="tel" defaultValue={lead.phone || ''} />
+          <Label htmlFor="phone" className="text-slate-700 font-semibold">Telefone</Label>
+          <Input id="phone" name="phone" type="tel" defaultValue={lead.phone || ''} className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="source">Origem</Label>
+          <Label htmlFor="source" className="text-slate-700 font-semibold">Origem</Label>
           <Select name="source" defaultValue={lead.source || ''}>
-            <SelectTrigger>
+            <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200">
               <SelectValue placeholder="Como conheceu?" />
             </SelectTrigger>
             <SelectContent>
@@ -86,9 +86,9 @@ export function LeadEditForm({ lead, userId }: { lead: Lead; userId: string }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor="status" className="text-slate-700 font-semibold">Status</Label>
           <Select name="status" defaultValue={lead.status || 'new'}>
-            <SelectTrigger>
+            <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +102,7 @@ export function LeadEditForm({ lead, userId }: { lead: Lead; userId: string }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="score">Score (0-100)</Label>
+          <Label htmlFor="score" className="text-slate-700 font-semibold">Score (0-100)</Label>
           <Input
             id="score"
             name="score"
@@ -110,17 +110,18 @@ export function LeadEditForm({ lead, userId }: { lead: Lead; userId: string }) {
             min="0"
             max="100"
             defaultValue={lead.score || 0}
+            className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200"
           />
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="interest">Interesse</Label>
-          <Input id="interest" name="interest" defaultValue={lead.interest || ''} />
+          <Label htmlFor="interest" className="text-slate-700 font-semibold">Interesse</Label>
+          <Input id="interest" name="interest" defaultValue={lead.interest || ''} className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="notes">Observações</Label>
-          <Textarea id="notes" name="notes" defaultValue={lead.notes || ''} rows={4} />
+          <Label htmlFor="notes" className="text-slate-700 font-semibold">Observações</Label>
+          <Textarea id="notes" name="notes" defaultValue={lead.notes || ''} rows={4} className="rounded-2xl shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
       </div>
 
@@ -129,10 +130,10 @@ export function LeadEditForm({ lead, userId }: { lead: Lead; userId: string }) {
       )}
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={isLoading} className="bg-slate-900 hover:bg-slate-800 text-white">
+        <Button type="submit" disabled={isLoading} className="bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-sm font-semibold transition-transform hover:-translate-y-0.5">
           {isLoading ? 'Salvando...' : 'Salvar Alterações'}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-full shadow-sm font-semibold border-slate-200 text-slate-600">
           Cancelar
         </Button>
       </div>

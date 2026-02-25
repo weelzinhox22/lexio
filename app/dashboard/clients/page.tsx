@@ -31,7 +31,7 @@ export default async function ClientsPage() {
           </p>
         </div>
         <Link href="/dashboard/clients/new" className="flex-1 sm:flex-initial">
-          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
+          <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow hover:-translate-y-0.5 transition-all font-semibold rounded-full px-4 text-sm">
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Novo Cliente</span>
             <span className="sm:hidden">Novo</span>
@@ -39,7 +39,7 @@ export default async function ClientsPage() {
         </Link>
       </div>
 
-      <Card className="border-slate-200">
+      <Card className="rounded-2xl border-slate-200/60 bg-white shadow-sm overflow-hidden">
         <ClientList clients={clients || []} />
       </Card>
     </div>

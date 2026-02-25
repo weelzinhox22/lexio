@@ -33,7 +33,7 @@ export default async function LeadsPage() {
           <p className="text-slate-600 mt-1 text-sm md:text-base">Gerencie seus potenciais clientes</p>
         </div>
         <Link href="/dashboard/leads/new" className="flex-1 sm:flex-initial">
-          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm">
+          <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm rounded-full shadow-sm font-semibold transition-transform hover:-translate-y-0.5">
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Novo Lead</span>
             <span className="sm:hidden">Novo</span>
@@ -48,7 +48,7 @@ export default async function LeadsPage() {
         conversionRate={conversionRate}
       />
 
-      <Card className="border-slate-200">
+      <Card className="rounded-2xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
         <LeadList leads={leads || []} />
       </Card>
     </div>

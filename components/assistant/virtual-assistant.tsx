@@ -109,7 +109,7 @@ export function VirtualAssistant() {
 
             {/* O Chat Box */}
             {isOpen && (
-                <Card className={`w-[350px] shadow-2xl border-blue-200 transition-all duration-300 transform origin-bottom-right ${isMinimized ? 'scale-0 opacity-0 pointer-events-none absolute' : 'scale-100 opacity-100 flex flex-col'} h-[500px] overflow-hidden`}>
+                <Card className={`w-[360px] shadow-2xl rounded-2xl border-slate-200/60 bg-white/95 backdrop-blur-xl transition-all duration-300 transform origin-bottom-right ${isMinimized ? 'scale-0 opacity-0 pointer-events-none absolute' : 'scale-100 opacity-100 flex flex-col'} h-[550px] overflow-hidden`}>
 
                     {/* Header do Chat */}
                     <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-3 flex flex-row items-center justify-between">
@@ -152,9 +152,9 @@ export function VirtualAssistant() {
                                     </div>
                                 )}
                                 <div
-                                    className={`max-w-[80%] rounded-2xl px-3 py-2 ${m.role === 'user'
-                                        ? 'bg-slate-800 text-white rounded-tr-sm'
-                                        : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'
+                                    className={`max-w-[85%] px-4 py-2.5 shadow-sm text-[15px] leading-relaxed ${m.role === 'user'
+                                        ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl rounded-tr-sm'
+                                        : 'bg-white border border-slate-200/60 text-slate-800 rounded-2xl rounded-tl-sm'
                                         }`}
                                 >
                                     <div className="markdown-chat prose-sm prose-p:my-1 prose-strong:text-current prose-ul:my-1 prose-ul:pl-4">
@@ -215,10 +215,10 @@ export function VirtualAssistant() {
             {/* Botão Flutuante */}
             <Button
                 onClick={toggleChat}
-                className={`h-14 w-14 rounded-full shadow-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white transition-all transform hover:scale-105 duration-200 ${isOpen && !isMinimized ? 'hidden' : 'flex'} items-center justify-center relative`}
+                className={`h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 text-white transition-all transform hover:-translate-y-1 hover:scale-105 duration-300 ${isOpen && !isMinimized ? 'hidden' : 'flex'} items-center justify-center relative border-0 shadow-[0_8px_30px_rgb(99,102,241,0.4)] hover:shadow-[0_12px_40px_rgb(99,102,241,0.6)] z-50`}
             >
-                <Sparkles className="absolute top-3 right-3 h-3 w-3 text-yellow-300 animate-pulse" />
-                <Bot className="h-7 w-7" />
+                <Sparkles className="absolute top-3 right-3 h-3.5 w-3.5 text-yellow-300 animate-pulse drop-shadow-md" />
+                <Bot className="h-7 w-7 drop-shadow-sm" />
             </Button>
 
         </div>

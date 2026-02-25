@@ -32,9 +32,9 @@ export function ClientForm({ userId }: { userId: string }) {
       const address =
         addressLine || city
           ? {
-              line1: addressLine || null,
-              city: city || null,
-            }
+            line1: addressLine || null,
+            city: city || null,
+          }
           : null
 
       const { error } = await supabase.from("clients").insert({
@@ -68,19 +68,19 @@ export function ClientForm({ userId }: { userId: string }) {
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="name" className="text-slate-700 font-medium">Nome Completo / Razão Social *</Label>
-          <Input 
-            id="name" 
-            name="name" 
-            placeholder="Ex: João da Silva ou Empresa XYZ Ltda" 
-            required 
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+          <Input
+            id="name"
+            name="name"
+            placeholder="Ex: João da Silva ou Empresa XYZ Ltda"
+            required
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="client_type" className="text-slate-700 font-medium">Tipo de Cliente *</Label>
           <Select name="client_type" defaultValue="person">
-            <SelectTrigger className="border-slate-300 focus:border-blue-400 focus:ring-blue-200">
+            <SelectTrigger className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -92,61 +92,61 @@ export function ClientForm({ userId }: { userId: string }) {
 
         <div className="space-y-2">
           <Label htmlFor="cpf_cnpj" className="text-slate-700 font-medium">CPF / CNPJ</Label>
-          <MaskedInput 
-            id="cpf_cnpj" 
-            name="cpf_cnpj" 
-            mask="cpf-cnpj" 
+          <MaskedInput
+            id="cpf_cnpj"
+            name="cpf_cnpj"
+            mask="cpf-cnpj"
             placeholder="000.000.000-00 ou 00.000.000/0000-00"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
-          <Input 
-            id="email" 
-            name="email" 
-            type="email" 
+          <Input
+            id="email"
+            name="email"
+            type="email"
             placeholder="cliente@email.com"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="phone" className="text-slate-700 font-medium">Telefone</Label>
-          <MaskedInput 
-            id="phone" 
-            name="phone" 
-            mask="phone" 
+          <MaskedInput
+            id="phone"
+            name="phone"
+            mask="phone"
             placeholder="(00) 00000-0000"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="address" className="text-slate-700 font-medium">Endereço</Label>
-          <Input 
-            id="address" 
-            name="address" 
+          <Input
+            id="address"
+            name="address"
             placeholder="Rua, número, bairro"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="city" className="text-slate-700 font-medium">Cidade / Estado</Label>
-          <Input 
-            id="city" 
-            name="city" 
+          <Input
+            id="city"
+            name="city"
             placeholder="Salvador - BA"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="status" className="text-slate-700 font-medium">Status</Label>
           <Select name="status" defaultValue="active">
-            <SelectTrigger className="border-slate-300 focus:border-blue-400 focus:ring-blue-200">
+            <SelectTrigger className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -158,22 +158,22 @@ export function ClientForm({ userId }: { userId: string }) {
 
         <div className="space-y-2">
           <Label htmlFor="birth_date" className="text-slate-700 font-medium">Data de Nascimento / Fundação</Label>
-          <Input 
-            id="birth_date" 
-            name="birth_date" 
+          <Input
+            id="birth_date"
+            name="birth_date"
             type="date"
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
           />
         </div>
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="notes" className="text-slate-700 font-medium">Observações</Label>
-          <Textarea 
-            id="notes" 
-            name="notes" 
+          <Textarea
+            id="notes"
+            name="notes"
             placeholder="Informações adicionais sobre o cliente, histórico, preferências de contato, etc..."
             rows={4}
-            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200"
+            className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm max-h-40"
           />
         </div>
       </div>
@@ -188,10 +188,10 @@ export function ClientForm({ userId }: { userId: string }) {
       )}
 
       <div className="flex gap-4 pt-4 border-t border-slate-200">
-        <Button 
-          type="submit" 
-          disabled={isLoading} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 hover:scale-105 transition-all duration-200"
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow hover:-translate-y-0.5 px-6 font-semibold transition-all duration-300"
         >
           {isLoading ? (
             <>
@@ -203,18 +203,18 @@ export function ClientForm({ userId }: { userId: string }) {
             </>
           ) : (
             <>
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 mr-2 -ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Criar Cliente
             </>
           )}
         </Button>
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={() => router.back()}
-          className="border-slate-300 hover:bg-slate-50"
+          className="rounded-full shadow-sm border-slate-200 hover:bg-slate-50 font-semibold px-6"
         >
           Cancelar
         </Button>

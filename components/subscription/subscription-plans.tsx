@@ -32,7 +32,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: 'R$ 89',
+    price: 'R$ 40',
     period: '/mês',
     description: 'Para advogados profissionais',
     features: [
@@ -83,7 +83,7 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+    <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto items-stretch mt-4">
       {plans.map((plan) => {
         const isCurrentPlan = currentPlan === plan.planId
         const isLoading = loading === plan.planId
@@ -92,10 +92,10 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
           <Card
             key={plan.name}
             className={cn(
-              'relative border-2 transition-all duration-300 hover:shadow-xl',
+              'relative flex flex-col rounded-2xl border-slate-200/60 shadow-sm transition-all duration-300 hover:shadow-xl',
               plan.popular
-                ? 'border-blue-500 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 scale-105'
-                : 'border-slate-200 hover:border-slate-300 bg-white',
+                ? 'border-indigo-200/60 shadow-xl bg-gradient-to-br from-indigo-50/50 to-blue-50/50 md:scale-105 z-10'
+                : 'hover:border-slate-300 bg-white',
             )}
           >
             {plan.popular && (
@@ -108,13 +108,13 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl text-slate-900 mb-2">{plan.name}</CardTitle>
               <CardDescription className="text-slate-600 text-base">{plan.description}</CardDescription>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-slate-900">{plan.price}</span>
-                <span className="text-slate-600 text-lg">{plan.period}</span>
+              <div className="mt-8 flex items-baseline gap-1">
+                <span className="text-5xl font-black tracking-tight text-slate-900">{plan.price}</span>
+                <span className="text-slate-500 font-semibold text-lg">{plan.period}</span>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
+            <CardContent className="space-y-6 flex flex-col flex-1 pb-8">
+              <ul className="space-y-3 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-slate-700">
                     <div className="rounded-full bg-green-100 p-1 mt-0.5 shrink-0">
@@ -128,7 +128,7 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
                 <Button
                   disabled
                   variant="outline"
-                  className="w-full h-12"
+                  className="w-full h-12 rounded-full font-semibold border-slate-200 text-slate-500 shadow-sm"
                 >
                   {plan.cta || 'Plano Atual'}
                 </Button>
@@ -138,11 +138,11 @@ export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
                     onClick={() => handleCheckout(plan.planId, plan.priceId!)}
                     disabled={isCurrentPlan || isLoading}
                     className={cn(
-                      'w-full h-12 text-base font-semibold transition-all duration-300',
+                      'w-full h-12 rounded-full text-base font-semibold shadow-sm transition-all duration-300',
                       plan.popular
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white hover:scale-105',
-                      isCurrentPlan && 'bg-slate-400 hover:bg-slate-400 cursor-not-allowed',
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white hover:-translate-y-0.5',
+                      isCurrentPlan && 'bg-slate-400 hover:bg-slate-400 cursor-not-allowed shadow-none hover:translate-y-0',
                     )}
                   >
                     {isLoading ? (

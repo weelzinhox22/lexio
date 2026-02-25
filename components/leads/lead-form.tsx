@@ -52,24 +52,24 @@ export function LeadForm({ userId }: { userId: string }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="name">Nome Completo *</Label>
-          <Input id="name" name="name" placeholder="Ex: Maria Santos" required />
+          <Label htmlFor="name" className="text-slate-700 font-semibold">Nome Completo *</Label>
+          <Input id="name" name="name" placeholder="Ex: Maria Santos" className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" required />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" placeholder="lead@email.com" />
+          <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
+          <Input id="email" name="email" type="email" placeholder="lead@email.com" className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Telefone</Label>
-          <Input id="phone" name="phone" type="tel" placeholder="(00) 00000-0000" />
+          <Label htmlFor="phone" className="text-slate-700 font-semibold">Telefone</Label>
+          <Input id="phone" name="phone" type="tel" placeholder="(00) 00000-0000" className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="source">Origem</Label>
+          <Label htmlFor="source" className="text-slate-700 font-semibold">Origem</Label>
           <Select name="source">
-            <SelectTrigger>
+            <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200">
               <SelectValue placeholder="Como conheceu?" />
             </SelectTrigger>
             <SelectContent>
@@ -84,9 +84,9 @@ export function LeadForm({ userId }: { userId: string }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor="status" className="text-slate-700 font-semibold">Status</Label>
           <Select name="status" defaultValue="new">
-            <SelectTrigger>
+            <SelectTrigger className="rounded-full shadow-sm border-slate-300 focus:ring-blue-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -100,28 +100,28 @@ export function LeadForm({ userId }: { userId: string }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="score">Score (0-100)</Label>
-          <Input id="score" name="score" type="number" min="0" max="100" defaultValue="0" />
+          <Label htmlFor="score" className="text-slate-700 font-semibold">Score (0-100)</Label>
+          <Input id="score" name="score" type="number" min="0" max="100" defaultValue="0" className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="interest">Interesse</Label>
-          <Input id="interest" name="interest" placeholder="Ex: Ação trabalhista" />
+          <Label htmlFor="interest" className="text-slate-700 font-semibold">Interesse</Label>
+          <Input id="interest" name="interest" placeholder="Ex: Ação trabalhista" className="rounded-full shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="notes">Observações</Label>
-          <Textarea id="notes" name="notes" placeholder="Informações sobre o lead..." rows={4} />
+          <Label htmlFor="notes" className="text-slate-700 font-semibold">Observações</Label>
+          <Textarea id="notes" name="notes" placeholder="Informações sobre o lead..." rows={4} className="rounded-2xl shadow-sm border-slate-300 focus:border-blue-400 focus:ring-blue-200" />
         </div>
       </div>
 
       {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">{error}</div>}
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={isLoading} className="bg-slate-900 hover:bg-slate-800 text-white">
+        <Button type="submit" disabled={isLoading} className="bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-sm font-semibold transition-transform hover:-translate-y-0.5">
           {isLoading ? "Criando..." : "Criar Lead"}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-full shadow-sm font-semibold border-slate-200 text-slate-600">
           Cancelar
         </Button>
       </div>

@@ -57,23 +57,23 @@ export function LeadList({ leads }: { leads: Lead[] }) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      new: { label: "Novo", class: "bg-blue-100 text-blue-700" },
-      contacted: { label: "Contatado", class: "bg-purple-100 text-purple-700" },
-      qualified: { label: "Qualificado", class: "bg-indigo-100 text-indigo-700" },
-      converted: { label: "Convertido", class: "bg-green-100 text-green-700" },
-      lost: { label: "Perdido", class: "bg-red-100 text-red-700" },
+      new: { label: "Novo", class: "bg-blue-100/80 text-blue-700 border-blue-200" },
+      contacted: { label: "Contatado", class: "bg-purple-100/80 text-purple-700 border-purple-200" },
+      qualified: { label: "Qualificado", class: "bg-indigo-100/80 text-indigo-700 border-indigo-200" },
+      converted: { label: "Convertido", class: "bg-green-100/80 text-green-700 border-green-200" },
+      lost: { label: "Perdido", class: "bg-red-100/80 text-red-700 border-red-200" },
     }
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new
-    return <Badge className={config.class}>{config.label}</Badge>
+    return <Badge variant="outline" className={`rounded-full px-2.5 shadow-sm font-semibold ${config.class}`}>{config.label}</Badge>
   }
 
   return (
-    <div className="divide-y divide-slate-200">
+    <div className="divide-y divide-slate-100">
       {leads.map((lead) => (
-        <div key={lead.id} className="flex items-center justify-between p-4 hover:bg-slate-50">
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-slate-900">{lead.name}</h3>
+        <div key={lead.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-slate-50/80 transition-colors gap-4">
+          <div className="flex-1 space-y-1.5">
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-slate-900">{lead.name}</h3>
               {getStatusBadge(lead.status)}
               {lead.score > 0 && (
                 <Badge variant="outline" className="border-amber-200 text-amber-700">
@@ -105,26 +105,26 @@ export function LeadList({ leads }: { leads: Lead[] }) {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-auto bg-slate-100/50 p-1 rounded-full">
             {lead.status === "qualified" && (
-              <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-700">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-full">
                 <UserCheck className="h-4 w-4" />
               </Button>
             )}
             <Link href={`/dashboard/leads/${lead.id}`}>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-full">
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={`/dashboard/leads/${lead.id}/edit`}>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-full" title="Editar">
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
             <Button
               variant="ghost"
               size="icon"
-              className="text-red-600 hover:text-red-700"
+              className="h-8 w-8 text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-full"
               onClick={() => setDeleteDialog({ isOpen: true, lead, isLoading: false })}
             >
               <Trash2 className="h-4 w-4" />

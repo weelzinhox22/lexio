@@ -13,17 +13,34 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Loader2, Plus, Clock } from "lucide-react"
 import { toast } from "sonner"
 
-export function NewEntryDialog({ children, processes, clients }: { children: React.ReactNode, processes: any[], clients: any[] }) {
+export function NewEntryDialog({
+    children,
+    processes,
+    clients,
+    injectOpen,
+    onInjectOpenChange,
+    injectedDuration
+}: {
+    children?: React.ReactNode,
+    processes: any[],
+    clients: any[],
+    injectOpen?: boolean,
+    onInjectOpenChange?: (open: boolean) => void,
+    injectedDuration?: { hours: string, minutes: string }
+}) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
 
+    const actualOpen = injectOpen !== undefined ? injectOpen : open
+    const setActualOpen = onInjectOpenChange || setOpen
+
     const [formData, setFormData] = useState({
         description: "",
         date: new Date().toISOString().split('T')[0],
-        durationHours: "0",
-        durationMinutes: "30",
+        durationHours: injectedDuration?.hours || "0",
+        durationMinutes: injectedDuration?.minutes || "30",
         billable: true,
         hourlyRate: "150.00",
         processId: "none",
@@ -63,7 +80,7 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
             if (error) throw error
 
             toast.success("Registro adicionado com sucesso!")
-            setOpen(false)
+            setActualOpen(false)
             router.refresh()
         } catch (error: any) {
             toast.error(error.message || "Erro ao salvar registro")
@@ -73,75 +90,84 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle>Novo Registro Manual</DialogTitle>
-                        <DialogDescription>
+        <Dialog open={actualOpen} onOpenChange={setActualOpen}>
+            {children && (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
+            <DialogContent className="sm:max-w-[500px] rounded-2xl overflow-hidden p-0 gap-0 border-slate-200/60 shadow-xl">
+                <form onSubmit={handleSubmit} className="flex flex-col">
+                    <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b border-slate-100/60">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                            Novo Registro Manual
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-500 font-medium pt-1">
                             Adicione horas de trabalho a um processo ou cliente.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-5 p-6">
                         <div className="space-y-2">
-                            <Label htmlFor="description">Descrição da Atividade</Label>
+                            <Label htmlFor="description" className="text-slate-700 font-semibold">Descrição da Atividade</Label>
                             <Textarea
                                 id="description"
                                 required
                                 placeholder="Ex: Análise de documentos e elaboração de petição inicial"
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm resize-none"
+                                rows={3}
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2">
-                                <Label htmlFor="date">Data</Label>
+                                <Label htmlFor="date" className="text-slate-700 font-semibold">Data</Label>
                                 <Input
                                     id="date"
                                     type="date"
                                     required
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    className="border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Duração</Label>
+                                <Label className="text-slate-700 font-semibold">Duração</Label>
                                 <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
+                                    <div className="relative flex-1 group">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={formData.durationHours}
                                             onChange={(e) => setFormData({ ...formData, durationHours: e.target.value })}
-                                            className="pr-6"
+                                            className="pr-6 border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
                                         />
-                                        <span className="absolute right-2 top-2 text-sm text-slate-500">h</span>
+                                        <span className="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 group-focus-within:text-blue-500">h</span>
                                     </div>
-                                    <div className="relative flex-1">
+                                    <span className="text-slate-300 font-bold">:</span>
+                                    <div className="relative flex-1 group">
                                         <Input
                                             type="number"
                                             min="0"
                                             max="59"
                                             value={formData.durationMinutes}
                                             onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
-                                            className="pr-6"
+                                            className="pr-7 border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
                                         />
-                                        <span className="absolute right-2 top-2 text-sm text-slate-500">m</span>
+                                        <span className="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 group-focus-within:text-blue-500">m</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Vincular a (Opcional)</Label>
+                            <Label className="text-slate-700 font-semibold">Vincular a (Opcional)</Label>
                             <div className="grid grid-cols-2 gap-4">
                                 <Select value={formData.processId} onValueChange={(v) => setFormData({ ...formData, processId: v })}>
-                                    <SelectTrigger><SelectValue placeholder="Processo" /></SelectTrigger>
+                                    <SelectTrigger className="border-slate-300 shadow-sm focus:ring-blue-200"><SelectValue placeholder="Processo" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Nenhum processo</SelectItem>
                                         {processes.map(p => (
@@ -150,7 +176,7 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
                                     </SelectContent>
                                 </Select>
                                 <Select value={formData.clientId} onValueChange={(v) => setFormData({ ...formData, clientId: v })}>
-                                    <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+                                    <SelectTrigger className="border-slate-300 shadow-sm focus:ring-blue-200"><SelectValue placeholder="Cliente" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Nenhum cliente</SelectItem>
                                         {clients.map(c => (
@@ -161,11 +187,11 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
                             </div>
                         </div>
 
-                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-4">
+                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="billable" className="flex flex-col gap-1 cursor-pointer">
-                                    <span>Horas Faturáveis</span>
-                                    <span className="text-xs text-slate-500 font-normal">Cobrar o cliente por estas horas trabalhadas</span>
+                                    <span className="font-semibold text-slate-800">Horas Faturáveis</span>
+                                    <span className="text-xs text-slate-500 font-medium">Cobrar o cliente por estas horas trabalhadas</span>
                                 </Label>
                                 <Switch
                                     id="billable"
@@ -176,11 +202,11 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
 
                             {formData.billable && (
                                 <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-200 animate-in fade-in slide-in-from-top-2">
-                                    <Label>Valor Hora (R$)</Label>
+                                    <Label className="font-semibold text-slate-700">Valor Hora (R$)</Label>
                                     <Input
                                         type="number"
                                         step="0.01"
-                                        className="w-32"
+                                        className="w-32 border-slate-300 focus:border-blue-400 focus:ring-blue-200 shadow-sm"
                                         value={formData.hourlyRate}
                                         onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
                                     />
@@ -189,11 +215,11 @@ export function NewEntryDialog({ children, processes, clients }: { children: Rea
                         </div>
                     </div>
 
-                    <DialogFooter>
-                        <Button variant="outline" type="button" onClick={() => setOpen(false)} disabled={loading}>
+                    <DialogFooter className="p-6 pt-0 sm:justify-end gap-2">
+                        <Button variant="outline" type="button" onClick={() => setActualOpen(false)} disabled={loading} className="rounded-full shadow-sm font-semibold text-slate-600 border-slate-200 px-6">
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="rounded-full bg-blue-600 hover:bg-blue-700 shadow-sm font-semibold px-6 transition-transform hover:-translate-y-0.5">
                             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Clock className="h-4 w-4 mr-2" />}
                             {loading ? "Salvando..." : "Salvar Registro"}
                         </Button>

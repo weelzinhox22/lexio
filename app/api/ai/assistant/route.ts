@@ -84,14 +84,25 @@ async function findBestResponse(userInput: string) {
 
 export async function POST(req: Request) {
     try {
+        // Auth check — only authenticated users can use the assistant
+        const { createClient: createServerClient } = await import('@/lib/supabase/server')
+        const supabase = await createServerClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { messages } = await req.json()
 
         if (!messages || !Array.isArray(messages)) {
             return NextResponse.json({ error: 'Formato de mensagens inválido.' }, { status: 400 })
         }
 
-        // Pega a última pergunta do usuário que foi enviada no formato chat
+        // Input validation — prevent excessively large messages
         const lastUserMessage = messages[messages.length - 1]?.content || ""
+        if (typeof lastUserMessage !== 'string' || lastUserMessage.length > 2000) {
+            return NextResponse.json({ error: 'Mensagem muito longa.' }, { status: 400 })
+        }
 
         // 100% Processamento Algorítmico Local (sem chamada a APIs como ChatGPT/Groq) consultando DB em Real-Time
         const responseText = await findBestResponse(lastUserMessage)

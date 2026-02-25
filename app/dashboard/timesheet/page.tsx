@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { Plus, Clock, Play, FileText, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NewEntryDialog } from "@/components/timesheet/new-entry-dialog"
+import { DeleteEntryAction } from "@/components/timesheet/delete-entry-action"
+import { TimesheetTimer } from "@/components/timesheet/timesheet-timer"
 
 export const dynamic = "force-dynamic"
 
@@ -72,10 +74,7 @@ export default async function TimesheetPage() {
                     <p className="text-slate-600 mt-1">Registre e acompanhe suas horas de trabalho</p>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                        <Play className="h-4 w-4 mr-2" />
-                        Iniciar Timer
-                    </Button>
+                    <TimesheetTimer processes={processesData || []} clients={clientsData || []} />
                     <NewEntryDialog processes={processesData || []} clients={clientsData || []}>
                         <Button className="w-full sm:w-auto hover:bg-slate-800 transition-colors">
                             <Plus className="h-4 w-4 mr-2" />
@@ -162,7 +161,7 @@ export default async function TimesheetPage() {
                                 </div>
                                 <div className="flex items-center gap-6 text-right shrink-0">
                                     <div>
-                                        <p className="text-lg font-semibold text-slate-900 font-mono">
+                                        <p className="text-lg font-semibold text-slate-900 font-mono tracking-tight">
                                             {Math.floor(entry.duration_minutes / 60)}:{String(entry.duration_minutes % 60).padStart(2, '0')}
                                         </p>
                                     </div>
@@ -173,6 +172,7 @@ export default async function TimesheetPage() {
                                             </p>
                                         </div>
                                     )}
+                                    <DeleteEntryAction entryId={entry.id} description={entry.description} />
                                 </div>
                             </div>
                         ))}

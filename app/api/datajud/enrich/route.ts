@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProcessDetailsByNumber } from '@/lib/datajud/process-by-number'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * Mapeamento de código TR (posição 14-15 do número CNJ) para sigla do tribunal.
@@ -59,6 +60,13 @@ function detectTribunalFromCNJ(processNumber: string): string | null {
 }
 
 export async function GET(request: NextRequest) {
+    // Auth check — prevent anonymous abuse of DataJud API
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const processNumber = searchParams.get('processNumber')
 

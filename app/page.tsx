@@ -12,13 +12,34 @@ import { Footer } from '@/components/landing/footer'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Themixa - Gestão Jurídica Inteligente | Nunca Mais Perda um Prazo',
+  title: 'Themixa - Gestão Jurídica Inteligente | Nunca Mais Perca um Prazo',
   description: 'Sistema completo para gestão de escritórios jurídicos. Controle de prazos, processos, clientes e finanças. Alertas automáticos por e-mail. Comece grátis.',
-  keywords: 'gestão jurídica, controle de prazos, software advocacia, escritório jurídico, alertas processuais',
+  keywords: 'gestão jurídica, controle de prazos, software advocacia, escritório jurídico, alertas processuais, LGPD, prazos processuais',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://themixa.com.br'),
   openGraph: {
     title: 'Themixa - Gestão Jurídica Inteligente',
-    description: 'Nunca mais perca um prazo. Sistema completo para gestão de escritórios jurídicos.',
+    description: 'Nunca mais perca um prazo. Sistema completo para gestão de escritórios jurídicos com alertas automáticos, controle financeiro e assistente IA.',
+    url: '/',
+    siteName: 'Themixa',
+    locale: 'pt_BR',
     type: 'website',
+    images: [
+      {
+        url: '/hero.png',
+        width: 1200,
+        height: 630,
+        alt: 'Themixa - Gestão Jurídica Inteligente',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Themixa - Gestão Jurídica Inteligente',
+    description: 'Nunca mais perca um prazo. Sistema completo para gestão de escritórios jurídicos.',
+    images: ['/hero.png'],
+  },
+  alternates: {
+    canonical: '/',
   },
 }
 
@@ -29,11 +50,11 @@ export default function HomePage() {
       <WelcomeModal />
       <main>
         <HeroSection />
+        <FeatureShowcase />
         <HowItWorksSection />
         <FeaturesSection />
         <TestimonialsSection />
         <PricingTeaserSection />
-        <FeatureShowcase />
         <FAQSection />
         <CTAFinalSection />
       </main>

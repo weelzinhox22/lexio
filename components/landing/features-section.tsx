@@ -29,7 +29,7 @@ const features = [
     icon: Bell,
     title: 'Controle de Prazos',
     description:
-      'Nunca perca um prazo novamente. Alertas automáticos via WhatsApp, calendário integrado e categorização por prioridade.',
+      'Nunca perca um prazo novamente. Alertas automáticos por e-mail, calendário integrado e categorização por prioridade.',
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
   },
@@ -56,14 +56,6 @@ const features = [
       'Upload e organização inteligente de documentos. Categorização automática, busca avançada e vinculação com processos.',
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Notificações WhatsApp',
-    description:
-      'Alertas automáticos de prazos, lembretes de pagamento e atualizações de processos. Comunicação direta com seus clientes.',
-    color: 'text-teal-600',
-    bgColor: 'bg-teal-50',
   },
   {
     icon: BarChart3,

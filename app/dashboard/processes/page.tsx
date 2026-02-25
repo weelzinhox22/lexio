@@ -56,32 +56,32 @@ export default async function ProcessesPage({
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           {/* View toggle */}
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
-            <Button variant="ghost" size="sm" className="rounded-none border-r border-slate-200 h-9 px-3 bg-slate-100 text-slate-900 font-semibold" disabled>
+          <div className="flex rounded-full border border-slate-200 overflow-hidden shadow-sm mr-1 hidden sm:flex">
+            <Button variant="ghost" size="sm" className="rounded-none border-r border-slate-200 h-9 px-3.5 bg-slate-100 text-slate-900 font-semibold" disabled>
               <List className="h-4 w-4 mr-1.5" />
               Lista
             </Button>
             <Link href="/dashboard/processes/kanban">
-              <Button variant="ghost" size="sm" className="rounded-none h-9 px-3">
-                <Kanban className="h-4 w-4 mr-1.5" />
-                Kanban
+              <Button variant="ghost" size="sm" className="rounded-none h-9 px-3.5 hover:bg-slate-50 transition-colors">
+                <Kanban className="h-4 w-4 mr-1.5 text-slate-500" />
+                <span className="text-slate-600">Kanban</span>
               </Button>
             </Link>
           </div>
           <Link href="/dashboard/processes/search">
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Search className="mr-2 h-4 w-4" />
-              Pesquisar no DataJud (Processo)
+            <Button variant="outline" className="w-full sm:w-auto rounded-full shadow-sm">
+              <Search className="mr-2 h-4 w-4 text-slate-500" />
+              Pesquisar
             </Button>
           </Link>
           <Link href="/dashboard/processes/import">
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Upload className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="w-full sm:w-auto rounded-full shadow-sm">
+              <Upload className="mr-2 h-4 w-4 text-slate-500" />
               Importar em Lote
             </Button>
           </Link>
           <Link href="/dashboard/processes/new">
-            <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 sm:w-auto">
+            <Button className="w-full sm:w-auto rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-semibold transition-all hover:shadow hover:-translate-y-0.5 px-4">
               <Plus className="mr-2 h-4 w-4" />
               Novo Processo
             </Button>
@@ -89,7 +89,7 @@ export default async function ProcessesPage({
         </div>
       </div>
 
-      <Card className="border-slate-200">
+      <Card className="rounded-2xl border-slate-200/60 bg-white shadow-sm overflow-hidden">
         <ProcessList processes={pagination.data} />
       </Card>
 
