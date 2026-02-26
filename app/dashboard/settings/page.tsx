@@ -577,6 +577,41 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Ferramentas de Captação */}
+      <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-indigo-50/50 to-blue-50/50 border-b border-slate-100/60 pb-5">
+          <CardTitle className="flex items-center gap-3 text-slate-900 text-xl">
+            <div className="rounded-xl bg-indigo-100/80 p-2.5 shadow-sm flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
+            </div>
+            Ferramentas de Marketing
+          </CardTitle>
+          <CardDescription className="text-slate-600 font-medium">
+            Integrações exclusivas para o seu site ou Landing Page
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <p className="font-semibold text-slate-900 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#25D366]"></span>
+                  Captador Automático WhatsApp (Widget)
+                </p>
+                <p className="text-sm text-slate-600 mt-1 max-w-xl leading-relaxed">
+                  Gere um botão de WhatsApp para o seu site pessoal. Clientes que preencherem cairão automaticamente no seu CRM de Leads antes mesmo de abrir o aplicativo.
+                </p>
+              </div>
+              <Button asChild className="shrink-0 rounded-full font-semibold shadow-sm w-full md:w-auto bg-[#25D366] hover:bg-[#20b858] text-white">
+                <Link href="/dashboard/settings/whatsapp-widget">
+                  Configurar Widget
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Segurança — Alterar Senha */}
       <Card className="rounded-3xl border-slate-200/60 shadow-sm overflow-hidden bg-white">
         <CardHeader className="bg-gradient-to-br from-amber-50/50 to-orange-50/50 border-b border-slate-100/60 pb-5">

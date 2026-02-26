@@ -58,3 +58,30 @@ export async function broadcastNotification(title: string, message: string) {
 
     return { success: true }
 }
+
+export async function getBroadcastHistory() {
+    const supabaseServer = await createServerClient()
+    const { data: { user } } = await supabaseServer.auth.getUser()
+
+    if (!user) return { success: false, data: [] }
+
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",")
+    if (!user.email || !adminEmails.includes(user.email)) {
+        return { success: false, data: [] }
+    }
+
+    const { data, error } = await supabaseServer
+        .from("notifications")
+        .select("id, title, message, created_at")
+        .eq("user_id", user.id)
+        .eq("notification_type", "system_announcement")
+        .order("created_at", { ascending: false })
+        .limit(20)
+
+    if (error) {
+        console.error("Error fetching broadcast history:", error)
+        return { success: false, error: "Erro ao buscar histórico", data: [] }
+    }
+
+    return { success: true, data: data || [] }
+}

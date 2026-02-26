@@ -25,16 +25,20 @@ import {
   Clock,
   Bot,
   Shield,
+  KanbanSquare,
+  Sparkles,
 } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Processos", href: "/dashboard/processes", icon: Briefcase },
+  { name: "Kanban (Visual)", href: "/dashboard/kanban", icon: KanbanSquare },
   { name: "Clientes", href: "/dashboard/clients", icon: Users },
   { name: "Prazos", href: "/dashboard/deadlines", icon: Bell },
   { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
   { name: "Documentos", href: "/dashboard/documents", icon: FileText },
   { name: "Modelos", href: "/dashboard/templates", icon: FileStack },
+  { name: "Redator IA", href: "/dashboard/ai-writer", icon: Sparkles },
   { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
   { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
   { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },

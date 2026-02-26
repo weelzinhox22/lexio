@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Eye, Edit, Plus, X, Sparkles, FileText, FolderOpen } from 'lucide-react'
+import { Search, Eye, Edit, Plus, X, Sparkles, FileText, FolderOpen, Share2 } from 'lucide-react'
 import { TEMPLATE_CATEGORIES, TEMPLATE_TYPES } from '@/lib/constants/templates'
 import { isAdmin } from '@/lib/utils/admin'
 
@@ -139,6 +139,12 @@ export function TemplatesListAdvanced({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 p-3 bg-emerald-50 rounded-2xl border border-emerald-100 mr-2">
+            <Share2 className="h-4 w-4 text-emerald-600" />
+            <p className="text-[10px] text-emerald-800 font-medium max-w-[150px] leading-tight">
+              Modelos da <strong>Comunidade</strong> são gerados via IA e anonimizados.
+            </p>
+          </div>
           {userIsAdmin && (
             <Button
               onClick={() => router.push('/dashboard/admin/templates/generate')}
@@ -260,11 +266,15 @@ export function TemplatesListAdvanced({
                             {template.description || 'Sem descrição'}
                           </CardDescription>
                         </div>
-                        {template.is_system && (
+                        {template.is_system ? (
                           <Badge variant="secondary" className="text-[10px] shrink-0 bg-indigo-50 text-indigo-700 shadow-none border-indigo-100 border">
                             Sistema
                           </Badge>
-                        )}
+                        ) : !template.user_id ? (
+                          <Badge variant="secondary" className="text-[10px] shrink-0 bg-emerald-50 text-emerald-700 shadow-none border-emerald-100 border">
+                            Comunidade
+                          </Badge>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="pt-4 flex-1 flex flex-col justify-between space-y-4">

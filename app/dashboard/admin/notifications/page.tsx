@@ -6,15 +6,38 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { ShieldAlert, Send, Activity, Loader2, CheckCircle2 } from "lucide-react"
+import { ShieldAlert, Send, Activity, Loader2, CheckCircle2, Clock } from "lucide-react"
 import { toast } from "sonner"
-import { broadcastNotification } from "../actions"
+import { broadcastNotification, getBroadcastHistory } from "../actions"
+import { useEffect } from "react"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 export default function AdminNotificationsPage() {
     const [title, setTitle] = useState("")
     const [message, setMessage] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [success, setSuccess] = useState(false)
+    const [history, setHistory] = useState<any[]>([])
+    const [loadingHistory, setLoadingHistory] = useState(true)
+
+    const fetchHistory = async () => {
+        setLoadingHistory(true)
+        try {
+            const res = await getBroadcastHistory()
+            if (res.success) {
+                setHistory(res.data)
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setLoadingHistory(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchHistory()
+    }, [])
 
     async function handleSend(e: React.FormEvent) {
         e.preventDefault()
@@ -29,6 +52,8 @@ export default function AdminNotificationsPage() {
                 setSuccess(true)
                 setTitle("")
                 setMessage("")
+                // Fetch updated history
+                await fetchHistory()
             } else {
                 toast.error(res.error || "Erro ao enviar notificação.")
             }
@@ -123,6 +148,43 @@ export default function AdminNotificationsPage() {
                             </Button>
                         </div>
                     </form>
+                </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 mt-8">
+                <CardHeader className="bg-slate-50 border-b border-slate-100">
+                    <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                        <Clock className="h-5 w-5 text-slate-500" />
+                        Auditoria de Disparos
+                    </CardTitle>
+                    <CardDescription>
+                        Histórico das últimas 20 notificações em massa (Broadcast) enviadas do painel.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                    {loadingHistory ? (
+                        <div className="flex justify-center p-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                        </div>
+                    ) : history.length === 0 ? (
+                        <div className="text-center p-8 text-slate-500">
+                            Nenhum aviso do sistema foi enviado ainda.
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {history.map((item) => (
+                                <div key={item.id} className="p-4 border border-slate-100 rounded-lg bg-white shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start">
+                                    <div className="space-y-1 flex-1">
+                                        <h4 className="font-semibold text-slate-900">{item.title}</h4>
+                                        <p className="text-sm text-slate-600 line-clamp-2 md:line-clamp-none whitespace-pre-wrap">{item.message}</p>
+                                    </div>
+                                    <div className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full whitespace-nowrap">
+                                        {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

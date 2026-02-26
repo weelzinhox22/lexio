@@ -5,6 +5,7 @@ import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function NotificationBell({ userId }: { userId: string }) {
     const [unreadCount, setUnreadCount] = useState(0)
@@ -37,6 +38,18 @@ export function NotificationBell({ userId }: { userId: string }) {
                 },
                 (payload) => {
                     fetchUnread()
+
+                    // Se for uma nova notificação (INSERT), mostra o toast na tela!
+                    if (payload.eventType === 'INSERT') {
+                        const newNotif = payload.new as any
+                        toast.info(newNotif.title, {
+                            description: newNotif.message,
+                            action: {
+                                label: "Ver",
+                                onClick: () => router.push('/dashboard/notifications')
+                            }
+                        })
+                    }
                 }
             )
             .subscribe()
