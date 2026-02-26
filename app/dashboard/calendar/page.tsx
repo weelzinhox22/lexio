@@ -10,8 +10,8 @@ export default async function CalendarPage() {
 
   if (!user) redirect("/auth/login")
 
-  // Fetch all events (deadlines + appointments)
-  const [deadlinesResult, appointmentsResult] = await Promise.all([
+  // Fetch all events (deadlines + appointments) and sync status
+  const [deadlinesResult, appointmentsResult, profileResult] = await Promise.all([
     supabase
       .from("deadlines")
       .select(
@@ -47,6 +47,11 @@ export default async function CalendarPage() {
       )
       .eq("user_id", user.id)
       .order("start_time", { ascending: true }),
+    supabase
+      .from("profiles")
+      .select("google_calendar_connected")
+      .eq("id", user.id)
+      .single(),
   ])
 
   return (
@@ -56,7 +61,11 @@ export default async function CalendarPage() {
         <p className="text-slate-600 mt-1">Visualize todos os seus prazos e compromissos</p>
       </div>
 
-      <CalendarView deadlines={deadlinesResult.data || []} appointments={appointmentsResult.data || []} />
+      <CalendarView
+        deadlines={deadlinesResult.data || []}
+        appointments={appointmentsResult.data || []}
+        googleConnected={profileResult.data?.google_calendar_connected || false}
+      />
     </div>
   )
 }

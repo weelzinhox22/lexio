@@ -24,6 +24,7 @@ import {
   Shield,
   KanbanSquare,
   Sparkles,
+  BrainCircuit,
 } from "lucide-react"
 
 const navigation = [
@@ -36,6 +37,7 @@ const navigation = [
   { name: "Documentos", href: "/dashboard/documents", icon: FileText },
   { name: "Templates", href: "/dashboard/templates", icon: FileEdit },
   { name: "Redator IA", href: "/dashboard/ai-writer", icon: Sparkles },
+  { name: "Análise Jurimétrica", href: "/dashboard/ai-analysis", icon: BrainCircuit },
   { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
   { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
   { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },

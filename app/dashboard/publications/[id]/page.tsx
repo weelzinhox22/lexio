@@ -7,6 +7,8 @@ import { ArrowLeft, Calendar, BookOpen, User, FileText, ExternalLink, CheckCircl
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { analyzeTextOffline } from '@/lib/ai/offline-analyzer'
+import { OfflineAiInsight } from '@/components/ai/offline-ai-insight'
 
 export default async function PublicationViewPage({
   params,
@@ -43,9 +45,12 @@ export default async function PublicationViewPage({
       .eq('process_number', publication.process_number)
       .eq('user_id', user.id)
       .single()
-    
+
     relatedProcess = process
   }
+
+  // Análise Jurimétrica Offline Automática (100% banco de dados local)
+  const analysis = await analyzeTextOffline(supabase, publication.content || '', 'publication')
 
   return (
     <div className="space-y-6">
@@ -125,6 +130,11 @@ export default async function PublicationViewPage({
         </CardContent>
       </Card>
 
+      {/* Insight Jurimétrico (Offline) */}
+      {analysis.isAnalyzed && (
+        <OfflineAiInsight analysis={analysis} processId={relatedProcess?.id || null} />
+      )}
+
       {/* Informações Principais */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -140,7 +150,7 @@ export default async function PublicationViewPage({
                 </label>
                 <p className="text-slate-900 font-mono">{publication.process_number}</p>
                 {relatedProcess && (
-                  <Link 
+                  <Link
                     href={`/dashboard/processes/${relatedProcess.id}`}
                     className="text-sm text-blue-600 hover:text-blue-700 mt-1 inline-block"
                   >

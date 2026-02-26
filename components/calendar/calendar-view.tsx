@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -30,12 +30,14 @@ interface Appointment {
 interface CalendarViewProps {
   deadlines: Deadline[]
   appointments: Appointment[]
+  googleConnected?: boolean
 }
 
-export function CalendarView({ deadlines, appointments }: CalendarViewProps) {
+export function CalendarView({ deadlines, appointments, googleConnected = false }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [googleEvents, setGoogleEvents] = useState<any[]>([])
   const [isSyncing, setIsSyncing] = useState(false)
+  const [hasInitialSynced, setHasInitialSynced] = useState(false)
 
   const monthNames = [
     "Janeiro",
@@ -63,26 +65,41 @@ export function CalendarView({ deadlines, appointments }: CalendarViewProps) {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   }
 
-  async function syncGoogleCalendar() {
+  const syncGoogleCalendar = useCallback(async (isManual = true) => {
+    if (isSyncing) return
     setIsSyncing(true)
+
     try {
+      // Sincroniza desde o mês anterior até 6 meses no futuro para garantir visibilidade
       const timeMin = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1).toISOString()
-      const timeMax = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0).toISOString()
+      const timeMax = new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, 0).toISOString()
 
       const response = await fetch(`/api/google-calendar/events?timeMin=${timeMin}&timeMax=${timeMax}`)
       if (response.ok) {
         const data = await response.json()
         setGoogleEvents(data.events || [])
+        setHasInitialSynced(true)
       } else {
-        alert("Erro ao buscar eventos do Google. Verifique se a conta está conectada nas Configurações.")
+        if (isManual) {
+          alert("Erro ao buscar eventos do Google. Verifique se a conta está conectada nas Configurações.")
+        }
       }
     } catch (error) {
       console.error(error)
-      alert("Erro de conexão ao buscar eventos do Google.")
+      if (isManual) {
+        alert("Erro de conexão ao buscar eventos do Google.")
+      }
     } finally {
       setIsSyncing(false)
     }
-  }
+  }, [currentDate, isSyncing])
+
+  // Auto-sync ao carregar a página se estiver conectado
+  useEffect(() => {
+    if (googleConnected && !hasInitialSynced && !isSyncing) {
+      syncGoogleCalendar(false)
+    }
+  }, [googleConnected, hasInitialSynced, isSyncing, syncGoogleCalendar])
 
   function getEventsForDay(day: number) {
     const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split("T")[0]
@@ -110,7 +127,7 @@ export function CalendarView({ deadlines, appointments }: CalendarViewProps) {
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               <Button
-                onClick={syncGoogleCalendar}
+                onClick={() => syncGoogleCalendar(true)}
                 disabled={isSyncing}
                 variant="outline"
                 className="h-9 px-4 rounded-full border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-colors font-semibold border shadow-sm w-full sm:w-auto"

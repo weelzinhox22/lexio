@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Edit, Mail, Phone, User, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { formatCPFCNPJ, formatPhone } from '@/lib/utils/masks'
+import { ClientPortalManager } from '@/components/clients/client-portal-manager'
 
 export default async function ClientViewPage({
   params,
@@ -41,6 +42,15 @@ export default async function ClientViewPage({
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
+
+  // Buscar token de onboarding (se existir)
+  const { data: onboardingLink } = await supabase
+    .from('onboarding_links')
+    .select('token')
+    .eq('client_id', id)
+    .single()
+
+  const hasPortalActive = !!(client.portal_access_code && client.portal_password)
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -169,6 +179,14 @@ export default async function ClientViewPage({
         </div>
 
         <div className="space-y-6">
+          <ClientPortalManager
+            clientId={client.id}
+            hasPortalActive={hasPortalActive}
+            initialAccessCode={client.portal_access_code}
+            initialPassword={client.portal_password}
+            initialToken={onboardingLink?.token}
+          />
+
           <Card className="border-slate-200">
             <CardHeader>
               <CardTitle>Informações Adicionais</CardTitle>
