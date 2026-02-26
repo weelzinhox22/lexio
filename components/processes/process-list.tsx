@@ -87,20 +87,24 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
                         : "secondary"
                 }
                 className={
-                  process.status === "active"
-                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-none border-blue-200"
-                    : process.status === "won"
-                      ? "bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-green-200"
-                      : "shadow-none"
+                  process.status === "active" && (process as any).status_ganho === "alvara"
+                    ? "bg-violet-100 text-violet-700 hover:bg-violet-200 shadow-none border-violet-200"
+                    : process.status === "active"
+                      ? "bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-none border-blue-200"
+                      : process.status === "won"
+                        ? "bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-green-200"
+                        : "shadow-none"
                 }
               >
-                {process.status === "active"
-                  ? "Ativo"
-                  : process.status === "won"
-                    ? "Ganho"
-                    : process.status === "lost"
-                      ? "Perdido"
-                      : "Arquivado"}
+                {(process as any).status_ganho === "alvara"
+                  ? "Liberdade / Alvará"
+                  : process.status === "active"
+                    ? "Ativo"
+                    : process.status === "won"
+                      ? "Ganho"
+                      : process.status === "lost"
+                        ? "Perdido"
+                        : "Arquivado"}
               </Badge>
               {(process as any).polo && (
                 <Badge
@@ -194,7 +198,8 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
             </div>
           </div>
         </div>
-      ))}
+      ))
+      }
 
       <DeleteConfirmDialog
         isOpen={deleteDialog.isOpen}
@@ -205,6 +210,6 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
         itemType="processo"
         isLoading={deleteDialog.isLoading}
       />
-    </div>
+    </div >
   )
 }

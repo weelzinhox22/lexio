@@ -78,7 +78,7 @@ export function ProcessEditForm({
       }
 
       // Calcular honorário se causa ganha e ambos valores existirem
-      if (statusGanho === 'ganho' && valorCausa > 0 && percentualHonorario > 0) {
+      if ((statusGanho === 'ganho' || statusGanho === 'alvara') && valorCausa > 0 && percentualHonorario > 0) {
         updateData.honorario_calculado = valorCausa * (percentualHonorario / 100)
       } else {
         updateData.honorario_calculado = null
@@ -243,6 +243,7 @@ export function ProcessEditForm({
             <SelectContent>
               <SelectItem value="em_andamento">Em Andamento</SelectItem>
               <SelectItem value="ganho">{isInquerito ? 'Arquivado / Sucesso' : 'Ganho'}</SelectItem>
+              <SelectItem value="alvara">{isInquerito ? 'Liberdade / Alvará de Soltura Acatado' : 'Prêmio de Liberdade (Alvará)'}</SelectItem>
               <SelectItem value="perdido">{isInquerito ? 'Indiciado / Denunciado' : 'Perdido'}</SelectItem>
             </SelectContent>
           </Select>
@@ -300,21 +301,21 @@ export function ProcessEditForm({
               <span className="text-slate-600 font-medium">%</span>
             </div>
             <p className="text-xs text-slate-500">
-              Percentual sobre o valor da causa quando ganha
+              Percentual sobre o valor da causa quando ganha ou alvará expedido
             </p>
             {percentualHonorario > 0 && valorCausa > 0 && (
               <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-700 font-semibold">
-                  💰 Honorário calculado: {currency === 'BRL' ? 'R$' : currency}{' '}
+                  💰 Prêmio/Honorário calculado: {currency === 'BRL' ? 'R$' : currency}{' '}
                   {(valorCausa * (percentualHonorario / 100)).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </p>
                 <p className="text-xs text-green-600 mt-1">
-                  {statusGanho === 'ganho'
-                    ? '✅ Causa ganha - honorário será calculado automaticamente'
-                    : '⚠️ Calcule apenas se a causa for ganha (mude o status para "Ganho")'}
+                  {statusGanho === 'ganho' || statusGanho === 'alvara'
+                    ? '✅ Causa ganha/Liberdade - honorário será calculado automaticamente'
+                    : '⚠️ Calcule apenas no Sucesso/Alvará (mude o status)'}
                 </p>
               </div>
             )}

@@ -155,6 +155,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         start_date: (formData.get("start_date") as string) || null,
         estimated_end_date: (formData.get("estimated_end_date") as string) || null,
         status: "active",
+        status_ganho: "em_andamento",
       }
 
       if (valorCausa) insertData.valor_causa = parseFloat(valorCausa.replace(/\./g, "").replace(",", "."))
@@ -208,8 +209,8 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
             setProcessNumber("")
           }}
           className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${processCategory === "judicial"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
             }`}
         >
           Processo Judicial
@@ -221,8 +222,8 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
             setProcessNumber("")
           }}
           className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${processCategory === "inquerito"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
             }`}
         >
           Inquérito Policial (IP)
@@ -550,7 +551,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
                 placeholder="Ex: 20"
                 inputMode="decimal"
               />
-              <p className="text-xs text-slate-400">O honorário será calculado automaticamente quando o processo for ganho.</p>
+              <p className="text-xs text-slate-400">O honorário será calculado automaticamente quando o processo for ganho ou alvará expedido.</p>
             </div>
           </div>
         </CardContent>

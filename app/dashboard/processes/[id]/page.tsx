@@ -49,6 +49,10 @@ function getStatusBadgeStyles(status?: string | null) {
     return 'border-emerald-200 bg-emerald-100 text-emerald-700'
   }
 
+  if (normalized.includes('alvara') || normalized.includes('liberdade')) {
+    return 'border-violet-200 bg-violet-100 text-violet-700 shadow-sm'
+  }
+
   if (normalized.includes('suspenso') || normalized.includes('suspended')) {
     return 'border-amber-200 bg-amber-100 text-amber-700'
   }
@@ -468,8 +472,8 @@ export default async function ProcessDetailsPage({
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 break-words">
               {process.title || (isInquerito ? 'Inquérito' : 'Processo')}
             </h1>
-            <Badge className={getStatusBadgeStyles(process.status)}>
-              {statusLabels[process.status] || process.status}
+            <Badge className={getStatusBadgeStyles((processAny.status_ganho === 'alvara') ? 'alvara' : process.status)}>
+              {(processAny.status_ganho === 'alvara') ? 'Liberdade / Alvará' : (statusLabels[process.status] || process.status)}
             </Badge>
             {processAny.polo && (
               <Badge variant="outline" className={
@@ -650,7 +654,7 @@ export default async function ProcessDetailsPage({
               )}
               {processAny.honorario_calculado && (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
-                  <span className="text-sm text-slate-600">Honorário Calculado</span>
+                  <span className="text-sm text-slate-600">{(processAny.status_ganho === 'alvara') ? 'Prêmio de Liberdade' : 'Honorário Calculado'}</span>
                   <span className="text-lg font-bold text-blue-700">
                     R$ {processAny.honorario_calculado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
