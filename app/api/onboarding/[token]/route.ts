@@ -116,7 +116,7 @@ export async function POST(
         }
 
         // Update Client
-        await supabase.from('clients').update({
+        const { error: clientUpdateError } = await supabase.from('clients').update({
             document_rg: rg,
             address_cep: cep,
             address_city: city,
@@ -127,11 +127,21 @@ export async function POST(
             profession: profession
         }).eq('id', clientId)
 
+        if (clientUpdateError) {
+            console.error('Client update error:', clientUpdateError)
+            throw clientUpdateError
+        }
+
         // Mark link as completed
-        await supabase.from('onboarding_links').update({
+        const { error: linkUpdateError } = await supabase.from('onboarding_links').update({
             status: 'completed',
             completed_at: new Date().toISOString()
         }).eq('id', link.id)
+
+        if (linkUpdateError) {
+            console.error('Link status update error:', linkUpdateError)
+            throw linkUpdateError
+        }
 
         return NextResponse.json({ success: true })
 
