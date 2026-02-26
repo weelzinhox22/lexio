@@ -24,8 +24,11 @@ export async function POST(request: Request) {
             .single()
 
         if (error || !client) {
+            console.log('Portal Login failed: User not found or mismatch', { accessCode, password });
             return NextResponse.json({ error: 'Usuário ou senha inválidos.' }, { status: 401 })
         }
+
+        console.log('Portal Login success for client:', client.id);
 
         const response = NextResponse.json({ success: true })
 
@@ -35,7 +38,7 @@ export async function POST(request: Request) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            path: '/portal',
+            path: '/',
             maxAge: 60 * 60 * 24 * 7 // 1 semana
         })
 

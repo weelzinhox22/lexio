@@ -29,10 +29,12 @@ export default function PortalLoginPage() {
             const data = await res.json()
 
             if (!res.ok) {
+                console.error('Portal Login API Error:', data);
                 toast.error(data.error || 'Erro ao efetuar login.')
                 return
             }
 
+            console.log('Portal Login Success, navigating to dashboard...');
             toast.success('Acesso ao Portal Concedido!')
             router.push('/portal/dashboard')
             router.refresh()
