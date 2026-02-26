@@ -457,6 +457,8 @@ export default async function ProcessDetailsPage({
     low: 'Baixa', medium: 'Média', high: 'Alta', urgent: 'Urgente',
   }
 
+  const isInquerito = process.process_type === 'Inquérito Policial';
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
@@ -464,7 +466,7 @@ export default async function ProcessDetailsPage({
         <div className="space-y-2 min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 break-words">
-              {process.title || 'Processo'}
+              {process.title || (isInquerito ? 'Inquérito' : 'Processo')}
             </h1>
             <Badge className={getStatusBadgeStyles(process.status)}>
               {statusLabels[process.status] || process.status}
@@ -475,7 +477,9 @@ export default async function ProcessDetailsPage({
                   ? 'border-green-200 text-green-700 bg-green-50'
                   : 'border-orange-200 text-orange-700 bg-orange-50'
               }>
-                Polo {processAny.polo === 'ativo' ? 'Ativo' : 'Passivo'}
+                {isInquerito
+                  ? processAny.polo === 'ativo' ? 'Autor/Vítima' : 'Investigado'
+                  : (processAny.polo === 'ativo' ? 'Polo Ativo' : 'Polo Passivo')}
               </Badge>
             )}
           </div>
@@ -515,7 +519,7 @@ export default async function ProcessDetailsPage({
               <Landmark className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tribunal</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{isInquerito ? 'Delegacia' : 'Tribunal'}</div>
               <div className="text-sm font-semibold text-slate-900 mt-0.5 truncate">{process.court || '—'}</div>
             </div>
           </CardContent>
@@ -527,7 +531,7 @@ export default async function ProcessDetailsPage({
               <Building2 className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Vara</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{isInquerito ? 'Setor / Investigador' : 'Vara'}</div>
               <div className="text-sm font-semibold text-slate-900 mt-0.5 truncate">{process.vara || '—'}</div>
             </div>
           </CardContent>
@@ -539,9 +543,9 @@ export default async function ProcessDetailsPage({
               <Gavel className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tipo / Matéria</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{isInquerito ? 'Tipificação Penal' : 'Tipo / Matéria'}</div>
               <div className="text-sm font-semibold text-slate-900 mt-0.5 truncate">
-                {process.process_type || process.matter || '—'}
+                {isInquerito ? process.matter || '—' : process.process_type || process.matter || '—'}
               </div>
             </div>
           </CardContent>
@@ -553,7 +557,7 @@ export default async function ProcessDetailsPage({
               <Gavel className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Juiz</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{isInquerito ? 'Delegado(a)' : 'Juiz'}</div>
               <div className="text-sm font-semibold text-slate-900 mt-0.5 truncate">{process.judge || '—'}</div>
             </div>
           </CardContent>

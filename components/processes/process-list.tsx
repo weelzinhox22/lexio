@@ -106,12 +106,14 @@ export function ProcessList({ processes }: { processes: ProcessWithClient[] }) {
                 <Badge
                   variant="outline"
                   className={
-                    (process as any).polo === "ativo"
+                    (process as any).polo === "ativo" || (process as any).polo === "vitima"
                       ? "border-green-200 text-green-700 bg-green-50 shadow-none"
-                      : "border-orange-200 text-orange-700 bg-orange-50 shadow-none"
+                      : (process as any).polo === "testemunha" ? "border-blue-200 text-blue-700 bg-blue-50 shadow-none" : "border-orange-200 text-orange-700 bg-orange-50 shadow-none"
                   }
                 >
-                  {(process as any).polo === "ativo" ? "Polo Ativo" : "Polo Passivo"}
+                  {process.process_type === 'Inquérito Policial'
+                    ? ((process as any).polo === "investigado" ? "Investigado" : (process as any).polo === "vitima" ? "Vítima/Ofendido" : "Testemunha")
+                    : ((process as any).polo === "ativo" ? "Polo Ativo" : "Polo Passivo")}
                 </Badge>
               )}
               <Badge

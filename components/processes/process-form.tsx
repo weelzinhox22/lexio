@@ -66,8 +66,16 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
     return formatted
   }
 
+  // Category state
+  const [processCategory, setProcessCategory] = useState<"judicial" | "inquerito">("judicial")
+
   const handleProcessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value
+    if (processCategory === "inquerito") {
+      setProcessNumber(raw)
+      return
+    }
+
     const formatted = formatCNJ(raw)
     setProcessNumber(formatted)
 
@@ -140,7 +148,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         court: (formData.get("court") as string) || null,
         vara: (formData.get("vara") as string) || null,
         judge: (formData.get("judge") as string) || null,
-        process_type: (formData.get("process_type") as string) || null,
+        process_type: processCategory === "inquerito" ? "Inquérito Policial" : ((formData.get("process_type") as string) || null),
         matter: (formData.get("matter") as string) || null,
         priority: formData.get("priority") as string,
         polo: formData.get("polo") as string,
@@ -161,7 +169,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
       if (error) throw error
 
       // Se tem movimentações do DataJud, salvar como atualizações do processo
-      if (enrichResult?.found && enrichResult.data?.movements && newProcess) {
+      if (processCategory === "judicial" && enrichResult?.found && enrichResult.data?.movements && newProcess) {
         const movements = enrichResult.data.movements.slice(0, 50).map((m) => ({
           user_id: userId,
           process_id: newProcess.id,
@@ -190,64 +198,99 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Seção 1: Número do Processo + Enriquecimento DataJud */}
+
+      {/* Category Toggle */}
+      <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-fit">
+        <button
+          type="button"
+          onClick={() => {
+            setProcessCategory("judicial")
+            setProcessNumber("")
+          }}
+          className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${processCategory === "judicial"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+            }`}
+        >
+          Processo Judicial
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setProcessCategory("inquerito")
+            setProcessNumber("")
+          }}
+          className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${processCategory === "inquerito"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+            }`}
+        >
+          Inquérito Policial (IP)
+        </button>
+      </div>
+
+      {/* Seção 1: Número do Processo / IP + Enriquecimento DataJud */}
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Search className="h-4 w-4 text-blue-600" />
-            Número do Processo
+            {processCategory === "judicial" ? "Número do Processo" : "Número do Inquérito"}
           </CardTitle>
           <p className="text-xs text-slate-500 mt-1">
-            Digite o número CNJ completo. O sistema detectará automaticamente o tribunal e buscará dados no DataJud.
+            {processCategory === "judicial"
+              ? "Digite o número CNJ completo. O sistema detectará automaticamente o tribunal e buscará dados no DataJud."
+              : "Digite o número ou identificador interno do Inquérito Policial."}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="process_number">Número CNJ *</Label>
+              <Label htmlFor="process_number">{processCategory === "judicial" ? "Número CNJ *" : "Número/ID do Inquérito *"}</Label>
               <div className="relative">
                 <Input
                   id="process_number"
                   name="process_number_display"
                   value={processNumber}
                   onChange={handleProcessNumberChange}
-                  placeholder="0000000-00.0000.0.00.0000"
-                  className="font-mono text-base pr-10"
+                  placeholder={processCategory === "judicial" ? "0000000-00.0000.0.00.0000" : "S/N ou nº do IP"}
+                  className={`font-mono text-base pr-10 ${processCategory === "inquerito" ? "uppercase" : ""}`}
                   required
                 />
                 {/* Hidden real input */}
                 <input type="hidden" name="process_number" value={processNumber} />
-                {enriching && (
+                {processCategory === "judicial" && enriching && (
                   <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-600" />
                 )}
               </div>
             </div>
 
-            <div className="flex items-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => enrichFromDataJud(processNumber)}
-                disabled={enriching || processNumber.replace(/\D/g, "").length < 20}
-                className="w-full sm:w-auto"
-              >
-                {enriching ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4 mr-2" />
-                )}
-                Buscar no DataJud
-              </Button>
-            </div>
+            {processCategory === "judicial" && (
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => enrichFromDataJud(processNumber)}
+                  disabled={enriching || processNumber.replace(/\D/g, "").length < 20}
+                  className="w-full sm:w-auto"
+                >
+                  {enriching ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-2" />
+                  )}
+                  Buscar no DataJud
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Resultado da busca */}
-          {enrichResult && (
+          {processCategory === "judicial" && enrichResult && (
             <div className={`rounded-lg p-3 border text-sm ${enrichResult.found
-                ? "bg-green-50 border-green-200 text-green-800"
-                : enrichResult.error
-                  ? "bg-red-50 border-red-200 text-red-700"
-                  : "bg-amber-50 border-amber-200 text-amber-700"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : enrichResult.error
+                ? "bg-red-50 border-red-200 text-red-700"
+                : "bg-amber-50 border-amber-200 text-amber-700"
               }`}>
               <div className="flex items-center gap-2 mb-1">
                 {enrichResult.found ? (
@@ -311,25 +354,35 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="polo">Polo do Cliente *</Label>
-              <Select name="polo" defaultValue="ativo" required>
+              <Label htmlFor="polo">{processCategory === "judicial" ? "Polo do Cliente *" : "Condição do Cliente *"}</Label>
+              <Select name="polo" defaultValue={processCategory === "judicial" ? "ativo" : "investigado"} required>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ativo">Polo Ativo (Autor)</SelectItem>
-                  <SelectItem value="passivo">Polo Passivo (Réu)</SelectItem>
+                  {processCategory === "judicial" ? (
+                    <>
+                      <SelectItem value="ativo">Polo Ativo (Autor)</SelectItem>
+                      <SelectItem value="passivo">Polo Passivo (Réu)</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="investigado">Investigado / Indiciado</SelectItem>
+                      <SelectItem value="vitima">Vítima / Ofendido</SelectItem>
+                      <SelectItem value="testemunha">Testemunha</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="title">Título do Processo *</Label>
+              <Label htmlFor="title">{processCategory === "judicial" ? "Título do Processo *" : "Título da Investigação *"}</Label>
               <Input
                 id="title"
                 name="title"
-                placeholder="Ex: Ação de Indenização por Danos Morais"
-                defaultValue={enrichResult?.data?.classe || ""}
+                placeholder={processCategory === "judicial" ? "Ex: Ação de Indenização por Danos Morais" : "Ex: IP Furto Qualificado - Loja Centro"}
+                defaultValue={ev("classe")}
                 required
               />
             </div>
@@ -339,7 +392,7 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
               <Textarea
                 id="description"
                 name="description"
-                placeholder="Anotações sobre o processo..."
+                placeholder={processCategory === "judicial" ? "Anotações sobre o processo..." : "Breve resumo dos fatos investigados..."}
                 rows={3}
               />
             </div>
@@ -347,13 +400,13 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         </CardContent>
       </Card>
 
-      {/* Seção 3: Dados do Tribunal */}
+      {/* Seção 3: Dados do Tribunal / Delegacia */}
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Landmark className="h-4 w-4 text-blue-600" />
-            Dados do Tribunal
-            {enrichResult?.found && (
+            <Landmark className={`h-4 w-4 ${processCategory === "judicial" ? "text-blue-600" : "text-slate-900"}`} />
+            {processCategory === "judicial" ? "Dados do Tribunal" : "Dados da Delegacia / Autoridade"}
+            {processCategory === "judicial" && enrichResult?.found && (
               <Badge className="bg-green-100 text-green-700 text-[10px]">Auto-preenchido</Badge>
             )}
           </CardTitle>
@@ -361,53 +414,55 @@ export function ProcessForm({ clients, userId }: { clients: Client[]; userId: st
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="court">Tribunal *</Label>
+              <Label htmlFor="court">{processCategory === "judicial" ? "Tribunal *" : "Delegacia *"}</Label>
               <Input
                 id="court"
                 name="court"
-                placeholder="Ex: TJBA, TJSP, TRF1"
+                placeholder={processCategory === "judicial" ? "Ex: TJBA, TJSP, TRF1" : "Ex: 1ª Delegacia Territorial / DECECAP"}
                 defaultValue={ev("court")}
                 key={`court-${ev("court")}`}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vara">Vara / Órgão Julgador</Label>
+              <Label htmlFor="vara">{processCategory === "judicial" ? "Vara / Órgão Julgador" : "Setor / Investigador"}</Label>
               <Input
                 id="vara"
                 name="vara"
-                placeholder="Ex: 1ª Vara Cível"
+                placeholder={processCategory === "judicial" ? "Ex: 1ª Vara Cível" : "Ex: Setor de Fraudes"}
                 defaultValue={ev("vara")}
                 key={`vara-${ev("vara")}`}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="judge">Juiz</Label>
+              <Label htmlFor="judge">{processCategory === "judicial" ? "Juiz" : "Delegado(a) Titular"}</Label>
               <Input
                 id="judge"
                 name="judge"
-                placeholder="Nome do juiz responsável"
+                placeholder={processCategory === "judicial" ? "Nome do juiz responsável" : "Nome do delegado condutor"}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="process_type">Classe / Tipo</Label>
-              <Input
-                id="process_type"
-                name="process_type"
-                placeholder="Ex: Ação Penal, Procedimento Ordinário"
-                defaultValue={ev("process_type")}
-                key={`type-${ev("process_type")}`}
-              />
-            </div>
+            {processCategory === "judicial" && (
+              <div className="space-y-2">
+                <Label htmlFor="process_type">Classe / Tipo</Label>
+                <Input
+                  id="process_type"
+                  name="process_type"
+                  placeholder="Ex: Ação Penal, Procedimento Ordinário"
+                  defaultValue={ev("process_type")}
+                  key={`type-${ev("process_type")}`}
+                />
+              </div>
+            )}
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="matter">Matéria / Assunto</Label>
+              <Label htmlFor="matter">{processCategory === "judicial" ? "Matéria / Assunto" : "Tipificação Penal Preventiva"}</Label>
               <Input
                 id="matter"
                 name="matter"
-                placeholder="Ex: Receptação, Dano Moral"
+                placeholder={processCategory === "judicial" ? "Ex: Receptação, Dano Moral" : "Ex: Art. 155 (Furto), Art. 33 (Tráfico)"}
                 defaultValue={ev("matter")}
                 key={`matter-${ev("matter")}`}
               />

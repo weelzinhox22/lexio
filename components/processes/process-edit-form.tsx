@@ -101,6 +101,8 @@ export function ProcessEditForm({
     }
   }
 
+  const isInquerito = process.process_type === 'Inquérito Policial';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
@@ -121,18 +123,27 @@ export function ProcessEditForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="process_number">Número do Processo *</Label>
-          <MaskedInput
-            id="process_number"
-            name="process_number"
-            mask="process"
-            defaultValue={formatProcessNumber(process.process_number)}
-            required
-          />
+          <Label htmlFor="process_number">{isInquerito ? 'Número do Inquérito *' : 'Número do Processo *'}</Label>
+          {isInquerito ? (
+            <Input
+              id="process_number"
+              name="process_number"
+              defaultValue={process.process_number}
+              required
+            />
+          ) : (
+            <MaskedInput
+              id="process_number"
+              name="process_number"
+              mask="process"
+              defaultValue={formatProcessNumber(process.process_number)}
+              required
+            />
+          )}
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="title">Título *</Label>
+          <Label htmlFor="title">{isInquerito ? 'Título da Investigação *' : 'Título *'}</Label>
           <Input id="title" name="title" defaultValue={process.title} required />
         </div>
 
@@ -146,22 +157,26 @@ export function ProcessEditForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="process_type">Tipo de Processo</Label>
-          <Select name="process_type" defaultValue={process.process_type || ''}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="civel">Cível</SelectItem>
-              <SelectItem value="trabalhista">Trabalhista</SelectItem>
-              <SelectItem value="criminal">Criminal</SelectItem>
-              <SelectItem value="tributario">Tributário</SelectItem>
-              <SelectItem value="familia">Família</SelectItem>
-              <SelectItem value="empresarial">Empresarial</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {!isInquerito ? (
+          <div className="space-y-2">
+            <Label htmlFor="process_type">Tipo de Processo</Label>
+            <Select name="process_type" defaultValue={process.process_type || ''}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="civel">Cível</SelectItem>
+                <SelectItem value="trabalhista">Trabalhista</SelectItem>
+                <SelectItem value="criminal">Criminal</SelectItem>
+                <SelectItem value="tributario">Tributário</SelectItem>
+                <SelectItem value="familia">Família</SelectItem>
+                <SelectItem value="empresarial">Empresarial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <input type="hidden" name="process_type" value="Inquérito Policial" />
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="priority">Prioridade</Label>
@@ -196,45 +211,55 @@ export function ProcessEditForm({
         <div className="space-y-2">
           <Label htmlFor="polo" className="flex items-center gap-2">
             <Scale className="h-4 w-4" />
-            Polo *
+            {isInquerito ? 'Condição do Cliente *' : 'Polo *'}
           </Label>
-          <Select name="polo" defaultValue={(process as any).polo || 'ativo'} required>
+          <Select name="polo" defaultValue={(process as any).polo || (isInquerito ? 'investigado' : 'ativo')} required>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ativo">Ativo</SelectItem>
-              <SelectItem value="passivo">Passivo</SelectItem>
+              {isInquerito ? (
+                <>
+                  <SelectItem value="investigado">Investigado / Indiciado</SelectItem>
+                  <SelectItem value="vitima">Vítima / Ofendido</SelectItem>
+                  <SelectItem value="testemunha">Testemunha</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="passivo">Passivo</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="status_ganho">Status da Causa</Label>
+          <Label htmlFor="status_ganho">{isInquerito ? 'Status Final' : 'Status da Causa'}</Label>
           <Select name="status_ganho" defaultValue={(process as any).status_ganho || 'em_andamento'} onValueChange={setStatusGanho}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="em_andamento">Em Andamento</SelectItem>
-              <SelectItem value="ganho">Ganho</SelectItem>
-              <SelectItem value="perdido">Perdido</SelectItem>
+              <SelectItem value="ganho">{isInquerito ? 'Arquivado / Sucesso' : 'Ganho'}</SelectItem>
+              <SelectItem value="perdido">{isInquerito ? 'Indiciado / Denunciado' : 'Perdido'}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="court">Tribunal/Fórum</Label>
+          <Label htmlFor="court">{isInquerito ? 'Delegacia/Autoridade' : 'Tribunal/Fórum'}</Label>
           <Input id="court" name="court" defaultValue={process.court || ''} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="vara">Vara</Label>
+          <Label htmlFor="vara">{isInquerito ? 'Setor/Investigador' : 'Vara'}</Label>
           <Input id="vara" name="vara" defaultValue={process.vara || ''} />
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="matter">Matéria/Assunto</Label>
+          <Label htmlFor="matter">{isInquerito ? 'Tipificação Penal' : 'Matéria/Assunto'}</Label>
           <Input id="matter" name="matter" defaultValue={process.matter || ''} />
         </div>
 
