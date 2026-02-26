@@ -53,29 +53,39 @@ export async function POST(
 
         const clientId = link.client_id
 
-        // Upload Document
         if (documentFile && documentFile.size > 0) {
             const ext = documentFile.name.split('.').pop()
-            const path = `${clientId}/document_${Date.now()}.${ext}`
+            const path = `onboarding/${clientId}/doc_${Date.now()}.${ext}`
             const { error: uploadErr } = await supabase.storage
                 .from('client_uploads')
-                .upload(path, documentFile, { contentType: documentFile.type })
+                .upload(path, documentFile, {
+                    contentType: documentFile.type,
+                    upsert: true
+                })
+
             if (!uploadErr) {
-                const { data: { publicUrl } } = supabase.storage.from('client_uploads').getPublicUrl(path)
-                documentUrl = publicUrl // Note: we are using public for now or signed urls later
+                const { data } = supabase.storage.from('client_uploads').getPublicUrl(path)
+                documentUrl = data.publicUrl
+            } else {
+                console.error('Upload identity error:', uploadErr)
             }
         }
 
-        // Upload Proof
         if (proofFile && proofFile.size > 0) {
             const ext = proofFile.name.split('.').pop()
-            const path = `${clientId}/proof_${Date.now()}.${ext}`
+            const path = `onboarding/${clientId}/proof_${Date.now()}.${ext}`
             const { error: uploadErr } = await supabase.storage
                 .from('client_uploads')
-                .upload(path, proofFile, { contentType: proofFile.type })
+                .upload(path, proofFile, {
+                    contentType: proofFile.type,
+                    upsert: true
+                })
+
             if (!uploadErr) {
-                const { data: { publicUrl } } = supabase.storage.from('client_uploads').getPublicUrl(path)
-                proofUrl = publicUrl
+                const { data } = supabase.storage.from('client_uploads').getPublicUrl(path)
+                proofUrl = data.publicUrl
+            } else {
+                console.error('Upload proof error:', uploadErr)
             }
         }
 
