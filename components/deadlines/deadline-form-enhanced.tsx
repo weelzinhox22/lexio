@@ -57,6 +57,7 @@ export function DeadlineFormEnhanced({
   })
   const [selectedChainedTasks, setSelectedChainedTasks] = useState<string[]>([])
   const [isCreatingChained, setIsCreatingChained] = useState(false)
+  const [isCriminal, setIsCriminal] = useState(false)
 
   // Pré-preencher para onboarding
   useEffect(() => {
@@ -90,7 +91,8 @@ export function DeadlineFormEnhanced({
   useEffect(() => {
     if (selectedDeadline && startDate && !useManualDate) {
       const start = new Date(startDate + 'T00:00:00')
-      const calculated = calculateDeadline(start, selectedDeadline.days, selectedDeadline.businessDays)
+      const businessDays = isCriminal ? false : selectedDeadline.businessDays
+      const calculated = calculateDeadline(start, selectedDeadline.days, businessDays)
       setCalculatedDate(calculated)
 
       // Calcular lembrete (5 dias antes por padrão, ou 1 dia se prazo for muito curto)
@@ -101,7 +103,7 @@ export function DeadlineFormEnhanced({
       setCalculatedDate(null)
       setCalculatedReminder(null)
     }
-  }, [selectedDeadline, startDate, useManualDate])
+  }, [selectedDeadline, startDate, useManualDate, isCriminal])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -346,7 +348,20 @@ export function DeadlineFormEnhanced({
           {/* Data Calculada */}
           {calculatedDate && !useManualDate && selectedDeadline && (
             <div className="space-y-2">
-              <Label className="text-slate-700 font-medium">Data Final Calculada Automaticamente</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Data Final Calculada Automaticamente</Label>
+                <div className="flex items-center space-x-2 bg-slate-100 rounded-md py-1 px-2">
+                  <Checkbox
+                    id="is_criminal"
+                    checked={isCriminal}
+                    onCheckedChange={(c) => setIsCriminal(c === true)}
+                    className="h-3 w-3"
+                  />
+                  <Label htmlFor="is_criminal" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer">
+                    Prazo Criminal (Contínuo)
+                  </Label>
+                </div>
+              </div>
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-4">
                 <p className="text-xl font-bold text-green-900 flex items-center gap-2 mb-2">
                   <Calendar className="h-6 w-6" />
@@ -359,10 +374,10 @@ export function DeadlineFormEnhanced({
                 </p>
                 <div className="flex items-center gap-2 text-xs text-green-700">
                   <span className="font-semibold">
-                    {selectedDeadline.businessDays ? '📅 Contando apenas dias úteis' : '📅 Contando dias corridos'}
+                    {(isCriminal || !selectedDeadline.businessDays) ? '📅 Contando dias corridos (CPP)' : '📅 Contando apenas dias úteis (CPC)'}
                   </span>
                   <span>•</span>
-                  <span>{selectedDeadline.days} {selectedDeadline.businessDays ? 'dias úteis' : 'dias'} após a data de início</span>
+                  <span>{selectedDeadline.days} {(isCriminal || !selectedDeadline.businessDays) ? 'dias corridos' : 'dias úteis'} após a data de início</span>
                 </div>
               </div>
               <Button
