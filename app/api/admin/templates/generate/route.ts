@@ -11,27 +11,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient, hasSupabaseAuthCookies } from '@/lib/supabase/route-handler'
+import { isAdmin } from '@/lib/utils/admin'
 import { generateDocumentTemplate } from '@/lib/ai/groq'
 import { createClient } from '@supabase/supabase-js'
-
-// Lista de admin IDs e e-mails (configurar via env)
-const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
-  .split(',')
-  .filter(Boolean)
-  .map((e) => e.trim().toLowerCase())
-
-/**
- * Verifica se o usuário é admin
- */
-function isAdmin(userId: string, userEmail: string | undefined): boolean {
-  const email = userEmail?.toLowerCase() || ''
-  return (
-    ADMIN_USER_IDS.includes(userId) ||
-    ADMIN_EMAILS.includes(email) ||
-    email.endsWith('@themixa.com')
-  )
-}
 
 function attachSupabaseCookies(resp: NextResponse, cookieResponse: NextResponse) {
   cookieResponse.cookies.getAll().forEach((c) => resp.cookies.set(c.name, c.value, c))

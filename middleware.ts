@@ -7,8 +7,8 @@ const authAttempts = new Map<string, { count: number; resetAt: number }>()
 
 function checkAuthRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
   const now = Date.now()
-  const windowMs = 15 * 60 * 1000 // 15 minutes
-  const maxAttempts = 10 // 10 page loads per 15 min for auth pages
+  const windowMs = 1 * 60 * 1000 // 1 minute
+  const maxAttempts = 10 // 10 attempts per minute
 
   const entry = authAttempts.get(ip)
 

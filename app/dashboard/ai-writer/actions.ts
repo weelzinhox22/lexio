@@ -234,11 +234,35 @@ export async function contributeAsTemplate(data: {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: "Não autorizado" }
 
+    // Fetch user profile to know EXACTLY what to remove
+    const { data: profile } = await supabase.from("profiles").select("full_name, oab_number, oab_state").eq("id", user.id).single()
+    const lawyerName = profile?.full_name
+    const oab = profile?.oab_number
+    const oabState = profile?.oab_state
+
     let anonymousContent = data.content
-    anonymousContent = anonymousContent.replace(/AUTOR: (.*?) por seu advogado/g, "AUTOR: [CLIENTE] residente em [ENDEREÇO], por seu advogado")
-    anonymousContent = anonymousContent.replace(/CPF nº (.*?),/g, "CPF nº [CPF],")
-    anonymousContent = anonymousContent.replace(/CPF (.*?),/g, "CPF [CPF],")
-    anonymousContent = anonymousContent.replace(/advogado infra-assinado, (.*?), inscrito na (.*?),/g, "advogado infra-assinado, [ADVOGADO], inscrito na [OAB],")
+
+    // 1. Literal replacements based on profile
+    if (lawyerName) {
+        anonymousContent = anonymousContent.split(lawyerName).join("[NOME DO ADVOGADO]")
+    }
+    if (oab) {
+        anonymousContent = anonymousContent.split(oab).join("[OAB]")
+    }
+
+    // 2. Generic Signature/Footer cleaning (Aggressive)
+    anonymousContent = anonymousContent.replace(/(\r?\n|^)[\s]*[A-Za-zÀ-ÖØ-öø-ÿ\s.'-]+\s*-\s*OAB\/[A-Z]{2}[\s\S]*?$/gm, "\n\n[NOME DO ADVOGADO]\n[OAB/ESTADO]")
+
+    // 3. Header/Qualification cleaning
+    anonymousContent = anonymousContent.replace(/AUTOR: (.*?) por seu advogado/g, "AUTOR: [CLIENTE] por seu advogado")
+    anonymousContent = anonymousContent.replace(/portador do CPF nº (.*?),/g, "portador do CPF nº [CPF],")
+    anonymousContent = anonymousContent.replace(/residente em (.*?),/g, "residente em [ENDEREÇO],")
+    anonymousContent = anonymousContent.replace(/inscrito na (.*?),/g, "inscrito na [OAB],")
+    anonymousContent = anonymousContent.replace(/CPF[:\s]+[0-9.-]+/gi, "CPF: [CPF]")
+    anonymousContent = anonymousContent.replace(/OAB\/[A-Z]{2}[:\s]*[0-9.]+/gi, "OAB/[UF] [NÚMERO]")
+
+    // 4. Clean specific templates signatures already generated
+    anonymousContent = anonymousContent.replace(/___________________________/g, "___________________________")
 
     // Extract standard placeholders for the template system
     const placeholders = ["NOME_CLIENTE", "CPF_CLIENTE", "ENDERECO_CLIENTE", "CIDADE_CLIENTE", "NOME_ADVOGADO", "OAB_ADVOGADO", "DATA_ATUAL"]
@@ -250,7 +274,7 @@ export async function contributeAsTemplate(data: {
         content: anonymousContent,
         is_system: false,
         user_id: null,
-        description: "Estrutura validada por IA e compartilhada anonimamente pela comunidade.",
+        description: "Estrutura validada por IA e compartilhada anonimamente pela comunidade. (DADOS SENSÍVEIS REMOVIDOS)",
         placeholders: placeholders
     })
 

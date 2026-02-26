@@ -5,6 +5,7 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { DeadlineNotifications } from "@/components/notifications/deadline-notifications"
 import { DeadlineAlertBanner } from "@/components/deadlines/deadline-alert-banner"
+import { isAdmin as isAdminHelper } from "@/lib/utils/admin"
 import { VirtualAssistant } from "@/components/assistant/virtual-assistant"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -52,8 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .slice(0, 10) || []
 
   // Security Check for Admin link
-  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",")
-  const isAdmin = user.email ? adminEmails.includes(user.email) : false
+  const isAdmin = isAdminHelper(user.id, user.email)
 
   return (
     <div className="flex min-h-screen bg-slate-50">
