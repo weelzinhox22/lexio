@@ -26,7 +26,13 @@ export default async function PortalDashboardPage() {
     const clientId = cookieStore.get('portal_client_id')?.value
 
     if (!clientId) {
-        redirect('/portal')
+        return (
+            <div className="p-8 text-center">
+                <h1 className="text-red-600 font-bold">Sessão não encontrada</h1>
+                <p className="text-slate-600">Seu navegador não enviou a chave de acesso. Verifique se os cookies estão habilitados.</p>
+                <a href="/portal" className="text-indigo-600 underline mt-4 block">Voltar para Login</a>
+            </div>
+        )
     }
 
     const supabase = getAdminClient()
@@ -46,7 +52,17 @@ export default async function PortalDashboardPage() {
         .single()
 
     if (cError || !client) {
-        redirect('/portal') // cookie is bad or deleted by lawyer
+        console.error('Portal access error details:', cError)
+        return (
+            <div className="p-8 text-center">
+                <h1 className="text-red-600 font-bold">Erro de Acesso ao Portal</h1>
+                <p className="text-slate-600">Ocorreu um problema ao carregar seus dados. Por favor, tente novamente.</p>
+                <div className="bg-slate-100 p-4 mt-4 rounded text-left text-xs font-mono overflow-auto max-w-lg mx-auto">
+                    {JSON.stringify(cError, null, 2)}
+                </div>
+                <a href="/portal" className="text-indigo-600 underline mt-4 block">Voltar para Login</a>
+            </div>
+        )
     }
 
     // Buscar todos os processos ligados a este cliente unicamente
