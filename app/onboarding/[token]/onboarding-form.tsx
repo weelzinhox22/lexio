@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Send, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import imageCompression from 'browser-image-compression'
 
 interface OnboardingFormProps {
     token: string
@@ -17,6 +18,21 @@ export function OnboardingForm({ token }: OnboardingFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
+    const compressImage = async (file: File) => {
+        if (!file.type.startsWith('image/')) return file;
+        const options = {
+            maxSizeMB: 1.5,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true
+        };
+        try {
+            return await imageCompression(file, options);
+        } catch (error) {
+            console.error('Compression error:', error);
+            return file;
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setIsLoading(true)
@@ -24,12 +40,21 @@ export function OnboardingForm({ token }: OnboardingFormProps) {
         try {
             const formData = new FormData(e.currentTarget)
 
-            // Check Files
+            // Check Files & Compress
             const doc = formData.get('document_front') as File
             if (!doc || doc.size === 0) {
                 toast.error('Por favor, anexe uma cópia da sua Identidade (RG ou CNH).')
                 setIsLoading(false)
                 return
+            }
+
+            const compressedDoc = await compressImage(doc);
+            formData.set('document_front', compressedDoc, compressedDoc.name);
+
+            const proof = formData.get('proof_of_address') as File
+            if (proof && proof.size > 0) {
+                const compressedProof = await compressImage(proof);
+                formData.set('proof_of_address', compressedProof, compressedProof.name);
             }
 
             const res = await fetch(`/api/onboarding/${token}`, {
