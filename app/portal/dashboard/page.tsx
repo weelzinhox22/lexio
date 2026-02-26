@@ -69,7 +69,7 @@ export default async function PortalDashboardPage() {
     // Buscar os dados do advogado (profiles)
     const { data: lawyer } = await supabase
         .from('profiles')
-        .select('full_name') // company_name seems missing, using full_name
+        .select('full_name, phone') // Adicionado phone para o link de contato
         .eq('id', client.user_id)
         .single()
 
@@ -225,11 +225,19 @@ export default async function PortalDashboardPage() {
                                         </div>
                                         <span className="font-medium truncate">{client.email || 'contato@email.com'}</span>
                                     </a>
-                                    <a href="#" className="flex items-center gap-3 text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-200 hover:border-indigo-400 transition-colors shadow-sm group">
+                                    <a
+                                        href={lawyer?.phone ? `https://wa.me/55${lawyer.phone.replace(/\D/g, '')}` : '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-200 hover:border-indigo-400 transition-colors shadow-sm group"
+                                    >
                                         <div className="bg-emerald-100 p-2 rounded-md group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                             <Phone className="h-4 w-4 text-emerald-600 group-hover:text-white" />
                                         </div>
-                                        <span className="font-medium">WhatsApp do Escritório</span>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">WhatsApp do Escritório</span>
+                                            {lawyer?.phone && <span className="text-[10px] text-slate-400">{lawyer.phone}</span>}
+                                        </div>
                                     </a>
                                 </div>
                             </CardContent>
