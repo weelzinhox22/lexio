@@ -40,14 +40,7 @@ export default async function PortalDashboardPage() {
     // Buscar Informações do Cliente do Portal
     const { data: client, error: cError } = await supabase
         .from('clients')
-        .select(`
-            name, email, phone, cpf_cnpj, 
-            users (
-                id, 
-                full_name, 
-                company_name
-            )
-        `)
+        .select('name, email, phone, cpf_cnpj, user_id')
         .eq('id', clientId)
         .single()
 
@@ -72,8 +65,15 @@ export default async function PortalDashboardPage() {
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
 
+    // Buscar os dados do advogado (profiles)
+    const { data: lawyer } = await supabase
+        .from('profiles')
+        .select('full_name') // company_name seems missing, using full_name
+        .eq('id', client.user_id)
+        .single()
+
     // @ts-ignore
-    const lawyerName = client.users?.company_name || client.users?.full_name || 'Seu Advogado'
+    const lawyerName = lawyer?.full_name || 'Seu Advogado'
 
     return (
         <div className="min-h-screen bg-slate-50">
