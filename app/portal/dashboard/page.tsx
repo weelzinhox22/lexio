@@ -41,7 +41,7 @@ export default async function PortalDashboardPage() {
     // Buscar Informações do Cliente do Portal
     const { data: client, error: cError } = await supabase
         .from('clients')
-        .select('name, email, phone, cpf_cnpj, user_id, client_summary')
+        .select('name, email, phone, cpf_cnpj, user_id')
         .eq('id', clientId)
         .single()
 
