@@ -124,9 +124,9 @@ export function MinimalDashboard({
       </div>
 
       {/* Próximos Prazos - Máx 5 */}
-      <Card className="rounded-2xl border-slate-200/60 bg-white shadow-sm overflow-hidden flex flex-col h-full">
-        <CardContent className="p-0 flex flex-col h-full">
-          <div className="p-4 sm:p-5 border-b border-slate-100/60 bg-slate-50/50 flex items-center justify-between shrink-0">
+      <Card className="rounded-2xl border-slate-200/60 bg-white shadow-sm overflow-hidden">
+        <CardContent className="p-0">
+          <div className="p-4 sm:p-5 border-b border-slate-100/60 bg-slate-50/50 flex items-center justify-between">
             <h3 className="font-semibold text-slate-900 text-base">Próximos prazos</h3>
             {upcomingDeadlines.length > 5 && (
               <Link href="/dashboard/deadlines">
@@ -136,7 +136,7 @@ export function MinimalDashboard({
               </Link>
             )}
           </div>
-          <div className="divide-y divide-slate-100/80 flex-1 overflow-y-auto">
+          <div className="divide-y divide-slate-100/80">
             {topDeadlines.length === 0 ? (
               <div className="p-10 text-center flex flex-col items-center justify-center h-full">
                 <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
@@ -179,8 +179,8 @@ export function MinimalDashboard({
                         </div>
                         {daysUntil <= 3 && (
                           <Badge className={`px-2 py-0.5 shadow-sm rounded-full ${daysUntil < 0 ? 'bg-red-600 hover:bg-red-700 text-white border-transparent' :
-                              daysUntil === 0 ? 'bg-red-600 hover:bg-red-700 text-white border-transparent' :
-                                'bg-orange-500 hover:bg-orange-600 text-white border-transparent'
+                            daysUntil === 0 ? 'bg-red-600 hover:bg-red-700 text-white border-transparent' :
+                              'bg-orange-500 hover:bg-orange-600 text-white border-transparent'
                             }`}>
                             {daysUntil < 0 ? 'Vencido' : daysUntil === 0 ? 'Hoje' : 'Urgente'}
                           </Badge>
