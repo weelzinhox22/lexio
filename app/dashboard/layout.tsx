@@ -63,6 +63,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           user={user}
           profileName={profile?.full_name || null}
           avatarUrl={profile?.avatar_url || null}
+          isAdmin={isAdmin}
         />
         <DeadlineAlertBanner deadlines={bannerDeadlines} />
         <main className="flex-1 p-4 md:p-6">{children}</main>

@@ -21,6 +21,7 @@ import {
   Bot,
   BookOpen,
   Star,
+  Shield,
 } from "lucide-react"
 
 const navigation = [
@@ -40,6 +41,8 @@ const navigation = [
   { name: "Assinatura", href: "/dashboard/subscription", icon: CreditCard },
   { name: "Configurações", href: "/dashboard/settings", icon: Settings },
   { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
+  { name: "Painel Admin", href: "/dashboard/admin/users", icon: Shield },
+  { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
 ]
 
 interface DashboardSidebarProps {
@@ -61,7 +64,7 @@ export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
       </div>
       <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto min-w-0 font-medium">
         {navigation.map((item) => {
-          if (item.name === "Treinamento IA" && !isAdmin) return null;
+          if ((item.name === "Treinamento IA" || item.name === "Painel Admin" || item.name === "Avisos (Admin)") && !isAdmin) return null;
 
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
           return (

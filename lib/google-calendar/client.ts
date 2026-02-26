@@ -51,7 +51,7 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
   if (now >= expiresAt) {
     // Token expirado, renovar
     console.log('Token expirado, renovando...')
-    
+
     try {
       const refreshResponse = await fetch(GOOGLE_TOKEN_URL, {
         method: 'POST',
@@ -200,15 +200,43 @@ export async function deleteGoogleCalendarEvent(
     return { success: false, error: 'Erro inesperado ao deletar evento' }
   }
 }
+/**
+ * Lista eventos do Google Calendar do usuário
+ */
+export async function listGoogleCalendarEvents(
+  userId: string,
+  timeMin?: string,
+  timeMax?: string
+): Promise<{ success: boolean; events?: any[]; error?: string }> {
+  try {
+    const accessToken = await getValidAccessToken(userId)
+    if (!accessToken) {
+      return { success: false, error: 'Token de acesso inválido ou expirado' }
+    }
 
+    const url = new URL(`${GOOGLE_CALENDAR_API}/calendars/primary/events`)
+    if (timeMin) url.searchParams.append('timeMin', timeMin)
+    if (timeMax) url.searchParams.append('timeMax', timeMax)
+    url.searchParams.append('singleEvents', 'true')
+    url.searchParams.append('orderBy', 'startTime')
 
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    })
 
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Erro ao listar eventos:', errorData)
+      return { success: false, error: errorData.error?.message || 'Erro ao listar eventos' }
+    }
 
-
-
-
-
-
-
-
-
+    const data = await response.json()
+    return { success: true, events: data.items }
+  } catch (error) {
+    console.error('Erro ao listar eventos do Google Calendar:', error)
+    return { success: false, error: 'Erro inesperado ao listar eventos' }
+  }
+}

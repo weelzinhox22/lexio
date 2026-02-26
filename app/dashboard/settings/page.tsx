@@ -46,7 +46,22 @@ export default function SettingsPage() {
   useEffect(() => {
     loadProfile()
     loadSessions()
-  }, [])
+
+    // Check URL for Google Calendar callback results
+    const params = new URLSearchParams(window.location.search)
+    const googleSuccess = params.get('google_calendar_success')
+    const googleError = params.get('google_calendar_error')
+
+    if (googleSuccess === 'true') {
+      alert('Google Calendar conectado com sucesso!')
+      // Clean up URL
+      router.replace('/dashboard/settings')
+    } else if (googleError) {
+      alert(`Erro ao conectar com Google Calendar: ${googleError}`)
+      // Clean up URL
+      router.replace('/dashboard/settings')
+    }
+  }, [router])
 
   async function loadProfile() {
     try {

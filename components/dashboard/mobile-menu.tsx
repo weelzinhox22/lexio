@@ -23,6 +23,8 @@ import {
   FileStack,
   Star,
   Clock,
+  Bot,
+  Shield,
 } from "lucide-react"
 
 const navigation = [
@@ -41,9 +43,16 @@ const navigation = [
   { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
   { name: "Assinatura", href: "/dashboard/subscription", icon: CreditCard },
   { name: "Configurações", href: "/dashboard/settings", icon: Settings },
+  { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
+  { name: "Painel Admin", href: "/dashboard/admin/users", icon: Shield },
+  { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
 ]
 
-export function MobileMenu() {
+interface MobileMenuProps {
+  isAdmin?: boolean
+}
+
+export function MobileMenu({ isAdmin = false }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const pathname = usePathname()
@@ -125,6 +134,8 @@ export function MobileMenu() {
             <div className="flex-1 overflow-y-auto w-full">
               <nav className="space-y-1.5 px-4 py-6 font-medium">
                 {navigation.map((item, index) => {
+                  if ((item.name === "Treinamento IA" || item.name === "Painel Admin" || item.name === "Avisos (Admin)") && !isAdmin) return null;
+
                   const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
                   return (
                     <Link

@@ -16,9 +16,9 @@ export const GOOGLE_CALENDAR_CONFIG = {
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar.readonly',
   ],
-  
+
   // URL de redirecionamento após autenticação
-  redirectUri: process.env.NEXT_PUBLIC_APP_URL 
+  redirectUri: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/api/google-calendar/callback`
     : 'http://localhost:3000/api/google-calendar/callback',
 }

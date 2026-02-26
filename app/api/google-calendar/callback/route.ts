@@ -9,24 +9,29 @@ import { GOOGLE_CALENDAR_CONFIG, GOOGLE_TOKEN_URL } from '@/lib/google-calendar/
  * Recebe o código de autorização e troca por tokens de acesso
  */
 export async function GET(request: NextRequest) {
+  let baseUrl = 'http://localhost:3000'
   try {
     const searchParams = request.nextUrl.searchParams
     const code = searchParams.get('code')
     const state = searchParams.get('state') // user_id
     const error = searchParams.get('error')
 
+    baseUrl = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL
+      ? process.env.NEXT_PUBLIC_APP_URL
+      : 'http://localhost:3000'
+
     // Verificar se houve erro na autenticação
     if (error) {
       console.error('Erro na autenticação Google:', error)
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=${error}`
+        `${baseUrl}/dashboard/settings?google_calendar_error=${error}`
       )
     }
 
     // Verificar se recebemos o código
     if (!code || !state) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=missing_code`
+        `${baseUrl}/dashboard/settings?google_calendar_error=missing_code`
       )
     }
 
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Verificar se o usuário está autenticado e se o state corresponde
     if (!user || user.id !== state) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=invalid_state`
+        `${baseUrl}/dashboard/settings?google_calendar_error=invalid_state`
       )
     }
 
@@ -59,7 +64,7 @@ export async function GET(request: NextRequest) {
       const errorData = await tokenResponse.json()
       console.error('Erro ao trocar código por tokens:', errorData)
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=token_exchange_failed`
+        `${baseUrl}/dashboard/settings?google_calendar_error=token_exchange_failed`
       )
     }
 
@@ -84,7 +89,7 @@ export async function GET(request: NextRequest) {
     if (dbError) {
       console.error('Erro ao salvar tokens:', dbError)
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=database_error`
+        `${baseUrl}/dashboard/settings?google_calendar_error=database_error`
       )
     }
 
@@ -96,12 +101,12 @@ export async function GET(request: NextRequest) {
 
     // Redirecionar para as configurações com sucesso
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_success=true`
+      `${baseUrl}/dashboard/settings?google_calendar_success=true`
     )
   } catch (error) {
     console.error('Erro no callback do Google Calendar:', error)
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?google_calendar_error=unexpected_error`
+      `${baseUrl}/dashboard/settings?google_calendar_error=unexpected_error`
     )
   }
 }

@@ -165,7 +165,7 @@ export function DashboardCharts({
 
     return (
         <div className="mt-8">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4 px-1">📊 Análise e Gráficos</h2>
+            <h2 className="text-lg font-semibold text-slate-900 mb-4 px-1">Análise e Gráficos</h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {/* 1. Processos por Status */}
                 <Card className="rounded-2xl border-slate-200/60 bg-white/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
