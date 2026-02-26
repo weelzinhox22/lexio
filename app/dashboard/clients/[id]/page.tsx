@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Edit, Mail, Phone, User, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Mail, Phone, User, FileText, MapPin, Briefcase, GraduationCap, Download, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { formatCPFCNPJ, formatPhone } from '@/lib/utils/masks'
 import { ClientPortalManager } from '@/components/clients/client-portal-manager'
@@ -43,12 +43,19 @@ export default async function ClientViewPage({
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // Buscar token de onboarding (se existir)
+  // Buscar token de onboarding
   const { data: onboardingLink } = await supabase
     .from('onboarding_links')
-    .select('token')
+    .select('token, status, completed_at')
     .eq('client_id', id)
     .single()
+
+  // Buscar documentos do cliente
+  const { data: documents } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
 
   const hasPortalActive = !!(client.portal_access_code && client.portal_password)
 
@@ -83,58 +90,115 @@ export default async function ClientViewPage({
                 Informações do Cliente
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-600">Tipo</label>
-                  <p className="text-slate-900">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo</label>
+                  <p className="text-slate-900 font-medium">
                     {client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-600">Status</label>
-                  <div className="mt-1">
-                    <Badge
-                      variant={client.status === 'active' ? 'default' : 'secondary'}
-                      className={
-                        client.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-slate-100 text-slate-700'
-                      }
-                    >
-                      {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CPF / CNPJ</label>
+                  <p className="text-slate-900 font-medium">{formatCPFCNPJ(client.cpf_cnpj)}</p>
                 </div>
-                {client.email && (
-                  <div>
-                    <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </label>
-                    <p className="text-slate-900">{client.email}</p>
-                  </div>
-                )}
-                {client.phone && (
-                  <div>
-                    <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Telefone
-                    </label>
-                    <p className="text-slate-900">{formatPhone(client.phone)}</p>
-                  </div>
-                )}
-                {client.cpf_cnpj && (
-                  <div>
-                    <label className="text-sm font-medium text-slate-600">CPF / CNPJ</label>
-                    <p className="text-slate-900">{formatCPFCNPJ(client.cpf_cnpj)}</p>
-                  </div>
-                )}
-              </div>
-              {client.notes && (
                 <div>
-                  <label className="text-sm font-medium text-slate-600">Observações</label>
-                  <p className="text-slate-700 whitespace-pre-wrap mt-1">{client.notes}</p>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">RG / Registro</label>
+                  <p className="text-slate-900 font-medium">{client.document_rg || '—'}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</label>
+                  <p className="text-slate-900 font-medium flex items-center gap-2">
+                    <Mail className="h-3 w-3 text-slate-400" />
+                    {client.email || '—'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Telefone</label>
+                  <p className="text-slate-900 font-medium flex items-center gap-2">
+                    <Phone className="h-3 w-3 text-slate-400" />
+                    {client.phone ? formatPhone(client.phone) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Profissão</label>
+                  <p className="text-slate-900 font-medium flex items-center gap-2">
+                    <Briefcase className="h-3 w-3 text-slate-400" />
+                    {client.profession || '—'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Endereço Completo
+                  </label>
+                  <p className="text-sm text-slate-700">
+                    {client.address_cep ? (
+                      <>
+                        {client.address_neighborhood}, {client.address_number} <br />
+                        {client.address_city} - {client.address_state} <br />
+                        CEP: {client.address_cep}
+                      </>
+                    ) : 'Endereço não informado'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado Civil</label>
+                  <p className="text-sm text-slate-700 capitalize">{client.marital_status || '—'}</p>
+                </div>
+              </div>
+
+              {client.notes && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notas Internas</label>
+                  <p className="text-sm text-slate-600 whitespace-pre-wrap mt-1 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+                    {client.notes}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Documentos de Onboarding */}
+          <Card className="border-slate-200 overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="flex items-center justify-between text-base">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-indigo-600" />
+                  Arquivos e Documentos
+                </div>
+                <Badge variant="secondary" className="text-[10px]">{documents?.length || 0}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {!documents || documents.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-sm italic">
+                  Nenhum documento anexado ou enviado pelo cliente ainda.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {documents.map((doc: any) => (
+                    <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-indigo-50 p-2 rounded-lg">
+                          <FileText className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{doc.title || doc.file_name}</p>
+                          <p className="text-[10px] text-slate-400 uppercase mt-0.5">
+                            {doc.category?.replace('_', ' ') || 'Geral'} • {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                      <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 text-slate-400" />
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
