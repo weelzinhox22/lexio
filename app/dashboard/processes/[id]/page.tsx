@@ -9,7 +9,8 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import { getProcessDetailsByNumber } from '@/lib/datajud/process-by-number'
 import { ConfirmAwarenessButton } from '@/components/deadlines/confirm-awareness-button'
 import { WhatsAppShare } from '@/components/processes/whatsapp-share'
-import { Building2, Calendar, Clock, ExternalLink, FileText, Gavel, Landmark, X } from 'lucide-react'
+import { Building2, Calendar, Clock, ExternalLink, FileText, Gavel, Landmark, X, LayoutList } from 'lucide-react'
+import { PortalTimelineManager } from '@/components/processes/portal-timeline-manager'
 
 export const dynamic = 'force-dynamic'
 
@@ -939,6 +940,15 @@ export default async function ProcessDetailsPage({
           </CardContent>
         </Card>
       )}
+
+      {/* Controle do Portal do Cliente */}
+      <div className="pt-4 border-t border-slate-200">
+        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+          <LayoutList className="h-6 w-6 text-indigo-600" />
+          Visibilidade no Portal do Cliente
+        </h2>
+        <PortalTimelineManager processId={process.id} />
+      </div>
 
       {/* WhatsApp Share */}
       <WhatsAppShare

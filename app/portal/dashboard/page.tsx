@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { LogOut, FileText, CheckCircle, Scale, ShieldCheck, Mail, Phone, CalendarDays } from 'lucide-react'
@@ -40,7 +41,7 @@ export default async function PortalDashboardPage() {
     // Buscar Informações do Cliente do Portal
     const { data: client, error: cError } = await supabase
         .from('clients')
-        .select('name, email, phone, cpf_cnpj, user_id')
+        .select('name, email, phone, cpf_cnpj, user_id, client_summary')
         .eq('id', clientId)
         .single()
 
@@ -61,7 +62,7 @@ export default async function PortalDashboardPage() {
     // Buscar todos os processos ligados a este cliente unicamente
     const { data: processes } = await supabase
         .from('processes')
-        .select('*')
+        .select('*, client_timeline:process_timeline(*)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
 
@@ -73,6 +74,7 @@ export default async function PortalDashboardPage() {
         .single()
 
     // @ts-ignore
+    const clientAny = client as any
     const lawyerName = lawyer?.full_name || 'Seu Advogado'
 
     return (
@@ -105,7 +107,7 @@ export default async function PortalDashboardPage() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between relative z-10">
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold">Olá, {client.name.split(' ')[0]}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold">Olá, {clientAny.name.split(' ')[0]}</h1>
                             <p className="text-indigo-100 mt-2 max-w-xl text-sm md:text-base leading-relaxed">
                                 Acompanhe os andamentos do seu processo em tempo real. Esta interface privada foi atualizada por <strong className="text-white">{lawyerName}</strong> e está protegida com criptografia.
                             </p>
@@ -114,7 +116,7 @@ export default async function PortalDashboardPage() {
                             <ShieldCheck className="h-8 w-8 text-indigo-300" />
                             <div className="text-sm">
                                 <div className="text-indigo-200 uppercase font-bold text-[10px] tracking-wider">Acesso Protegido</div>
-                                <div className="font-medium truncate max-w-[120px]" title={client.cpf_cnpj}>{client.cpf_cnpj}</div>
+                                <div className="font-medium truncate max-w-[120px]" title={clientAny.cpf_cnpj}>{clientAny.cpf_cnpj}</div>
                             </div>
                         </div>
                     </CardContent>
@@ -167,14 +169,32 @@ export default async function PortalDashboardPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                            <div className="flex items-start gap-2 text-sm text-slate-600">
-                                                <CalendarDays className="h-4 w-4 text-slate-400 mt-0.5" />
-                                                <div>
-                                                    <span className="block text-[10px] font-bold text-slate-400 uppercase">Autuado em</span>
-                                                    {new Date(proc.created_at).toLocaleDateString('pt-BR')}
+                                        </div>
+
+                                        {/* Linha do Tempo do Processo */}
+                                        {proc.client_timeline && proc.client_timeline.length > 0 && (
+                                            <div className="p-5 border-t border-slate-100 bg-white">
+                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Evolução do Caso</h4>
+                                                <div className="relative border-l-2 border-indigo-100 ml-2 space-y-6 pb-2">
+                                                    {proc.client_timeline.sort((a: any, b: any) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime()).map((event: any) => (
+                                                        <div key={event.id} className="relative pl-6">
+                                                            <div className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full bg-white border-2 border-indigo-500 shadow-sm" />
+                                                            <div>
+                                                                <span className="text-[10px] font-bold text-indigo-400">
+                                                                    {new Date(event.event_date).toLocaleDateString('pt-BR')}
+                                                                </span>
+                                                                <h5 className="font-bold text-slate-800 text-sm mt-0.5">{event.title}</h5>
+                                                                {event.description && (
+                                                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                                        {event.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             ))
@@ -208,10 +228,39 @@ export default async function PortalDashboardPage() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Status Resumo Lateral */}
+                        {clientAny.client_summary && (
+                            <Card className="border-emerald-100 bg-emerald-50/30">
+                                <CardHeader className="pb-2">
+                                    <Badge className="w-fit bg-emerald-100 text-emerald-700 border-none mb-2">Resumo Geral</Badge>
+                                    <CardTitle className="text-sm font-bold text-slate-800">Situação Atual</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-slate-600 leading-relaxed italic">
+                                        "{clientAny.client_summary}"
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
 
             </main>
+
+            {/* Footer with legal links */}
+            <footer className="max-w-6xl mx-auto px-4 py-12 border-t border-slate-200 mt-12">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <p className="text-xs text-slate-400">
+                        © {new Date().getFullYear()} {lawyerName}. Todos os direitos reservados.
+                    </p>
+                    <div className="flex gap-6">
+                        <Link href="/portal/legal/privacy" className="text-xs text-slate-400 hover:text-indigo-600 underline underline-offset-4">Política de Privacidade</Link>
+                        <Link href="/portal/legal/terms" className="text-xs text-slate-400 hover:text-indigo-600 underline underline-offset-4">Termos de Uso</Link>
+                        <Link href="/portal/legal/lgpd" className="text-xs text-slate-400 hover:text-indigo-600 underline underline-offset-4">Direitos LGPD</Link>
+                    </div>
+                </div>
+            </footer>
         </div>
     )
 }
