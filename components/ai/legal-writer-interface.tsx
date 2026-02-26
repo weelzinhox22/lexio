@@ -53,7 +53,8 @@ export function LegalWriterInterface({ clients, processes, initialHistory }: Leg
         caseDescription: "",
         clientId: "",
         processId: "",
-        type: 'petition' as any
+        type: 'petition' as any,
+        criminalType: ''
     })
 
     const handleGenerate = async () => {
@@ -67,8 +68,8 @@ export function LegalWriterInterface({ clients, processes, initialHistory }: Leg
             const res = await generateLegalDocument(formData)
             if (res.success) {
                 setResult({
-                    title: res.title,
-                    content: res.content,
+                    title: res.title || "Documento Jurídico",
+                    content: res.content || "",
                     type: formData.type
                 })
                 toast.success("Documento gerado localmente!")
@@ -292,35 +293,67 @@ export function LegalWriterInterface({ clients, processes, initialHistory }: Leg
                                     </div>
                                 </div>
 
-                                <div className="space-y-2.5">
-                                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Processo de Referência</Label>
-                                    <Select
-                                        value={formData.processId}
-                                        onValueChange={(val) => setFormData({ ...formData, processId: val })}
-                                    >
-                                        <SelectTrigger className="rounded-2xl border-slate-200 h-12 bg-slate-50/50 focus:ring-indigo-500 transition-all font-semibold">
-                                            <SelectValue placeholder="Nenhum vínculo" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">Nenhum</SelectItem>
-                                            {processes.map(p => <SelectItem key={p.id} value={p.id}>{p.title} ({p.process_number})</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2.5">
+                                        <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Processo de Referência</Label>
+                                        <Select
+                                            value={formData.processId}
+                                            onValueChange={(val) => setFormData({ ...formData, processId: val })}
+                                        >
+                                            <SelectTrigger className="rounded-2xl border-slate-200 h-12 bg-slate-50/50 focus:ring-indigo-500 transition-all font-semibold">
+                                                <SelectValue placeholder="Nenhum vínculo" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">Nenhum</SelectItem>
+                                                {processes.map(p => <SelectItem key={p.id} value={p.id}>{p.title} ({p.process_number})</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {formData.type === 'criminal' && (
+                                        <div className="space-y-2.5">
+                                            <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Peça Criminal (Teses)</Label>
+                                            <Select
+                                                value={formData.criminalType}
+                                                onValueChange={(val) => setFormData({ ...formData, criminalType: val, caseDescription: "" })}
+                                            >
+                                                <SelectTrigger className="rounded-2xl border-indigo-200 h-12 bg-indigo-50/50 text-indigo-700 focus:ring-indigo-500 transition-all font-bold">
+                                                    <SelectValue placeholder="Selecione a Tese..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="revogacao_prisao">Pedido de Revogação de Prisão Preventiva</SelectItem>
+                                                    <SelectItem value="resposta_acusacao">Resposta à Acusação (Art. 396-A)</SelectItem>
+                                                    <SelectItem value="habeas_corpus">Habeas Corpus</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2.5">
                                     <div className="flex justify-between items-center ml-1">
-                                        <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumo do Fato Jurídico</Label>
+                                        <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            {formData.type === 'criminal' && formData.criminalType === 'revogacao_prisao' ? 'Condições Favoráveis do Réu' :
+                                                formData.type === 'criminal' && formData.criminalType === 'resposta_acusacao' ? 'Teses Defensivas Prévias' :
+                                                    formData.type === 'criminal' && formData.criminalType === 'habeas_corpus' ? 'Motivo do Constrangimento Ilegal' :
+                                                        'Resumo do Fato Jurídico'}
+                                        </Label>
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">
                                             <ShieldCheck className="h-3 w-3 text-emerald-600" />
                                             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-tight">Privado</span>
                                         </div>
                                     </div>
                                     <Textarea
-                                        placeholder="Ex: 'O cliente comprou um carro que fundiu o motor em 2 dias e a concessionária nega o conserto...'"
+                                        placeholder={
+                                            formData.type === 'criminal' && formData.criminalType === 'revogacao_prisao' ? 'Ex: Réu primário, possui residência fixa (rua X), trabalho lícito e bons antecedentes. A decisão do juiz não fundamentou o risco concreto à ordem pública...' :
+                                                formData.type === 'criminal' && formData.criminalType === 'resposta_acusacao' ? 'Ex: A denúncia é totalmente genérica (art. 41). O réu não estava no local. Requeremos a absolvição sumária ou a oitiva de 5 testemunhas arroladas.' :
+                                                    formData.type === 'criminal' && formData.criminalType === 'habeas_corpus' ? 'Ex: A prisão temporária do réu venceu há 3 dias e não foi convertida. Falta de justa causa materializada...' :
+                                                        "Ex: 'O cliente comprou um carro que fundiu o motor em 2 dias e a concessionária nega o conserto...'"
+                                        }
                                         className="min-h-[160px] rounded-3xl border-slate-200 focus:ring-indigo-500 p-6 text-sm leading-relaxed bg-slate-50/20 placeholder:italic"
                                         value={formData.caseDescription}
                                         onChange={(e) => setFormData({ ...formData, caseDescription: e.target.value })}
+                                        required
                                     />
                                 </div>
 

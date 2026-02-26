@@ -8,6 +8,7 @@ export async function generateLegalDocument(data: {
     clientId: string;
     processId?: string;
     type: 'petition' | 'contract' | 'criminal' | 'tax' | 'corporate';
+    criminalType?: string;
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -37,7 +38,7 @@ RÉU: [NOME DO RÉU], [QUALIFICAÇÃO], residente e domiciliado em ...
     // --- HEURISTIC LOGIC ENGINE v4.2 (Highly Descriptive Templates) ---
     if (data.type === 'criminal') {
         const criminalHeader = `EXCELENTÍSSIMO SENHOR DOUTOR JUIZ DA ___ VARA CRIMINAL DA COMARCA DE ...\n\n`
-        if (description.includes("habeas") || description.includes("liberdade") || description.includes("prisão")) {
+        if (data.criminalType === 'habeas_corpus' || (!data.criminalType && (description.includes("habeas") || description.includes("liberdade") || description.includes("prisão")))) {
             title = "Petição de Habeas Corpus com Pedido Liminar"
             content = `EXCELENTÍSSIMO SENHOR DOUTOR DESEMBARGADOR PRESIDENTE DO EGRÉGIO TRIBUNAL DE JUSTIÇA DO ESTADO DE ...
 
@@ -46,6 +47,8 @@ IMPETRANTE: ${lawyerName}, OAB ${oabNumber}.
 
 I - DO CABIMENTO E DA SÍNTESE DOS FATOS
 O Paciente sofre constrangimento ilegal em sua liberdade de locomoção por ato de [AUTORIDADE COATORA]. Foi decretada a prisão preventiva/temporária fundamentada em [FUNDAMENTO ANALISADO], contudo, tal decisão é carente de base legal idônea.
+
+${data.caseDescription}
 
 II - DO DIREITO
 Conforme o art. 5º, LXVIII da CF e art. 647 do CPP, concede-se habeas corpus sempre que alguém sofrer ou se achar ameaçado de sofrer violência ou coação em sua liberdade de locomoção. 
@@ -56,6 +59,30 @@ Requer a concessão da ordem liminarmente para suspender o decreto prisional, ex
 
 Comarca de ..., ${new Date().toLocaleDateString('pt-BR')}
 ${lawyerName} - ${oabNumber}`
+        } else if (data.criminalType === 'revogacao_prisao') {
+            title = "Pedido de Revogação de Prisão Preventiva"
+            content = `${criminalHeader}
+PROCESSO Nº ${process?.process_number || '[NÚMERO]'}
+REQUERENTE: ${client?.name}
+
+O Requerente, já qualificado nos autos, por seu advogado, vem requerer a REVOGAÇÃO DA PRISÃO PREVENTIVA com fulcro no art. 316 do CPP.
+
+I - DOS FATOS E FUNDAMENTOS
+Foi decretada a prisão preventiva do Requerente sob a alegação de garantia da ordem pública. Contudo, as condições favoráveis demonstram a desnecessidade da medida extrema:
+
+${data.caseDescription}
+
+II - DO DIREITO
+A prisão preventiva exige a presença do fumus comissi delicti e do periculum libertatis (art. 312 do CPP). Inexistindo elementos concretos que justifiquem a manutenção do cárcere, a prisão torna-se ilegal, cabendo sua imediata revogação.
+Ademais, eventuais medidas cautelares diversas da prisão (art. 319 do CPP) mostram-se adequadas e suficientes ao caso.
+
+III - DOS PEDIDOS
+1. O deferimento do pedido para revogar a prisão preventiva;
+2. Subsidiariamente, a aplicação de medidas cautelares diversas do cárcere;
+3. A imediata expedição do competente Alvará de Soltura.
+
+Pede Deferimento.
+${lawyerName} - ${oabNumber}`
         } else {
             title = "Resposta à Acusação (Art. 396-A CPP)"
             content = `${criminalHeader}
@@ -64,15 +91,18 @@ ACUSADO: ${client?.name}
 
 O Acusado, por seu advogado, vem apresentar RESPOSTA À ACUSAÇÃO.
 
-I - DOS FATOS
-O Acusado foi denunciado pela prática de [TIPO PENAL]. No entanto, a instrução processual provará que a acusação não condiz com a realidade fática.
+I - DA SÍNTESE FATUAL E PRELIMINARES
+O Acusado foi denunciado pela suposta prática de crime. No entanto, a instrução processual provará que a acusação não condiz com a realidade fática:
+
+${data.caseDescription}
 
 II - DO DIREITO
-A denúncia é inepta (art. 41 CPP) por não descrever a conduta individualizada. (Opcional: Tese de Excludente de Ilicitude / Negativa de Autoria).
+A denúncia é inepta (art. 41 CPP) por não descrever a conduta individualizada. Subsistem fortes teses de atipicidade e ausência de justa causa material que importam no reconhecimento da inocência.
 
 III - DOS PEDIDOS
 1. A absolvição sumária (art. 397 CPP);
-2. A produção de prova testemunhal conforme rol anexo.
+2. Alternativamente, a rejeição da denúncia;
+3. A produção de prova testemunhal conforme rol anexo.
 
 Pede Deferimento.
 ${lawyerName} - ${oabNumber}`
