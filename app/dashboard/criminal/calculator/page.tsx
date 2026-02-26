@@ -387,41 +387,112 @@ export default function PenalCalculatorPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Dashboard de Resultados Subjacente */}
+                    {/* Dashboard de Resultados Premium */}
                     {startDate && results && (
-                        <div className="space-y-4 pt-4 animate-in slide-in-from-bottom-4 duration-500">
-                            <div className="flex items-center gap-2 mb-2">
-                                <FileSpreadsheet className="h-5 w-5 text-indigo-500" />
-                                <h3 className="text-xl font-bold text-slate-800">Cálculo Homologado</h3>
+                        <div className="mt-8 animate-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex items-center justify-between mb-4 px-1">
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-slate-900 rounded-lg p-1.5 shadow-sm">
+                                        <Check className="h-4 w-4 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Timeline do Processo</h3>
+                                </div>
+                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-widest text-[10px] font-bold">
+                                    Sucesso
+                                </Badge>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-white rounded-xl p-5 border-l-4 border-l-indigo-500 shadow-sm">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Passo 1</p>
-                                    <h4 className="text-slate-800 font-bold mb-3">Progressão de Regime</h4>
-                                    <div className="text-2xl font-black text-indigo-600">{results.progDate}</div>
-                                    <div className="mt-3 bg-slate-100 h-1.5 w-full rounded-full">
-                                        <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${parseFloat(progressionFraction) * 100}%` }}></div>
-                                    </div>
-                                </div>
 
-                                <div className="bg-white rounded-xl p-5 border-l-4 border-l-purple-500 shadow-sm">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Passo 2</p>
-                                    <h4 className="text-slate-800 font-bold mb-3">Livramento Condicional</h4>
-                                    <div className="text-2xl font-black text-purple-600">{results.livDate}</div>
-                                    <div className="mt-3 bg-slate-100 h-1.5 w-full rounded-full">
-                                        <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${parseFloat(livramentoFraction) * 100}%` }}></div>
-                                    </div>
-                                </div>
+                            <Card className="rounded-2xl border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white overflow-hidden">
+                                <div className="flex flex-col md:flex-row">
+                                    {/* PROGRESSÃO */}
+                                    <div className="flex-1 p-8 relative border-b md:border-b-0 md:border-r border-slate-100 group hover:bg-slate-50/50 transition-colors">
+                                        <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500"></div>
+                                        <div className="flex justify-between items-start mb-6">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-indigo-500/80 uppercase tracking-widest mb-1.5">Passo 1</p>
+                                                <h4 className="text-slate-900 font-extrabold text-lg leading-none">Progressão</h4>
+                                                <p className="text-xs text-slate-500 mt-1.5">Regime mais brando</p>
+                                            </div>
+                                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-2.5 shadow-sm">
+                                                <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-black text-slate-900 tracking-tighter mb-6">
+                                            {results.progDate}
+                                        </div>
 
-                                <div className="bg-white rounded-xl p-5 border-l-4 border-l-rose-500 shadow-sm bg-gradient-to-br from-white to-rose-50/30">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Fim</p>
-                                    <h4 className="text-slate-800 font-bold mb-3">Término de Pena</h4>
-                                    <div className="text-2xl font-black text-rose-600">{results.expectedEnd}</div>
-                                    <div className="mt-3 bg-slate-100 h-1.5 w-full rounded-full">
-                                        <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: `100%` }}></div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                                                <span>Progresso</span>
+                                                <span className="text-indigo-600">{(parseFloat(progressionFraction) * 100).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="bg-slate-100 h-2 w-full rounded-full overflow-hidden">
+                                                <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${parseFloat(progressionFraction) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* LIVRAMENTO */}
+                                    <div className="flex-1 p-8 relative border-b md:border-b-0 md:border-r border-slate-100 group hover:bg-slate-50/50 transition-colors">
+                                        <div className="absolute top-0 left-0 w-full h-1.5 bg-purple-500"></div>
+                                        <div className="flex justify-between items-start mb-6">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-purple-500/80 uppercase tracking-widest mb-1.5">Passo 2</p>
+                                                <h4 className="text-slate-900 font-extrabold text-lg leading-none">Condicional</h4>
+                                                <p className="text-xs text-slate-500 mt-1.5">Livramento (LC)</p>
+                                            </div>
+                                            <div className="bg-purple-50 border border-purple-100 rounded-xl p-2.5 shadow-sm">
+                                                <Clock className="h-5 w-5 text-purple-600" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-black text-slate-900 tracking-tighter mb-6">
+                                            {results.livDate}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                                                <span>Progresso</span>
+                                                <span className="text-purple-600">{(parseFloat(livramentoFraction) * 100).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="bg-slate-100 h-2 w-full rounded-full overflow-hidden">
+                                                <div className="bg-purple-500 h-full rounded-full transition-all duration-1000" style={{ width: `${parseFloat(livramentoFraction) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* TÉRMINO */}
+                                    <div className="flex-1 p-8 relative bg-slate-900 group">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-bl-full pointer-events-none"></div>
+                                        <div className="absolute top-0 left-0 w-full h-1.5 bg-rose-500"></div>
+                                        <div className="flex justify-between items-start mb-6 relative z-10">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1.5">Final</p>
+                                                <h4 className="text-white font-extrabold text-lg leading-none">Pena Cumprida</h4>
+                                                <p className="text-xs text-slate-400 mt-1.5">Extinção total da pena</p>
+                                            </div>
+                                            <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5 shadow-sm">
+                                                <Check className="h-5 w-5 text-rose-400" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-black text-white tracking-tighter mb-6 relative z-10">
+                                            {results.expectedEnd}
+                                        </div>
+
+                                        <div className="space-y-2 relative z-10">
+                                            <div className="flex justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                                                <span>Conclusão</span>
+                                                <span className="text-rose-400">100%</span>
+                                            </div>
+                                            <div className="bg-slate-800 h-2 w-full rounded-full overflow-hidden">
+                                                <div className="bg-rose-500 h-full rounded-full transition-all duration-1000 w-full"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                <div className="bg-slate-50 p-4 text-center border-t border-slate-100">
+                                    <p className="text-xs text-slate-500 font-medium">As projeções matemáticas baseiam-se nos dados inseridos, deduzindo os <strong className="text-slate-900 font-bold">{remissionDays} dias</strong> remidos homologados do total calculado.</p>
+                                </div>
+                            </Card>
                         </div>
                     )}
                 </div>
