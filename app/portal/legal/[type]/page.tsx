@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft, Shield, FileText, Lock } from 'lucide-react'
 
-export default function LegalPage({ params }: { params: { type: string } }) {
-    const { type } = params
+export default async function LegalPage({ params }: { params: Promise<{ type: string }> }) {
+    const { type } = await params
 
     const content: Record<string, { title: string, icon: any, body: string }> = {
         privacy: {

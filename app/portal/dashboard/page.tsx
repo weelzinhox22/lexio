@@ -152,6 +152,12 @@ export default async function PortalDashboardPage() {
                                                 {getStatusBadge(proc.status)}
                                             </div>
                                         </div>
+                                        {proc.client_summary && (
+                                            <div className="px-5 py-3 bg-amber-50 border-y border-amber-100 italic text-sm text-amber-900 leading-relaxed group">
+                                                <span className="font-bold text-[10px] uppercase tracking-wider block mb-1 opacity-60">Status do Caso</span>
+                                                "{proc.client_summary}"
+                                            </div>
+                                        )}
                                         <div className="p-4 bg-slate-50/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="flex items-start gap-2 text-sm text-slate-600">
                                                 <Scale className="h-4 w-4 text-slate-400 mt-0.5" />
@@ -229,20 +235,7 @@ export default async function PortalDashboardPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Status Resumo Lateral */}
-                        {clientAny.client_summary && (
-                            <Card className="border-emerald-100 bg-emerald-50/30">
-                                <CardHeader className="pb-2">
-                                    <Badge className="w-fit bg-emerald-100 text-emerald-700 border-none mb-2">Resumo Geral</Badge>
-                                    <CardTitle className="text-sm font-bold text-slate-800">Situação Atual</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-slate-600 leading-relaxed italic">
-                                        "{clientAny.client_summary}"
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
+
                     </div>
                 </div>
 
