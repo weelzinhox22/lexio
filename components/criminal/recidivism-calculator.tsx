@@ -6,20 +6,65 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText } from "lucide-react"
+import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText, Upload, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
-import { differenceInYears, format, isAfter, subYears } from "date-fns"
+import { differenceInYears, format, isAfter, subYears, parse } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 export function RecidivismCalculator() {
     const [extinctionDate, setExtinctionDate] = useState("")
     const [newFactDate, setNewFactDate] = useState(format(new Date(), "yyyy-MM-dd"))
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const [detectedDates, setDetectedDates] = useState<{ type: string, date: string, context: string }[]>([])
     const [result, setResult] = useState<{
         isRecidivist: boolean
         yearsPassed: number
         remainingYears?: number
         thesisAvailable: boolean
     } | null>(null)
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsAnalyzing(true)
+        const formData = new FormData()
+        formData.append('file', file)
+
+        try {
+            const res = await fetch('/api/criminal/analyze-sentence', {
+                method: 'POST',
+                body: formData
+            })
+            const data = await res.json()
+
+            if (data.success && data.extractions.length > 0) {
+                setDetectedDates(data.extractions)
+                toast.success(`${data.extractions.length} padrões detectados na sentença!`, {
+                    description: "Confira as datas encontradas pelo Assistente."
+                })
+            } else {
+                toast.info("Processamento concluído", {
+                    description: "Não detectamos datas claras de trânsito ou extinção neste arquivo."
+                })
+            }
+        } catch (err) {
+            toast.error("Erro ao analisar arquivo")
+        } finally {
+            setIsAnalyzing(false)
+        }
+    }
+
+    const applyDetectedDate = (dateStr: string) => {
+        try {
+            const parsedDate = parse(dateStr, 'dd/MM/yyyy', new Date())
+            setExtinctionDate(format(parsedDate, 'yyyy-MM-dd'))
+            setDetectedDates([])
+            toast.success("Data aplicada ao cálculo!")
+        } catch (e) {
+            toast.error("Erro ao formatar data")
+        }
+    }
 
     useEffect(() => {
         if (extinctionDate && newFactDate) {
@@ -81,8 +126,8 @@ export function RecidivismCalculator() {
 
                     {result && (
                         <div className={`mt-6 p-4 rounded-xl border-2 transition-all ${result.isRecidivist
-                                ? "bg-amber-50 border-amber-200"
-                                : "bg-green-50 border-green-200"
+                            ? "bg-amber-50 border-amber-200"
+                            : "bg-green-50 border-green-200"
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.isRecidivist ? (
@@ -132,19 +177,65 @@ export function RecidivismCalculator() {
                     </Card>
                 )}
 
-                <Card className="bg-slate-900 text-white border-0">
-                    <CardHeader className="pb-2">
+                <Card className="bg-slate-900 text-white border-0 shadow-xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                        <Sparkles size={80} className="text-blue-400" />
+                    </div>
+                    <CardHeader className="pb-3">
                         <CardTitle className="text-base flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-400" />
-                            NLP Engine (Em breve)
+                            <Sparkles className="h-4 w-4 text-blue-400" />
+                            Assistente de Extração OCR
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4 relative z-10">
                         <p className="text-xs text-slate-400 leading-relaxed">
-                            Estamos treinando o modelo para extrair automaticamente datas de condenação em PDFs de folhas de antecedentes criminais.
-                            <br /><br />
-                            **Base de Dados:** Jusbrasil e Diários Oficiais.
+                            Suba o PDF da Sentença ou Folha de Antecedentes e eu buscarei as datas de extinção e trânsito para você.
                         </p>
+
+                        <div className="flex flex-col gap-3">
+                            <input
+                                type="file"
+                                id="pdf-upload"
+                                className="hidden"
+                                accept="application/pdf"
+                                onChange={handleFileUpload}
+                                disabled={isAnalyzing}
+                            />
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full bg-slate-800 border-slate-700 hover:bg-slate-700 text-white h-12 rounded-xl group"
+                                disabled={isAnalyzing}
+                            >
+                                <label htmlFor="pdf-upload" className="cursor-pointer flex items-center justify-center gap-2">
+                                    {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin text-blue-400" /> : <Upload className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />}
+                                    {isAnalyzing ? "Lendo Mentes..." : "Subir Sentença (PDF)"}
+                                </label>
+                            </Button>
+                        </div>
+
+                        {detectedDates.length > 0 && (
+                            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <Label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Datas Detectadas:</Label>
+                                {detectedDates.map((d, i) => (
+                                    <div key={i} className="bg-slate-800/50 border border-slate-700 p-3 rounded-lg hover:border-blue-500/50 transition-colors">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[10px] font-bold text-slate-300">{d.type}</span>
+                                            <Badge className="bg-blue-600 text-[10px] py-0 px-1.5">{d.date}</Badge>
+                                        </div>
+                                        <p className="text-[10px] text-slate-500 italic mb-2 leading-tight">"...{d.context}..."</p>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => applyDetectedDate(d.date)}
+                                            className="w-full h-7 text-[10px] bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white rounded-md"
+                                        >
+                                            Aplicar ao Cálculo
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
