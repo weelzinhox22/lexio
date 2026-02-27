@@ -35,19 +35,43 @@ export function PartilhaSimulator() {
     ownership: "common" as Asset["ownership"]
   })
 
+  const formatCurrency = (value: string) => {
+    // Remove tudo que não é dígito
+    const digits = value.replace(/\D/g, "")
+    if (!digits) return ""
+    
+    // Converte para centavos
+    const cents = parseInt(digits) / 100
+    
+    // Formata como BRL
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(cents)
+  }
+
+  const parseCurrency = (value: string) => {
+    // Remove tudo que não é dígito e converte para float
+    const digits = value.replace(/\D/g, "")
+    if (!digits) return 0
+    return parseInt(digits) / 100
+  }
+
   const addAsset = () => {
-    if (!newAsset.description || !newAsset.value) {
-      toast.error("Preencha a descrição e o valor do bem")
+    const numericValue = parseCurrency(newAsset.value)
+    
+    if (!newAsset.description || numericValue <= 0) {
+      toast.error("Preencha a descrição e um valor válido para o bem")
       return
     }
 
     const asset: Asset = {
       id: Math.random().toString(36).substr(2, 9),
       description: newAsset.description,
-      value: parseFloat(newAsset.value),
+      value: numericValue,
       isSubrogated: newAsset.isSubrogated,
       subrogationDetails: newAsset.subrogationDetails,
-      ownership: newAsset.isSubrogated ? "spouse_a" : newAsset.ownership // Default subrogated to Client (Spouse A)
+      ownership: newAsset.isSubrogated ? "spouse_a" : newAsset.ownership
     }
 
     setAssets([...assets, asset])
@@ -147,14 +171,19 @@ export function PartilhaSimulator() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="asset-value">Valor Estimado (R$)</Label>
-              <Input 
-                id="asset-value" 
-                type="number" 
-                placeholder="0.00" 
-                value={newAsset.value}
-                onChange={e => setNewAsset({...newAsset, value: e.target.value})}
-              />
+              <Label htmlFor="asset-value">Valor Estimado</Label>
+              <div className="relative">
+                <Input 
+                  id="asset-value" 
+                  placeholder="R$ 0,00" 
+                  value={newAsset.value}
+                  onChange={e => {
+                    const formatted = formatCurrency(e.target.value)
+                    setNewAsset({...newAsset, value: formatted})
+                  }}
+                  className="pl-3 font-medium text-slate-900 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-slate-50 border border-slate-100">
