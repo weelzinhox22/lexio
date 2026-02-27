@@ -66,6 +66,7 @@ const navigationGroups = [
       { name: "Divórcio & Partilha", href: "/dashboard/family/partilha", icon: Heart },
       { name: "Cálculo de Herança", href: "/dashboard/family/heritage", icon: Landmark },
       { name: "Repetição de Indébito", href: "/dashboard/consumer/indebito", icon: ShoppingCart },
+      { name: "Simulador Danos Morais", href: "/dashboard/consumer/damages", icon: Scale },
       { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
       { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
     ],
