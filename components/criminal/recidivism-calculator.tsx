@@ -3,6 +3,12 @@ import { toast } from "sonner"
 import { differenceInYears, format } from "date-fns"
 import { SuggestionDialog } from "@/components/feedback/suggestion-dialog"
 import { createClient } from "@/lib/supabase/client"
+import { useState, useEffect } from "react"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 export function RecidivismCalculator() {
     const supabase = createClient()

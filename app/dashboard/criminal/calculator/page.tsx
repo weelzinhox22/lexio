@@ -54,8 +54,8 @@ export default function PenalCalculatorPage() {
     const [remissionDays, setRemissionDays] = useState<number>(0)
 
     // Fractions
-    const [progressionFraction, setProgressionFraction] = useState<string>('0.16')
-    const [livramentoFraction, setLivramentoFraction] = useState<string>('0.333333333')
+    const [progressionFraction, setProgressionFraction] = useState<string>('1/6')
+    const [livramentoFraction, setLivramentoFraction] = useState<string>('1/3')
 
     useEffect(() => {
         loadData()
@@ -87,17 +87,36 @@ export default function PenalCalculatorPage() {
         setIsLoading(false)
     }
 
+    const parseFractionInput = (val: string) => {
+        const s = val.trim()
+        if (!s || s.toLowerCase() === 'none' || s === '0') return 0
+
+        if (s.includes('/')) {
+            const parts = s.split('/')
+            if (parts.length === 2 && parseFloat(parts[1]) !== 0) {
+                return (parseFloat(parts[0]) || 0) / (parseFloat(parts[1]) || 1)
+            }
+        }
+
+        const num = parseFloat(s.replace('%', '').replace(',', '.'))
+        if (!isNaN(num)) {
+            if (s.includes('%') || num > 1) return num / 100
+            return num
+        }
+        return 0
+    }
+
     const handleCalculate = () => {
         if (!startDate) return null
 
         const totalDurationDays = (years * 365) + (months * 30) + days
         const start = parseISO(startDate)
 
-        const fractionProg = parseFloat(progressionFraction)
+        const fractionProg = parseFractionInput(progressionFraction)
         let daysToProgression = Math.ceil(totalDurationDays * fractionProg)
         daysToProgression -= remissionDays
 
-        const fractionLiv = parseFloat(livramentoFraction)
+        const fractionLiv = parseFractionInput(livramentoFraction)
         let daysToLivramento = Math.ceil(totalDurationDays * fractionLiv)
         daysToLivramento -= remissionDays
 
@@ -115,7 +134,9 @@ export default function PenalCalculatorPage() {
             livDate: format(livDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
             expectedEnd: format(expectedEnd, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
             totalDurationDays,
-            daysToServeProg: daysToProgression > 0 ? daysToProgression : 0
+            daysToServeProg: daysToProgression > 0 ? daysToProgression : 0,
+            fractionProg,
+            fractionLiv
         }
     }
 
@@ -145,8 +166,8 @@ export default function PenalCalculatorPage() {
             days,
             start_date: startDate,
             remission_days: remissionDays,
-            progression_fraction: parseFloat(progressionFraction),
-            livramento_fraction: parseFloat(livramentoFraction),
+            progression_fraction: results.fractionProg,
+            livramento_fraction: results.fractionLiv,
             progression_date: results.progDateRaw,
             livramento_date: results.livDateRaw,
             end_date: results.expectedEndRaw,
@@ -167,14 +188,28 @@ export default function PenalCalculatorPage() {
         setIsSaving(false)
     }
 
+    const formatFractionToText = (val: number | null | undefined) => {
+        if (!val) return '0'
+        const eps = 0.0001
+        if (Math.abs(val - 1 / 6) < eps) return '1/6'
+        if (Math.abs(val - 1 / 3) < eps) return '1/3'
+        if (Math.abs(val - 1 / 2) < eps) return '1/2'
+        if (Math.abs(val - 2 / 3) < eps) return '2/3'
+        if (Math.abs(val - 2 / 5) < eps) return '2/5'
+        if (Math.abs(val - 3 / 5) < eps) return '3/5'
+        return `${(val * 100).toFixed(1).replace('.0', '')}%`
+    }
+
     const loadHistoryItem = (item: any) => {
         setYears(item.years || 0)
         setMonths(item.months || 0)
         setDays(item.days || 0)
         setStartDate(item.start_date)
         setRemissionDays(item.remission_days || 0)
-        setProgressionFraction(item.progression_fraction.toString())
-        setLivramentoFraction(item.livramento_fraction.toString())
+
+        setProgressionFraction(formatFractionToText(item.progression_fraction))
+        setLivramentoFraction(formatFractionToText(item.livramento_fraction))
+
         window.scrollTo({ top: 0, behavior: 'smooth' })
         toast.success(`Cálculo "${item.title}" carregado.`)
     }
@@ -192,6 +227,17 @@ export default function PenalCalculatorPage() {
     }
 
     const results = handleCalculate()
+
+    const formatProgressFraction = (val: number) => {
+        const eps = 0.0001
+        if (Math.abs(val - 1 / 6) < eps) return '1/6'
+        if (Math.abs(val - 1 / 3) < eps) return '1/3'
+        if (Math.abs(val - 1 / 2) < eps) return '1/2'
+        if (Math.abs(val - 2 / 3) < eps) return '2/3'
+        if (Math.abs(val - 2 / 5) < eps) return '2/5'
+        if (Math.abs(val - 3 / 5) < eps) return '3/5'
+        return `${(val * 100).toFixed(1).replace('.0', '')}%`
+    }
 
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500">
@@ -368,38 +414,34 @@ export default function PenalCalculatorPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700">Regra de Progressão</Label>
-                                        <Select value={progressionFraction} onValueChange={setProgressionFraction}>
-                                            <SelectTrigger className="h-12 bg-slate-50">
-                                                <SelectValue placeholder="Selecione a regra..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="0.166666666">1/6 - Antigo (Crimes &lt; 2020)</SelectItem>
-                                                <SelectItem value="0.16">16% - Primário s/ Violência</SelectItem>
-                                                <SelectItem value="0.20">20% - Reincidente s/ Violência</SelectItem>
-                                                <SelectItem value="0.25">25% - Primário c/ Violência</SelectItem>
-                                                <SelectItem value="0.30">30% - Reincidente c/ Violência</SelectItem>
-                                                <SelectItem value="0.40">40% - Hediondo, Primário</SelectItem>
-                                                <SelectItem value="0.50">50% - Hediondo/Morte, Primário</SelectItem>
-                                                <SelectItem value="0.60">60% - Hediondo, Reinc. Específico</SelectItem>
-                                                <SelectItem value="0.70">70% - Hediondo/Morte, Reinc. Esp</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-slate-700 flex justify-between">
+                                                <span>Fração de Progressão</span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={progressionFraction}
+                                                onChange={e => setProgressionFraction(e.target.value)}
+                                                className="h-12 bg-slate-50 font-bold"
+                                                placeholder="Ex: 1/6 ou 16%"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700">Regra de Livramento</Label>
-                                        <Select value={livramentoFraction} onValueChange={setLivramentoFraction}>
-                                            <SelectTrigger className="h-12 bg-slate-50">
-                                                <SelectValue placeholder="Selecione a regra..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="0.333333333">1/3 - Primário Bons Antecedentes</SelectItem>
-                                                <SelectItem value="0.5">1/2 - Reincidente Doloso</SelectItem>
-                                                <SelectItem value="0.666666666">2/3 - Crimes Hediondos (Se primário)</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-slate-700 flex justify-between">
+                                                <span>Fração de Livramento</span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={livramentoFraction}
+                                                onChange={e => setLivramentoFraction(e.target.value)}
+                                                className="h-12 bg-slate-50 font-bold"
+                                                placeholder="Ex: 1/3 ou 50%"
+                                            />
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -441,10 +483,10 @@ export default function PenalCalculatorPage() {
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between text-[11px] text-slate-500 font-bold uppercase tracking-wider">
                                                         <span>Progresso</span>
-                                                        <span className="text-indigo-600">{(parseFloat(progressionFraction) * 100).toFixed(0)}%</span>
+                                                        <span className="text-indigo-600 font-black">{formatProgressFraction(results.fractionProg)}</span>
                                                     </div>
                                                     <div className="bg-slate-100 h-2 w-full rounded-full overflow-hidden">
-                                                        <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${parseFloat(progressionFraction) * 100}%` }}></div>
+                                                        <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${results.fractionProg * 100}%` }}></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -468,11 +510,11 @@ export default function PenalCalculatorPage() {
 
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between text-[11px] text-slate-500 font-bold uppercase tracking-wider">
-                                                        <span>Progresso</span>
-                                                        <span className="text-purple-600">{(parseFloat(livramentoFraction) * 100).toFixed(0)}%</span>
+                                                        <span>Condição</span>
+                                                        <span className="text-purple-600 font-black">{formatProgressFraction(results.fractionLiv)}</span>
                                                     </div>
                                                     <div className="bg-slate-100 h-2 w-full rounded-full overflow-hidden">
-                                                        <div className="bg-purple-500 h-full rounded-full transition-all duration-1000" style={{ width: `${parseFloat(livramentoFraction) * 100}%` }}></div>
+                                                        <div className="bg-purple-500 h-full rounded-full transition-all duration-1000" style={{ width: `${results.fractionLiv * 100}%` }}></div>
                                                     </div>
                                                 </div>
                                             </div>
