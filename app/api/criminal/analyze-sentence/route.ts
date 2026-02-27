@@ -41,29 +41,36 @@ export async function POST(req: Request) {
         const extractionResults: { type: string, date: string, context: string }[] = [];
 
         const keywords = [
-            { type: 'Trânsito em Julgado', terms: ['trânsito', 'julgado', 'definitiv'] },
-            { type: 'Extinção da Pena', terms: ['extinção', 'punibilidade', 'cumprid', 'extinta'] },
-            { type: 'Condenação Anterior', terms: ['antecedentes', 'reincid'] },
+            { type: 'Trânsito em Julgado', terms: ['trânsito', 'julgado', 'definitiv', 'definitiva'] },
+            { type: 'Extinção/Fim da Pena', terms: ['extinção', 'punibilidade', 'cumprimento', 'cumprid', 'extinta', 'término', 'final'] },
+            { type: 'Condenação Anterior', terms: ['antecedente', 'reincid'] },
         ];
 
-        // Dividir em sentenças para contexto
-        const sentences = fullText.split(/[.!?\n]/);
+        // Dividir por blocos maiores ou quebras de linha
+        const blocks = fullText.split(/\n|(?:\s{2,})|(?:\.\s)/);
 
-        for (const sentence of sentences) {
-            const lowerSentence = sentence.toLowerCase();
+        for (const block of blocks) {
+            const lowerBlock = block.toLowerCase();
             for (const kw of keywords) {
-                if (kw.terms.some(term => lowerSentence.includes(term))) {
-                    const matchDate = sentence.match(dateRegex);
-                    if (matchDate) {
-                        extractionResults.push({
-                            type: kw.type,
-                            date: matchDate[0],
-                            context: sentence.trim().slice(0, 150) // Limitar tamanho do contexto
-                        });
+                if (kw.terms.some(term => lowerBlock.includes(term))) {
+                    const matchDates = block.match(dateRegex);
+                    if (matchDates) {
+                        for (const date of matchDates) {
+                            extractionResults.push({
+                                type: kw.type,
+                                date: date,
+                                context: block.trim().slice(0, 150)
+                            });
+                        }
                     }
                 }
             }
         }
+
+        // Remover duplicatas de Contexto + Data
+        const uniqueResults = extractionResults.filter((v, i, a) =>
+            a.findIndex(t => (t.date === v.date && t.type === v.type)) === i
+        );
 
         // Detecção de Dosimetria adicional
         const mentionsRecidivism = normalizedText.includes('reincidência') || normalizedText.includes('maus antecedentes');
@@ -71,7 +78,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             textPreview: fullText.slice(0, 500),
-            extractions: extractionResults,
+            extractions: uniqueResults,
             insights: {
                 hasCriminalHistory: mentionsRecidivism,
             }
