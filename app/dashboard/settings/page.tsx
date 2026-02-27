@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { MaskedInput } from "@/components/ui/masked-input"
 import { formatPhone } from "@/lib/utils/masks"
+import { toast } from "sonner"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -53,11 +54,11 @@ export default function SettingsPage() {
     const googleError = params.get('google_calendar_error')
 
     if (googleSuccess === 'true') {
-      alert('Google Calendar conectado com sucesso!')
+      toast.success('Google Calendar conectado com sucesso!')
       // Clean up URL
       router.replace('/dashboard/settings')
     } else if (googleError) {
-      alert(`Erro ao conectar com Google Calendar: ${googleError}`)
+      toast.error(`Erro ao conectar com Google Calendar: ${googleError}`)
       // Clean up URL
       router.replace('/dashboard/settings')
     }
@@ -134,10 +135,10 @@ export default function SettingsPage() {
         if (error) throw error
       }
 
-      alert("Configurações salvas com sucesso!")
+      toast.success("Configurações salvas com sucesso!")
     } catch (error) {
       console.error("Error saving profile:", error)
-      alert("Erro ao salvar configurações")
+      toast.error("Erro ao salvar configurações")
     } finally {
       setSaving(false)
     }
@@ -149,56 +150,40 @@ export default function SettingsPage() {
 
     // Validate file
     if (!file.type.startsWith('image/')) {
-      alert('Selecione um arquivo de imagem (JPG, PNG, etc.)')
+      toast.error('Selecione um arquivo de imagem (JPG, PNG, etc.)')
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      alert('A imagem deve ter no máximo 2MB')
+      toast.error('A imagem deve ter no máximo 2MB')
       return
     }
 
     setUploadingAvatar(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const formData = new FormData()
+      formData.append('file', file)
 
-      const ext = file.name.split('.').pop()
-      const fileName = `${user.id}/avatar.${ext}`
+      const response = await fetch('/api/storage/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      })
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true })
-
-      if (uploadError) {
-        // Try creating the bucket if it doesn't exist
-        console.error("Upload error:", uploadError)
-        alert('Erro ao fazer upload. Verifique se o bucket "avatars" existe no Supabase Storage.')
-        return
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erro no upload')
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName)
+      const { avatarUrl } = await response.json()
+      
+      // Add cache-buster to URL
+      const urlWithCache = `${avatarUrl}?t=${Date.now()}`
 
-      // Add cache-buster
-      const avatarUrl = `${publicUrl}?t=${Date.now()}`
-
-      // Update profile
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", user.id)
-
-      if (updateError) throw updateError
-
-      setProfile({ ...profile, avatar_url: avatarUrl })
-      alert("Foto de perfil atualizada!")
+      setProfile({ ...profile, avatar_url: urlWithCache })
+      toast.success("Foto de perfil atualizada!")
       router.refresh()
     } catch (error) {
       console.error("Error uploading avatar:", error)
-      alert("Erro ao atualizar foto de perfil")
+      toast.error("Erro ao atualizar foto de perfil: " + (error as Error).message)
     } finally {
       setUploadingAvatar(false)
     }
@@ -247,10 +232,10 @@ export default function SettingsPage() {
       const response = await fetch('/api/google-calendar/disconnect', { method: 'POST' })
       if (response.ok) {
         setGoogleCalendarConnected(false)
-        alert('Google Calendar desconectado!')
+        toast.success('Google Calendar desconectado!')
       }
     } catch (error) {
-      alert('Erro ao desconectar')
+      toast.error('Erro ao desconectar')
     }
   }
 
