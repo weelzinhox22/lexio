@@ -27,7 +27,7 @@ export function SuggestionPopup({ userId }: { userId: string }) {
       category="platform_popup"
       open={showModal} 
       onOpenChange={setShowModal}
-      title="🚀 O que podemos construir para você?"
+      title="O que podemos construir para você?"
       description="Queremos transformar o Themixa na sua melhor ferramenta. Tem alguma ideia de funcionalidade ou tese que te economizaria tempo?"
     />
   )

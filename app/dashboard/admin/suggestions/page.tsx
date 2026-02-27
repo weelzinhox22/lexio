@@ -37,11 +37,12 @@ export default function AdminSuggestionsPage() {
         setIsLoading(true)
         const { data, error } = await supabase
             .from('user_suggestions')
-            .select('*, profiles:user_id(full_name, email)')
+            .select('*, profiles(full_name, email)')
             .order('created_at', { ascending: false })
 
         if (error) {
-            toast.error("Erro ao buscar sugestões")
+            console.error("Erro ao buscar sugestões:", error)
+            toast.error("Erro ao buscar sugestões: " + error.message)
         } else {
             setSuggestions(data || [])
         }

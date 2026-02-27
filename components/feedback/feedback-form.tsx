@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Bug, Lightbulb, HelpCircle } from "lucide-react"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -79,9 +80,21 @@ export function FeedbackForm({ open, onOpenChange, userId, prefillType, prefillP
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bug">🐛 Bug / Problema</SelectItem>
-                <SelectItem value="suggestion">💡 Sugestão</SelectItem>
-                <SelectItem value="question">❓ Dúvida</SelectItem>
+                <SelectItem value="bug">
+                  <div className="flex items-center gap-2">
+                    <Bug className="h-4 w-4" /> Bug / Problema
+                  </div>
+                </SelectItem>
+                <SelectItem value="suggestion">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4" /> Sugestão
+                  </div>
+                </SelectItem>
+                <SelectItem value="question">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" /> Dúvida
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

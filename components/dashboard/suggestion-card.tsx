@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Sparkles, MessageSquare, ArrowRight } from "lucide-react"
+import { MessageSquare, ArrowRight } from "lucide-react"
 import { SuggestionDialog } from "@/components/feedback/suggestion-dialog"
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
@@ -17,9 +17,6 @@ export function SuggestionCard() {
 
     return (
         <Card className="rounded-2xl border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm border overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                <Sparkles size={120} className="text-blue-600 rotate-12" />
-            </div>
             <CardContent className="p-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
                     <div className="h-14 w-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 shrink-0">

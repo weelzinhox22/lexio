@@ -58,7 +58,7 @@ export function DashboardGreeting({ userName, urgentDeadlineCount = 0, todayDead
                             <Icon className="h-5 w-5 text-slate-700 shrink-0" />
                         </div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight truncate">
-                            {greeting}{displayName ? `, ${displayName}` : ""}! 👋
+                            {greeting}{displayName ? `, ${displayName}` : ""}!
                         </h1>
                     </div>
                     <p className="text-sm sm:text-base text-slate-600 sm:ml-14 max-w-2xl leading-relaxed">
