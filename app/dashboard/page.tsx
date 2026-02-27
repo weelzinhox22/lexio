@@ -9,6 +9,8 @@ import { ReferralSection } from "@/components/dashboard/referral-section"
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting"
 import { WeekCalendar } from "@/components/dashboard/week-calendar"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
+import { SuggestionCard } from "@/components/dashboard/suggestion-card"
+import { SuggestionPopup } from "@/components/feedback/suggestion-popup"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -313,6 +315,7 @@ export default async function DashboardPage() {
       <DeadlineAlertModal deadlines={modalDeadlines} />
       <GuidedTour userId={user!.id} />
       <NPSChecker userId={user!.id} />
+      <SuggestionPopup userId={user!.id} />
 
       <div className="space-y-4 sm:space-y-6 max-w-7xl">
         {/* Saudação personalizada */}
@@ -363,6 +366,9 @@ export default async function DashboardPage() {
             }}
           />
         </div>
+
+        {/* Sugestões de Melhoria */}
+        <SuggestionCard />
 
         {/* Seção de Referral */}
         <ReferralSection userId={user!.id} />

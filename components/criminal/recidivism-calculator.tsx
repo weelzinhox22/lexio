@@ -1,25 +1,14 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText, MessageSquare, Send, Loader2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { differenceInYears, format } from "date-fns"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
+import { SuggestionDialog } from "@/components/feedback/suggestion-dialog"
 import { createClient } from "@/lib/supabase/client"
 
 export function RecidivismCalculator() {
     const supabase = createClient()
     const [extinctionDate, setExtinctionDate] = useState("")
     const [newFactDate, setNewFactDate] = useState(format(new Date(), "yyyy-MM-dd"))
-    const [suggestion, setSuggestion] = useState("")
-    const [isSending, setIsSending] = useState(false)
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [userId, setUserId] = useState<string | null>(null)
     const [result, setResult] = useState<{
         isRecidivist: boolean
         yearsPassed: number
@@ -27,34 +16,9 @@ export function RecidivismCalculator() {
         thesisAvailable: boolean
     } | null>(null)
 
-    const handleSendSuggestion = async () => {
-        if (!suggestion.trim()) {
-            toast.error("Por favor, escreva sua sugestão.")
-            return
-        }
-
-        setIsSending(true)
-        try {
-            const { data: { user } } = await supabase.auth.getUser()
-
-            const { error } = await supabase.from('user_suggestions').insert({
-                user_id: user?.id,
-                category: 'criminal_calculator',
-                content: suggestion
-            })
-
-            if (error) throw error
-
-            toast.success("Sugestão enviada com sucesso! Obrigado.")
-            setSuggestion("")
-            setIsDialogOpen(false)
-        } catch (error) {
-            console.error(error)
-            toast.error("Erro ao enviar sugestão")
-        } finally {
-            setIsSending(false)
-        }
-    }
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null))
+    }, [])
 
     useEffect(() => {
         if (extinctionDate && newFactDate) {
@@ -189,40 +153,16 @@ export function RecidivismCalculator() {
                         </p>
                     </div>
 
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
+                    <SuggestionDialog
+                        userId={userId || ""}
+                        category="criminal_calculator"
+                        trigger={
                             <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs gap-2 h-8">
                                 <MessageSquare className="h-3.5 w-3.5" />
                                 Sugerir nova tese ou melhoria
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Enviar Sugestão</DialogTitle>
-                                <DialogDescription>
-                                    Sentiu falta de algum artigo ou tese específica aqui? Conte para nós.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-2">
-                                <Textarea
-                                    placeholder="Ex: Adicionar tese sobre detração penal..."
-                                    value={suggestion}
-                                    onChange={(e) => setSuggestion(e.target.value)}
-                                    className="min-h-[120px]"
-                                />
-                            </div>
-                            <DialogFooter>
-                                <Button
-                                    onClick={handleSendSuggestion}
-                                    disabled={isSending}
-                                    className="gap-2"
-                                >
-                                    {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                                    Enviar para o Admin
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                        }
+                    />
                 </div>
             </div>
         </div>
