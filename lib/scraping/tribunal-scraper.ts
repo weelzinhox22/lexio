@@ -1,6 +1,8 @@
 // Sistema customizado de scraping - Nosso próprio Escavador!
 
 import { RateLimiter } from './rate-limiter'
+import https from 'https'
+import http from 'http'
 
 interface TribunalScraper {
   name: string
@@ -31,9 +33,47 @@ class TribunalScraperService {
 
   constructor() {
     this.scrapers = new Map()
-    this.rateLimiter = new RateLimiter(5, 60000) // 5 requests por minuto
+    this.rateLimiter = new RateLimiter(10, 60000) // 10 requests por minuto
     this.cache = new Map()
     this.initializeScrapers()
+  }
+
+  /**
+   * Helper para fazer requisições HTTPS suportando protocolos legados (BA usa TLS antigo)
+   */
+  private async secureFetch(url: string, options: any = {}): Promise<{ data: string; headers: http.IncomingHttpHeaders }> {
+    return new Promise((resolve, reject) => {
+      try {
+        const urlObj = new URL(url);
+        const requestOptions: https.RequestOptions = {
+          hostname: urlObj.hostname,
+          port: urlObj.port || 443,
+          path: urlObj.pathname + (urlObj.search || ''),
+          method: options.method || 'GET',
+          headers: options.headers || {},
+          rejectUnauthorized: false, // Permitir certificados mal configurados de tribunais
+          minVersion: 'TLSv1', // Suporte a TLS 1.0/1.1 (CRITICAL para TJBA)
+          timeout: 30000 // 30 segundos
+        };
+
+        const req = https.request(requestOptions, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => resolve({ data, headers: res.headers }));
+        });
+
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error('Timeout na conexão com o tribunal'));
+        });
+
+        req.on('error', (e) => reject(e));
+        if (options.body) req.write(options.body);
+        req.end();
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 
   private initializeScrapers() {
@@ -45,7 +85,7 @@ class TribunalScraperService {
       searchByOAB: this.searchTJBA.bind(this)
     })
 
-    // TJSP - A implementar
+    // TJSP - Já implementado
     this.scrapers.set('TJSP', {
       name: 'Tribunal de Justiça de São Paulo',
       baseUrl: 'https://esaj.tjsp.jus.br',
@@ -104,88 +144,104 @@ class TribunalScraperService {
 
   // Implementações dos scrapers
   private async searchTJBA(oabNumber: string, uf: string): Promise<Processo[]> {
-    const oabComUf = `${oabNumber}${uf.toUpperCase()}`
-    // TJBA usa HTTP, não HTTPS!
-    const baseUrl = 'http://esaj.tjba.jus.br/cpopg'
-    const searchUrl = `${baseUrl}/search.do?conversationId=&cbPesquisa=NUMOAB&dadosConsulta.valorConsulta=${oabComUf}&cdForo=-1`
+    const formats = [
+      `${oabNumber}${uf.toUpperCase()}`,
+      `${oabNumber}/${uf.toUpperCase()}`,
+      `${uf.toUpperCase()}${oabNumber}`
+    ]
+    const results: Processo[] = []
 
-    console.log(`[Scraper TJBA] Iniciando busca para ${oabComUf} em ${searchUrl}`)
+    // 1. Tentar e-SAJ (1º e 2º Graus) - Usando secureFetch para evitar erros de SSL
+    const endpoints = [
+      { url: 'https://esaj.tjba.jus.br/cpopg', name: 'e-SAJ 1º Grau' },
+      { url: 'https://esaj.tjba.jus.br/cposg5', name: 'e-SAJ 2º Grau' }
+    ]
 
-    try {
-      // 1. Obter cookie inicial para passar pelo firewall do e-SAJ
-      const initialResponse = await fetch(`${baseUrl}/open.do`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml'
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`[Scraper TJBA] Obtendo sessão para ${endpoint.name}`)
+
+        // Obter cookie de sessão inicial
+        const initial = await this.secureFetch(`${endpoint.url}/open.do`, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
+        })
+        const cookies = initial.headers['set-cookie']?.join('; ') || ''
+
+        const searchTypes = ['NUMOAB', 'DOCADVOGADO', 'ADVOGADO']
+
+        for (const format of formats) {
+          let foundInFormat = false
+          for (const searchType of searchTypes) {
+            const searchUrl = `${endpoint.url}/search.do?cbPesquisa=${searchType}&dadosConsulta.valorConsulta=${format}&cdForo=-1`
+
+            try {
+              const res = await this.secureFetch(searchUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                  'Accept': 'text/html,application/xhtml+xml',
+                  'Referer': `${endpoint.url}/open.do`,
+                  'Cookie': cookies
+                }
+              })
+
+              const html = res.data
+              if (html.includes('captcha') || html.includes('Proteção contra robôs') || html.includes('vlCaptcha')) {
+                console.warn(`[Scraper TJBA] Bloqueio por CAPTCHA em ${endpoint.name} (${searchType})`)
+                continue
+              }
+
+              const found = this.parseTJBAHTML(html, oabNumber, uf)
+              if (found.length > 0) {
+                results.push(...found)
+                foundInFormat = true
+                break
+              }
+            } catch (fetchErr) {
+              console.error(`[Scraper TJBA] Falha secureFetch no ${endpoint.name}:`, fetchErr)
+            }
+          }
+          if (foundInFormat) break
         }
-      })
-      const cookies = initialResponse.headers.get('set-cookie')
-      console.log(`[Scraper TJBA] Cookies obtidos: ${cookies ? 'SIM' : 'NÃO'}`)
-
-      // 2. Realizar a busca com os cookies e headers simulando navegador
-      const response = await fetch(searchUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'pt-BR,pt;q=0.9',
-          'Cookie': cookies || '',
-          'Referer': `${baseUrl}/open.do`
-        }
-      })
-
-      if (!response.ok) throw new Error(`TJBA status ${response.status}`)
-
-      const html = await response.text()
-
-      // Log do conteúdo para debug
-      console.log(`[Scraper TJBA] HTML recebido: ${html.length} chars`)
-      console.log(`[Scraper TJBA] Contém linkProcesso: ${html.includes('linkProcesso')}`)
-      console.log(`[Scraper TJBA] Contém captcha: ${html.includes('captcha') || html.includes('Captcha')}`)
-      console.log(`[Scraper TJBA] Contém processo CNJ: ${/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.test(html)}`)
-
-      if (html.includes('captcha') || html.includes('Captcha') || html.includes('Proteção contra robôs') || html.includes('idCaptcha')) {
-        console.warn('[Scraper TJBA] ⚠️ CAPTCHA detectado - tribunal exige verificação humana')
-        return []
+      } catch (err) {
+        console.error(`[Scraper TJBA Error] no ${endpoint.name}:`, err)
       }
-
-      return this.parseTJBAHTML(html, oabNumber, uf)
-    } catch (err) {
-      console.error('[Scraper TJBA Error]', err)
-      return []
     }
+
+    // Remover duplicatas
+    const uniqueResults = results.filter((p, index, self) =>
+      index === self.findIndex((t) => t.numeroProcesso === p.numeroProcesso)
+    )
+
+    console.log(`[Scraper TJBA] Total Bahia encontrado: ${uniqueResults.length} processos`)
+    return uniqueResults
   }
 
   private async searchTJSP(oabNumber: string, uf: string): Promise<Processo[]> {
     const oabComUf = `${oabNumber}${uf.toUpperCase()}`
     const baseUrl = 'https://esaj.tjsp.jus.br/cpopg'
-    const searchUrl = `${baseUrl}/search.do?conversationId=&cbPesquisa=NUMOAB&dadosConsulta.valorConsulta=${oabComUf}&cdForo=-1`
+    const searchUrl = `${baseUrl}/search.do?cbPesquisa=NUMOAB&dadosConsulta.valorConsulta=${oabComUf}&cdForo=-1`
 
     console.log(`[Scraper TJSP] Iniciando busca para ${oabComUf}`)
 
     try {
-      // 1. Obter cookie inicial para passar pelo firewall do e-SAJ
-      const initialResponse = await fetch(`${baseUrl}/open.do`, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+      // 1. Obter cookie inicial
+      const initial = await this.secureFetch(`${baseUrl}/open.do`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
       })
-      const cookies = initialResponse.headers.get('set-cookie')
+      const cookies = initial.headers['set-cookie']?.join('; ') || ''
 
-      // 2. Realizar a busca com os cookies e headers simulando navegador
-      const response = await fetch(searchUrl, {
-        method: 'GET',
+      // 2. Realizar a busca
+      const res = await this.secureFetch(searchUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-          'Cookie': cookies || '',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Cookie': cookies,
           'Referer': `${baseUrl}/open.do`
         }
       })
 
-      if (!response.ok) throw new Error(`TJSP status ${response.status}`)
-
-      const html = await response.text()
-
-      if (html.includes('captcha') || html.includes('Proteção contra robôs')) {
+      const html = res.data
+      if (html.includes('captcha') || html.includes('Proteção contra robôs') || html.includes('vlCaptcha')) {
         console.warn('[Scraper TJSP] Bloqueio por CAPTCHA detectado')
         return []
       }

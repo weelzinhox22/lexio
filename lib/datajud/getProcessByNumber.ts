@@ -110,7 +110,8 @@ export function normalizeTribunal(tribunal: string, branchCode?: string): { inde
   if (!url) throw new DataJudInputError(`Tribunal não suportado: ${tribunal}`)
 
   const indexName = url.split('/').filter(p => p.startsWith('api_publica')).pop() || ''
-  return { indexName, court: tribunal.toUpperCase() }
+  const courtStr = indexName.replace('api_publica_', '').toUpperCase()
+  return { indexName, court: courtStr }
 }
 
 function buildMatchQuery(processNumber20: string, rawNumber: string) {
@@ -118,9 +119,9 @@ function buildMatchQuery(processNumber20: string, rawNumber: string) {
     query: {
       bool: {
         should: [
-          { match_phrase: { numeroProcesso: processNumber20 } },
-          { match_phrase: { numeroProcesso: rawNumber } },
-          { match_phrase: { numeroCNJ: processNumber20 } },
+          { match: { numeroProcesso: processNumber20 } },
+          { match: { numeroProcesso: rawNumber } },
+          { match: { numeroCNJ: processNumber20 } },
         ],
         minimum_should_match: 1
       }

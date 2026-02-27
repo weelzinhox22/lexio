@@ -12,6 +12,12 @@ export default async function ProcessesSearchPage() {
     redirect('/auth/login')
   }
 
+  const { data: clients } = await supabase
+    .from('clients')
+    .select('id, name')
+    .eq('user_id', user.id)
+    .order('name')
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,7 +27,7 @@ export default async function ProcessesSearchPage() {
         </p>
       </div>
 
-      <ProcessesSearchByNumber />
+      <ProcessesSearchByNumber clients={clients || []} />
     </div>
   )
 }

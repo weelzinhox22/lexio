@@ -5,7 +5,8 @@
 /**
  * Formata CPF: 000.000.000-00
  */
-export function formatCPF(value: string): string {
+export function formatCPF(value: string | null | undefined): string {
+  if (!value) return ''
   const numbers = value.replace(/\D/g, '')
   if (numbers.length <= 11) {
     return numbers
@@ -19,7 +20,8 @@ export function formatCPF(value: string): string {
 /**
  * Formata CNPJ: 00.000.000/0000-00
  */
-export function formatCNPJ(value: string): string {
+export function formatCNPJ(value: string | null | undefined): string {
+  if (!value) return ''
   const numbers = value.replace(/\D/g, '')
   if (numbers.length <= 14) {
     return numbers
@@ -34,7 +36,8 @@ export function formatCNPJ(value: string): string {
 /**
  * Formata CPF ou CNPJ automaticamente baseado no tamanho
  */
-export function formatCPFCNPJ(value: string): string {
+export function formatCPFCNPJ(value: string | null | undefined): string {
+  if (!value) return ''
   const numbers = value.replace(/\D/g, '')
   if (numbers.length <= 11) {
     return formatCPF(value)
@@ -45,7 +48,8 @@ export function formatCPFCNPJ(value: string): string {
 /**
  * Formata telefone: (00) 00000-0000 ou (00) 0000-0000
  */
-export function formatPhone(value: string): string {
+export function formatPhone(value: string | null | undefined): string {
+  if (!value) return ''
   const numbers = value.replace(/\D/g, '')
   if (numbers.length <= 10) {
     return numbers
@@ -61,7 +65,8 @@ export function formatPhone(value: string): string {
 /**
  * Formata número de processo: 0000000-00.0000.0.00.0000
  */
-export function formatProcessNumber(value: string): string {
+export function formatProcessNumber(value: string | null | undefined): string {
+  if (!value) return ''
   const numbers = value.replace(/\D/g, '')
   if (numbers.length <= 20) {
     return numbers

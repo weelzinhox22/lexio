@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { tribunalScraper } from '@/lib/scraping/tribunal-scraper'
+import { searchCNA } from '@/lib/cna-api'
 
 export async function POST(request: Request) {
   try {
@@ -21,38 +22,55 @@ export async function POST(request: Request) {
     console.log(`🔍 Buscando processos por OAB: ${oabNumber}/${uf}`)
     const debugLog: string[] = []
 
-    // 1. Tentar busca via DataJud (Mais rápido e oficial)
     let processos: any[] = []
+    let lawyerName: string | undefined = undefined
+    let lawyerType: string | undefined = undefined
     let source = 'datajud'
 
+    // ===== ETAPA 0: CNA - Cadastro Nacional dos Advogados (OAB) =====
+    // Fonte mais confiável para identificar o advogado. Funciona para TODOS os estados.
+    try {
+      debugLog.push(`[0] Consultando CNA (Cadastro Nacional dos Advogados)...`)
+      const cnaResult = await searchCNA(oabNumber, uf)
+      if (cnaResult) {
+        lawyerName = cnaResult.nome
+        lawyerType = cnaResult.tipo
+        debugLog.push(`[0] CNA ✅ ${cnaResult.nome} - OAB ${cnaResult.inscricao}/${cnaResult.uf} (${cnaResult.tipo})`)
+      } else {
+        debugLog.push(`[0] CNA: Nenhum advogado encontrado para OAB ${oabNumber}/${uf}`)
+      }
+    } catch (cnaError: any) {
+      debugLog.push(`[0] CNA ERRO: ${cnaError.message}`)
+      console.error('[CNA Error]:', cnaError.message)
+    }
+
+    // ===== ETAPA 1: DataJud - Busca de processos =====
     try {
       debugLog.push(`[1] Iniciando busca DataJud para OAB ${oabNumber}/${uf}`)
       const { searchDataJudByOAB } = await import('@/lib/datajud-api')
-      processos = await searchDataJudByOAB(oabNumber, uf)
+      const djResult = await searchDataJudByOAB(oabNumber, uf)
+      processos = djResult.processes || []
+      // Se DataJud encontrou o nome e CNA não encontrou, usar o do DataJud
+      if (!lawyerName && djResult.lawyerName) {
+        lawyerName = djResult.lawyerName
+      }
       debugLog.push(`[1] DataJud retornou ${processos?.length || 0} processos`)
     } catch (djError: any) {
       debugLog.push(`[1] DataJud ERRO: ${djError.message}`)
       console.error('[DataJud OAB Error]:', djError.message)
     }
 
-    // 2. Se DataJud não retornar nada (ou falhar), tentar scraper local (TJBA etc)
+    // ===== ETAPA 2: Scraper (fallback se DataJud falhar) =====
     if (!processos || processos.length === 0) {
       debugLog.push(`[2] DataJud sem resultados. Tentando scraper para TJ${uf}...`)
       try {
-        processos = await tribunalScraper.searchByOAB(oabNumber, uf)
+        const scraperResult = await tribunalScraper.searchByOAB(oabNumber, uf)
+        processos = scraperResult
         source = 'scraper'
         debugLog.push(`[2] Scraper retornou ${processos?.length || 0} processos`)
       } catch (scraperError: any) {
         debugLog.push(`[2] Scraper ERRO: ${scraperError.message}`)
         console.error('[Scraper OAB Error]:', scraperError.message)
-        // Se ambos falharem, podemos tentar as outras funções de busca real do próprio route.ts
-        try {
-          processos = await searchRealOABProcesses(oabNumber, uf)
-          source = 'legacy_search'
-          debugLog.push(`[3] Legacy search retornou ${processos?.length || 0} processos`)
-        } catch (legacyError: any) {
-          debugLog.push(`[3] Legacy ERRO: ${legacyError.message}`)
-        }
       }
     }
 
@@ -60,6 +78,8 @@ export async function POST(request: Request) {
       success: true,
       processes: processos || [],
       count: processos?.length || 0,
+      lawyerName,
+      lawyerType,
       source,
       debug: debugLog
     })
@@ -72,195 +92,6 @@ export async function POST(request: Request) {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
   }
-}
-
-// Integração real com APIs de tribunais
-async function searchRealOABProcesses(oabNumber: string, uf: string): Promise<any[]> {
-  const tribunalAPIs = {
-    'SP': searchTJSPProcesses,
-    'RJ': searchTJRJProcesses,
-    'BA': searchTJBAProcesses,
-    'MG': searchTJMGProcesses,
-    'RS': searchTJRSProcesses
-  }
-
-  const searchFunction = tribunalAPIs[uf as keyof typeof tribunalAPIs]
-
-  if (!searchFunction) {
-    console.warn(`Busca por OAB não implementada para o TJ${uf}`)
-    return []
-  }
-
-  try {
-    return await searchFunction(oabNumber)
-  } catch (error) {
-    console.error(`Erro ao buscar processos no TJ${uf}:`, error)
-    return []
-  }
-}
-
-// Implementação para TJSP (ESAJ)
-async function searchTJSPProcesses(oabNumber: string): Promise<any[]> {
-  // O TJSP não possui API pública direta, mas podemos tentar web scraping ou usar serviços terceiros
-  // Esta é uma implementação placeholder para demonstração
-  console.log(`Buscando processos do TJSP para OAB: ${oabNumber}`)
-
-  // Em produção, integrar com:
-  // - API do JusAPI (https://jusapi.com.br)
-  // - API do Juridoc (https://juridoc.com.br) 
-  // - Ou implementar web scraping do ESAJ
-
-  return []
-}
-
-// Implementação para TJRJ
-async function searchTJRJProcesses(oabNumber: string): Promise<any[]> {
-  console.log(`Buscando processos do TJRJ para OAB: ${oabNumber}`)
-  // Integração similar ao TJSP
-  return []
-}
-
-// Implementação para TJBA - Busca real por OAB
-async function searchTJBAProcesses(oabNumber: string): Promise<any[]> {
-  console.log(`Buscando processos do TJBA para OAB: ${oabNumber}`)
-
-  try {
-    // Primeiro, fazer a busca no TJBA usando o formulário de busca por advogado
-    const searchUrl = 'https://esaj.tjba.jus.br/cposg5/search.do'
-
-    const formData = new URLSearchParams()
-    formData.append('conversationId', '')
-    formData.append('dadosConsulta.localPesquisa.cdLocal', '-1')
-    formData.append('cbPesquisa', 'ADVOGADO')
-    formData.append('dadosConsulta.tipoNuProcesso', 'UNIFICADO')
-    formData.append('dadosConsulta.valorConsulta', oabNumber)
-    formData.append('uuidCaptcha', '')
-
-    const response = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': 'https://esaj.tjba.jus.br/cposg5/open.do',
-        'Origin': 'https://esaj.tjba.jus.br'
-      },
-      body: formData.toString()
-    })
-
-    if (!response.ok) {
-      console.warn(`TJBA retornou status ${response.status} para OAB ${oabNumber}`)
-      return []
-    }
-
-    const html = await response.text()
-
-    // Verificar se há resultados - padrões comuns de "nenhum processo"
-    if (html.includes('Nenhum processo encontrado') ||
-      html.includes('listaVazia') ||
-      html.includes('nenhum registro') ||
-      html.includes('resultado não localizado')) {
-      console.log(`Nenhum processo encontrado para OAB ${oabNumber} no TJBA`)
-      return []
-    }
-
-    // Verificar se há CAPTCHA ou bloqueio
-    if (html.includes('captcha') || html.includes('CAPTCHA') || html.includes('bloqueado')) {
-      console.warn(`TJBA exigiu CAPTCHA ou bloqueou acesso para OAB ${oabNumber}`)
-      return []
-    }
-
-    // Extrair processos do HTML com parsing mais robusto
-    const processos = extractTJBAProcessesFromHTML(html, oabNumber)
-
-    console.log(`Encontrados ${processos.length} processos para OAB ${oabNumber} no TJBA`)
-    return processos
-
-  } catch (error) {
-    console.error('Erro na integração com TJBA:', error)
-    return []
-  }
-}
-
-// Extrair processos do HTML do TJBA com parsing mais robusto
-function extractTJBAProcessesFromHTML(html: string, oabNumber: string): any[] {
-  const processos: any[] = []
-
-  try {
-    // Método mais robusto: buscar por linhas de tabela que contenham processos
-    const processoRegex = /<tr[^>]*class="(?:(?:ementa|fundo)?Claro|fundoEscuro)"[^>]*>([\s\S]*?)<\/tr>/gi
-
-    let match
-    while ((match = processoRegex.exec(html)) !== null) {
-      const linhaProcesso = match[1]
-
-      // Extrair número do processo
-      const numeroMatch = linhaProcesso.match(/numeroProcesso"[^>]*>\s*([^<]+)\s*<\/span>/i)
-      if (!numeroMatch) continue
-
-      const numeroProcesso = numeroMatch[1].trim()
-      if (!isValidCNJFormat(numeroProcesso)) continue
-
-      // Extrair classe processual
-      const classeMatch = linhaProcesso.match(/classeProcesso"[^>]*>\s*([^<]+)\s*<\/span>/i)
-      const classe = classeMatch ? classeMatch[1].trim() : 'Não informado'
-
-      // Extrair assunto
-      const assuntoMatch = linhaProcesso.match(/assuntoProcesso"[^>]*>\s*([^<]+)\s*<\/span>/i)
-      const assunto = assuntoMatch ? assuntoMatch[1].trim() : 'Não informado'
-
-      // Extrair situação (se disponível)
-      const situacaoMatch = linhaProcesso.match(/situacao"[^>]*>\s*([^<]+)\s*<\/span>/i)
-      const situacao = situacaoMatch ? situacaoMatch[1].trim() : 'Em Andamento'
-
-      // Extrair data de distribuição (se disponível)
-      const dataMatch = linhaProcesso.match(/dataDistribuicao"[^>]*>\s*([^<]+)\s*<\/span>/i)
-      const dataDistribuicao = dataMatch ? dataMatch[1].trim() : new Date().toISOString().split('T')[0]
-
-      processos.push({
-        numeroProcesso: formatCNJNumber(numeroProcesso),
-        classe: classe,
-        assunto: assunto,
-        tribunal: 'TJBA',
-        representanteOAB: `${oabNumber}/BA`,
-        dataDistribuicao: dataDistribuicao,
-        situacao: situacao,
-        origem: 'TJBA',
-        ultimaAtualizacao: new Date().toISOString(),
-        urlDetalhes: `https://esaj.tjba.jus.br/cposg5/show.do?processo.codigo=${numeroProcesso.replace(/[^\d]/g, '')}`
-      })
-    }
-
-    // Método alternativo: buscar por links de processos
-    if (processos.length === 0) {
-      const linkRegex = /<a[^>]*href="[^"]*show\.do\?processo\.codigo=(\d+)[^"]*"[^>]*>/gi
-      let linkMatch
-
-      while ((linkMatch = linkRegex.exec(html)) !== null) {
-        const codigoProcesso = linkMatch[1]
-        if (codigoProcesso && codigoProcesso.length >= 7) {
-          processos.push({
-            numeroProcesso: formatCNJNumber(codigoProcesso),
-            classe: 'Não informado',
-            assunto: 'Não informado',
-            tribunal: 'TJBA',
-            representanteOAB: `${oabNumber}/BA`,
-            dataDistribuicao: new Date().toISOString().split('T')[0],
-            situacao: 'Em Andamento',
-            origem: 'TJBA',
-            ultimaAtualizacao: new Date().toISOString(),
-            urlDetalhes: `https://esaj.tjba.jus.br/cposg5/show.do?processo.codigo=${codigoProcesso}`
-          })
-        }
-      }
-    }
-
-  } catch (error) {
-    console.error('Erro ao extrair processos do HTML do TJBA:', error)
-  }
-
-  return processos
 }
 
 // Validar formato CNJ (NNNNNNN-DD.AAAA.J.TR.OOOO)

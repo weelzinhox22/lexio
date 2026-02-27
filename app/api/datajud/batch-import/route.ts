@@ -67,6 +67,47 @@ export async function POST(request: NextRequest) {
         processId?: string
     }> = []
 
+    let resolvedClientId = clientId;
+    if (!resolvedClientId) {
+        // Find existing generic client or create one
+        const { data: existingClient } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('name', 'Cliente Padrão (Sem Vínculo)')
+            .limit(1)
+            .single()
+
+        if (existingClient?.id) {
+            resolvedClientId = existingClient.id
+        } else {
+            const { data: newClient } = await supabase
+                .from('clients')
+                .insert({
+                    user_id: user.id,
+                    name: 'Cliente Padrão (Sem Vínculo)',
+                    client_type: 'person',
+                    status: 'active',
+                    notes: 'Criado automaticamente na importação do DataJud porque processos exigem vínculo com algum cliente.'
+                })
+                .select('id')
+                .single()
+
+            if (newClient?.id) {
+                resolvedClientId = newClient.id;
+            } else {
+                // If it fails to create for some reason, just grab the first client the user has
+                const { data: fallback } = await supabase
+                    .from('clients')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .limit(1)
+                    .single()
+                resolvedClientId = fallback?.id || null
+            }
+        }
+    }
+
     // Verificar processos já existentes
     const { data: existing } = await supabase
         .from('processes')
@@ -115,7 +156,7 @@ export async function POST(request: NextRequest) {
                     .from('processes')
                     .insert({
                         user_id: user.id,
-                        client_id: clientId || null,
+                        client_id: resolvedClientId || null,
                         process_number: formatted,
                         title: `Processo ${formatted}`,
                         court: tribunal,
@@ -147,7 +188,7 @@ export async function POST(request: NextRequest) {
             // Cadastrar com dados completos do DataJud
             const insertData: any = {
                 user_id: user.id,
-                client_id: clientId || null,
+                client_id: resolvedClientId || null,
                 process_number: formatted,
                 title: details.classe || `Processo ${formatted}`,
                 court: details.court,

@@ -17,6 +17,8 @@ export default function OabTestPage() {
     const [results, setResults] = useState<any[]>([])
     const [error, setError] = useState<string | null>(null)
     const [rawResponse, setRawResponse] = useState<any>(null)
+    const [lawyerName, setLawyerName] = useState<string | null>(null)
+    const [lawyerType, setLawyerType] = useState<string | null>(null)
 
     const ufOptions = [
         'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -34,6 +36,8 @@ export default function OabTestPage() {
         setResults([])
         setError(null)
         setRawResponse(null)
+        setLawyerName(null)
+        setLawyerType(null)
 
         try {
             const response = await fetch('/api/datajud/search-by-oab', {
@@ -50,8 +54,12 @@ export default function OabTestPage() {
             }
 
             setResults(data.processes || [])
+            setLawyerName(data.lawyerName || null)
+            setLawyerType(data.lawyerType || null)
 
-            if (data.processes.length === 0) {
+            if (data.lawyerName && data.processes.length === 0) {
+                toast.info(`Advogado identificado: ${data.lawyerName}. Sem processos públicos encontrados.`)
+            } else if (data.processes.length === 0) {
                 toast.info('Nenhum processo encontrado')
             } else {
                 toast.success(`${data.processes.length} processos encontrados`)
@@ -144,6 +152,24 @@ export default function OabTestPage() {
                         </Card>
                     )}
 
+                    {/* Card do Advogado (CNA) */}
+                    {lawyerName && (
+                        <Card className="border-green-200 bg-green-50 shadow-md">
+                            <CardContent className="pt-6 flex gap-3">
+                                <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-green-900 text-lg">{lawyerName}</p>
+                                    <p className="text-sm text-green-700">
+                                        OAB {oabNumber}/{uf} • {lawyerType || 'ADVOGADO'}
+                                    </p>
+                                    <p className="text-xs text-green-600 mt-1">
+                                        ✅ Identificado via CNA (Cadastro Nacional dos Advogados)
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {results.length > 0 ? (
                         <div className="grid grid-cols-1 gap-4">
                             <div className="flex items-center justify-between mb-2">
@@ -158,15 +184,15 @@ export default function OabTestPage() {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className="font-mono font-bold text-blue-700">{process.numeroProcesso || process.numeroCNJ}</p>
-                                                <p className="text-sm text-slate-700 mt-1">{process.classe || process.classeProcessual}</p>
+                                                <p className="text-sm text-slate-700 mt-1">{process.classe?.nome || process.classe || process.classeProcessual}</p>
                                             </div>
                                             <Badge variant="secondary" className="bg-slate-100">
                                                 {process.tribunal || process.origem || 'DataJud'}
                                             </Badge>
                                         </div>
-                                        {process.assunto && (
+                                        {(process.assuntos?.[0]?.nome || process.assunto) && (
                                             <p className="text-xs text-slate-500 line-clamp-1 italic">
-                                                Assunto: {process.assunto}
+                                                Assunto: {process.assuntos?.[0]?.nome || process.assunto}
                                             </p>
                                         )}
                                     </CardContent>
@@ -174,11 +200,34 @@ export default function OabTestPage() {
                             ))}
                         </div>
                     ) : !isSearching && !error && (
-                        <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 text-slate-400">
-                            <Search className="h-12 w-12 mb-4 opacity-20" />
-                            <p>Os resultados aparecerão aqui após a busca.</p>
+                        <div className="flex flex-col items-center justify-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 text-slate-400">
+                            {lawyerName ? (
+                                <>
+                                    <AlertCircle className="h-12 w-12 mb-4 text-amber-400" />
+                                    <p className="text-slate-700 font-semibold">Nenhum processo encontrado automaticamente</p>
+                                    <p className="text-xs mt-1 text-slate-500 max-w-md text-center">
+                                        O advogado <span className="font-bold">{lawyerName}</span> foi identificado, mas não foi possível localizar processos via busca automática.
+                                    </p>
+                                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-left max-w-sm">
+                                        <p className="text-xs font-semibold text-amber-800 mb-2">💡 O que fazer:</p>
+                                        <ul className="text-xs text-amber-700 space-y-1.5">
+                                            <li><strong>1.</strong> Use o botão <strong>&quot;Pesquisar&quot;</strong> na tela de processos para buscar por número do processo.</li>
+                                            <li><strong>2.</strong> Ou cadastre seus processos <strong>manualmente</strong> clicando em <strong>&quot;Novo Processo&quot;</strong>.</li>
+                                        </ul>
+                                        <p className="text-[10px] text-amber-600 mt-2 italic">
+                                            Alguns tribunais não disponibilizam dados de advogados na API pública, exigindo consulta manual.
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Search className="h-12 w-12 mb-4 opacity-20" />
+                                    <p>Os resultados aparecerão aqui após a busca.</p>
+                                </>
+                            )}
                         </div>
                     )}
+
 
                     {/* Raw Response Debug */}
                     {rawResponse && (

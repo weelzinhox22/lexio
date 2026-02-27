@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-import { LogOut, FileText, CheckCircle, Scale, ShieldCheck, Mail, Phone, CalendarDays } from 'lucide-react'
+import { LogOut, FileText, CheckCircle, Scale, ShieldCheck, Mail, Phone, CalendarDays, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -109,7 +109,7 @@ export default async function PortalDashboardPage() {
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold">Olá, {clientAny.name.split(' ')[0]}</h1>
                             <p className="text-indigo-100 mt-2 max-w-xl text-sm md:text-base leading-relaxed">
-                                Acompanhe os andamentos do seu processo em tempo real. Esta interface privada foi atualizada por <strong className="text-white">{lawyerName}</strong> e está protegida com criptografia.
+                                Acompanhe os andamentos do seu processo em tempo real. Esta interface privada foi gerada pela <strong className="text-white">Themixa</strong>, atualizada por <strong className="text-white">{lawyerName}</strong> e está protegida com criptografia.
                             </p>
                         </div>
                         <div className="bg-indigo-800/50 p-4 rounded-xl shrink-0 flex items-center gap-3 w-full sm:w-auto">
@@ -219,12 +219,15 @@ export default async function PortalDashboardPage() {
                                 </p>
 
                                 <div className="space-y-3">
-                                    <a href="mailto:contato@escritorio.adv.br" className="flex items-center gap-3 text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-200 hover:border-indigo-400 transition-colors shadow-sm group">
-                                        <div className="bg-indigo-100 p-2 rounded-md group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                            <Mail className="h-4 w-4 text-indigo-600 group-hover:text-white" />
+                                    <div className="flex items-center gap-3 text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                        <div className="bg-indigo-100 p-2 rounded-md">
+                                            <User className="h-4 w-4 text-indigo-600" />
                                         </div>
-                                        <span className="font-medium truncate">{client.email || 'contato@email.com'}</span>
-                                    </a>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-xs text-slate-400 uppercase tracking-widest">Advogado(a)</span>
+                                            <span className="font-bold text-slate-800">{lawyerName}</span>
+                                        </div>
+                                    </div>
                                     <a
                                         href={lawyer?.phone ? `https://wa.me/55${lawyer.phone.replace(/\D/g, '')}` : '#'}
                                         target="_blank"
@@ -253,7 +256,7 @@ export default async function PortalDashboardPage() {
             <footer className="max-w-6xl mx-auto px-4 py-12 border-t border-slate-200 mt-12">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-xs text-slate-400">
-                        © {new Date().getFullYear()} {lawyerName}. Todos os direitos reservados.
+                        © {new Date().getFullYear()} Themixa. Todos os direitos reservados.
                     </p>
                     <div className="flex gap-6">
                         <Link href="/portal/legal/privacy" className="text-xs text-slate-400 hover:text-indigo-600 underline underline-offset-4">Política de Privacidade</Link>

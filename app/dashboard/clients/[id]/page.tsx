@@ -48,7 +48,7 @@ export default async function ClientViewPage({
     .from('onboarding_links')
     .select('token, status, completed_at')
     .eq('client_id', id)
-    .single()
+    .maybeSingle()
 
   // Buscar documentos do cliente
   const { data: documents } = await supabase
