@@ -25,6 +25,7 @@ import {
   KanbanSquare,
   Sparkles,
   BrainCircuit,
+  MessageSquare,
 } from "lucide-react"
 
 const navigationGroups = [
@@ -77,6 +78,7 @@ const navigationGroups = [
     items: [
       { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
       { name: "Painel de Usuários", href: "/dashboard/admin/users", icon: Shield },
+      { name: "Sugestões", href: "/dashboard/admin/suggestions", icon: MessageSquare },
       { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
     ],
   },

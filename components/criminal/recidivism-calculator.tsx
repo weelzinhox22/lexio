@@ -6,19 +6,55 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText } from "lucide-react"
+import { AlertCircle, CheckCircle2, Copy, History, Scale, FileText, MessageSquare, Send, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { differenceInYears, format } from "date-fns"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { createClient } from "@/lib/supabase/client"
 
 export function RecidivismCalculator() {
+    const supabase = createClient()
     const [extinctionDate, setExtinctionDate] = useState("")
     const [newFactDate, setNewFactDate] = useState(format(new Date(), "yyyy-MM-dd"))
+    const [suggestion, setSuggestion] = useState("")
+    const [isSending, setIsSending] = useState(false)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [result, setResult] = useState<{
         isRecidivist: boolean
         yearsPassed: number
         remainingYears?: number
         thesisAvailable: boolean
     } | null>(null)
+
+    const handleSendSuggestion = async () => {
+        if (!suggestion.trim()) {
+            toast.error("Por favor, escreva sua sugestão.")
+            return
+        }
+
+        setIsSending(true)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+
+            const { error } = await supabase.from('user_suggestions').insert({
+                user_id: user?.id,
+                category: 'criminal_calculator',
+                content: suggestion
+            })
+
+            if (error) throw error
+
+            toast.success("Sugestão enviada com sucesso! Obrigado.")
+            setSuggestion("")
+            setIsDialogOpen(false)
+        } catch (error) {
+            console.error(error)
+            toast.error("Erro ao enviar sugestão")
+        } finally {
+            setIsSending(false)
+        }
+    }
 
     useEffect(() => {
         if (extinctionDate && newFactDate) {
@@ -80,8 +116,8 @@ export function RecidivismCalculator() {
 
                     {result && (
                         <div className={`mt-6 p-4 rounded-xl border-2 transition-all ${result.isRecidivist
-                                ? "bg-amber-50 border-amber-200"
-                                : "bg-green-50 border-green-200"
+                            ? "bg-amber-50 border-amber-200"
+                            : "bg-green-50 border-green-200"
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.isRecidivist ? (
@@ -145,11 +181,48 @@ export function RecidivismCalculator() {
                     </CardContent>
                 </Card>
 
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                    <p className="text-[10px] text-slate-500 italic">
-                        Esta análise é baseada em regras automáticas predefinidas. A conferência jurídica final é obrigatória pelo advogado responsável.
-                    </p>
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col gap-3">
+                    <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                        <p className="text-[10px] text-slate-500 italic leading-tight">
+                            Esta análise é baseada em regras automáticas predefinidas. A conferência jurídica final é obrigatória pelo advogado responsável.
+                        </p>
+                    </div>
+
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs gap-2 h-8">
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                Sugerir nova tese ou melhoria
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Enviar Sugestão</DialogTitle>
+                                <DialogDescription>
+                                    Sentiu falta de algum artigo ou tese específica aqui? Conte para nós.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-2">
+                                <Textarea
+                                    placeholder="Ex: Adicionar tese sobre detração penal..."
+                                    value={suggestion}
+                                    onChange={(e) => setSuggestion(e.target.value)}
+                                    className="min-h-[120px]"
+                                />
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    onClick={handleSendSuggestion}
+                                    disabled={isSending}
+                                    className="gap-2"
+                                >
+                                    {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                    Enviar para o Admin
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
