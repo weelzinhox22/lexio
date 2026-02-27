@@ -29,6 +29,7 @@ import {
   Heart,
   Landmark,
   ShoppingCart,
+  Search,
 } from "lucide-react"
 
 const navigationGroups = [
@@ -87,6 +88,8 @@ const navigationGroups = [
       { name: "Painel de Usuários", href: "/dashboard/admin/users", icon: Shield },
       { name: "Sugestões", href: "/dashboard/admin/suggestions", icon: MessageSquare },
       { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
+      { name: "Teste API DataJud", href: "/dashboard/admin/datajud-test", icon: BarChart3 },
+      { name: "Teste Busca OAB", href: "/dashboard/admin/oab-test", icon: Search },
     ],
   },
   {

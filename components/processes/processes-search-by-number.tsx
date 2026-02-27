@@ -19,15 +19,15 @@ type ProcessMetadata = {
 
 type ApiRateLimitBody =
   | {
-      error: string
-      limit: number
-      remaining: number
-      resetAt: string
-    }
+    error: string
+    limit: number
+    remaining: number
+    resetAt: string
+  }
   | {
-      error: string
-      retryAfterSeconds?: number
-    }
+    error: string
+    retryAfterSeconds?: number
+  }
 
 function formatLastUpdate(value: string | null): string {
   if (!value) return '—'
@@ -47,45 +47,31 @@ function formatCNJFromDigits(digits20: string): string {
 }
 
 const TRIBUNALS: { value: string; label: string }[] = [
-  { value: 'TRF1', label: 'TRF1' },
-  { value: 'TRF2', label: 'TRF2' },
-  { value: 'TRF3', label: 'TRF3' },
-  { value: 'TRF4', label: 'TRF4' },
-  { value: 'TRF5', label: 'TRF5' },
-  { value: 'TRF6', label: 'TRF6' },
-  { value: 'TJDFT', label: 'TJDFT' },
-  // TJs (estaduais) — MVP simples
-  { value: 'TJAC', label: 'TJAC' },
-  { value: 'TJAL', label: 'TJAL' },
-  { value: 'TJAP', label: 'TJAP' },
-  { value: 'TJAM', label: 'TJAM' },
-  { value: 'TJBA', label: 'TJBA' },
-  { value: 'TJCE', label: 'TJCE' },
-  { value: 'TJES', label: 'TJES' },
-  { value: 'TJGO', label: 'TJGO' },
-  { value: 'TJMA', label: 'TJMA' },
-  { value: 'TJMT', label: 'TJMT' },
-  { value: 'TJMS', label: 'TJMS' },
-  { value: 'TJMG', label: 'TJMG' },
-  { value: 'TJPA', label: 'TJPA' },
-  { value: 'TJPB', label: 'TJPB' },
-  { value: 'TJPR', label: 'TJPR' },
-  { value: 'TJPE', label: 'TJPE' },
-  { value: 'TJPI', label: 'TJPI' },
-  { value: 'TJRJ', label: 'TJRJ' },
-  { value: 'TJRN', label: 'TJRN' },
-  { value: 'TJRS', label: 'TJRS' },
-  { value: 'TJRO', label: 'TJRO' },
-  { value: 'TJRR', label: 'TJRR' },
-  { value: 'TJSC', label: 'TJSC' },
-  { value: 'TJSE', label: 'TJSE' },
-  { value: 'TJSP', label: 'TJSP' },
-  { value: 'TJTO', label: 'TJTO' },
+  // Justiça Federal
+  { value: '01', label: 'TRF1 - 1ª Região' },
+  { value: '02', label: 'TRF2 - 2ª Região' },
+  { value: '03', label: 'TRF3 - 3ª Região' },
+  { value: '04', label: 'TRF4 - 4ª Região' },
+  { value: '05', label: 'TRF5 - 5ª Região' },
+  { value: '06', label: 'TRF6 - 6ª Região' },
+  // Principais TJs
+  { value: '26', label: 'TJSP - São Paulo' },
+  { value: '19', label: 'TJRJ - Rio de Janeiro' },
+  { value: '05', label: 'TJBA - Bahia' },
+  { value: '13', label: 'TJMG - Minas Gerais' },
+  { value: '07', label: 'TJDFT - Distrito Federal' },
+  { value: '16', label: 'TJPR - Paraná' },
+  { value: '21', label: 'TJRS - Rio Grande do Sul' },
+  // Justiça do Trabalho (Exemplos)
+  { value: '02', label: 'TRT2 - São Paulo' },
+  { value: '01', label: 'TRT1 - Rio de Janeiro' },
+  { value: '03', label: 'TRT3 - Minas Gerais' },
+  { value: '05', label: 'TRT5 - Bahia' },
 ]
 
 export function ProcessesSearchByNumber() {
   const [processNumberInput, setProcessNumberInput] = useState('')
-  const [tribunal, setTribunal] = useState<string>('TRF1')
+  const [tribunal, setTribunal] = useState<string>('26')
 
   const [results, setResults] = useState<ProcessMetadata[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -155,7 +141,8 @@ export function ProcessesSearchByNumber() {
             info.push({ label: 'Reset', value: new Date(resetMs).toLocaleString('pt-BR') })
           }
         }
-        if ('retryAfterSeconds' in (body || {}) && body?.retryAfterSeconds != null) {
+
+        if (body && 'retryAfterSeconds' in body && body.retryAfterSeconds != null) {
           info.push({ label: 'Tentar em', value: `${body.retryAfterSeconds}s` })
         }
         setRateInfo(info.length > 0 ? info : null)

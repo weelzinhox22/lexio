@@ -100,54 +100,30 @@ function normalizeProcessNumber(processNumber: string): string {
   return cleaned
 }
 
+import { parseCNJNumber, getDataJudApiUrl } from '@/lib/datajud-api'
+
 /**
  * Normaliza o tribunal para o índice público:
- * - Aceita: "TRF1", "TJDFT", "TJBA", "tjdft", "api_publica_trf1", etc
- * - Retorna: { indexName: "api_publica_trf1", court: "TRF1" }
  */
-export function normalizeTribunal(tribunal: string): { indexName: string; court: string } {
-  const raw = tribunal.trim()
-  if (!raw) throw new DataJudInputError('Parâmetro tribunal é obrigatório (ex: TRF1, TJDFT, TJBA).')
+export function normalizeTribunal(tribunal: string, branchCode?: string): { indexName: string; court: string } {
+  const url = getDataJudApiUrl(tribunal, branchCode)
+  if (!url) throw new DataJudInputError(`Tribunal não suportado: ${tribunal}`)
 
-  const withoutPrefix = raw.replace(/^api_publica_/i, '')
-  const upper = withoutPrefix.toUpperCase()
-
-  // MVP: suportar os exemplos oficiais + TJs (TJ+UF).
-  // - TRF1..TRF6
-  const trfMatch = upper.match(/^TRF([1-6])$/)
-  if (trfMatch) {
-    const n = trfMatch[1]
-    return { indexName: `api_publica_trf${n}`, court: `TRF${n}` }
-  }
-
-  if (upper === 'TJDFT' || upper === 'TJDFT') {
-    return { indexName: 'api_publica_tjdft', court: 'TJDFT' }
-  }
-
-  // TJs estaduais: TJ + UF (2 letras)
-  const tjUf = upper.match(/^TJ([A-Z]{2})$/)
-  if (tjUf) {
-    const uf = tjUf[1]
-    return { indexName: `api_publica_tj${uf.toLowerCase()}`, court: `TJ${uf}` }
-  }
-
-  // Permitir também já passar o "tjdft"/"tjba"/etc diretamente.
-  const lower = withoutPrefix.toLowerCase()
-  if (/^(tjdft|trf[1-6]|tj[a-z]{2})$/.test(lower)) {
-    // Derivar o court em maiúsculo
-    const court = lower.toUpperCase()
-    return { indexName: `api_publica_${lower}`, court }
-  }
-
-  throw new DataJudInputError('Tribunal inválido. Exemplos: TRF1, TJDFT, TJBA.')
+  const indexName = url.split('/').filter(p => p.startsWith('api_publica')).pop() || ''
+  return { indexName, court: tribunal.toUpperCase() }
 }
 
-function buildMatchQuery(processNumber20: string) {
+function buildMatchQuery(processNumber20: string, rawNumber: string) {
   return {
     query: {
-      match: {
-        numeroProcesso: processNumber20,
-      },
+      bool: {
+        should: [
+          { match_phrase: { numeroProcesso: processNumber20 } },
+          { match_phrase: { numeroProcesso: rawNumber } },
+          { match_phrase: { numeroCNJ: processNumber20 } },
+        ],
+        minimum_should_match: 1
+      }
     },
     size: 20,
     sort: [{ dataHoraUltimaAtualizacao: { order: 'desc' } }],
@@ -189,7 +165,12 @@ function setCached(key: string, value: DataJudProcessMetadata[], now: number) {
   cache.set(key, { value, expiresAt: now + CACHE_TTL_MS })
 }
 
-async function fetchFromDataJud(indexName: string, court: string, processNumber20: string): Promise<DataJudProcessMetadata[]> {
+async function fetchFromDataJud(
+  indexName: string,
+  court: string,
+  processNumber20: string,
+  rawNumber: string
+): Promise<DataJudProcessMetadata[]> {
   const endpoint = `${DATAJUD_BASE_URL}/${indexName}/_search`
   const maxAttempts = 2
 
@@ -205,7 +186,7 @@ async function fetchFromDataJud(indexName: string, court: string, processNumber2
           'Content-Type': 'application/json',
           Authorization: `APIKey ${getApiKey()}`,
         },
-        body: JSON.stringify(buildMatchQuery(processNumber20)),
+        body: JSON.stringify(buildMatchQuery(processNumber20, rawNumber)),
         signal: controller.signal,
         cache: 'no-store',
       })
@@ -227,8 +208,8 @@ async function fetchFromDataJud(indexName: string, court: string, processNumber2
             ? `DataJud retornou HTML de erro (status ${res.status})`
             : `DataJud retornou status ${res.status}`,
           res.status
-          ,endpoint
-          ,text.slice(0, 2000)
+          , endpoint
+          , text.slice(0, 2000)
         )
       }
 
@@ -258,7 +239,13 @@ export async function getProcessByNumber(params: {
   processNumber: string
 }): Promise<DataJudProcessMetadata[]> {
   const processNumber20 = normalizeProcessNumber(params.processNumber)
-  const { indexName, court } = normalizeTribunal(params.tribunal)
+
+  // Tentar detectar tribunal do número CNJ para ser mais resiliente
+  const parsed = parseCNJNumber(params.processNumber)
+  const tribunalCode = parsed?.tribunalCode || params.tribunal
+  const branchCode = parsed?.branchCode
+
+  const { indexName, court } = normalizeTribunal(tribunalCode, branchCode)
 
   const now = Date.now()
   const key = cacheKey(indexName, processNumber20)
@@ -270,7 +257,7 @@ export async function getProcessByNumber(params: {
   if (existing) return await existing
 
   const p = (async () => {
-    const fresh = await fetchFromDataJud(indexName, court, processNumber20)
+    const fresh = await fetchFromDataJud(indexName, court, processNumber20, params.processNumber)
     // Cacheia inclusive resultado vazio
     setCached(key, fresh, Date.now())
     return fresh

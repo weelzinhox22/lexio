@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Plus, Search, List, Kanban, Upload } from "lucide-react"
+import { Plus, Search, List, Kanban, Upload, UserCheck } from "lucide-react"
 import Link from "next/link"
 import { ProcessList } from "@/components/processes/process-list"
 import { getPaginationParams, buildPaginatedResult } from "@/lib/supabase/pagination"
+import { OABSearchDialog } from "@/components/processes/oab-search-dialog"
 
 export default async function ProcessesPage({
   searchParams,
@@ -80,6 +81,12 @@ export default async function ProcessesPage({
               Importar em Lote
             </Button>
           </Link>
+          <OABSearchDialog>
+            <Button variant="outline" className="w-full sm:w-auto rounded-full shadow-sm">
+              <UserCheck className="mr-2 h-4 w-4 text-slate-500" />
+              Buscar por OAB
+            </Button>
+          </OABSearchDialog>
           <Link href="/dashboard/processes/new">
             <Button className="w-full sm:w-auto rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-semibold transition-all hover:shadow hover:-translate-y-0.5 px-4">
               <Plus className="mr-2 h-4 w-4" />
