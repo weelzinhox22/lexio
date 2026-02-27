@@ -26,6 +26,7 @@ import {
   Sparkles,
   BrainCircuit,
   MessageSquare,
+  Heart,
 } from "lucide-react"
 
 const navigationGroups = [
@@ -60,6 +61,7 @@ const navigationGroups = [
     category: "Ferramentas",
     items: [
       { name: "Execução Penal", href: "/dashboard/criminal/calculator", icon: Scale },
+      { name: "Divórcio & Partilha", href: "/dashboard/family/partilha", icon: Heart },
       { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
       { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
     ],
