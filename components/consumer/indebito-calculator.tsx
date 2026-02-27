@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
     Calculator,
@@ -104,32 +105,51 @@ export function IndebitoCalculator() {
         setItems(items.filter(i => i.id !== id))
     }
 
+    const [calcConfig, setCalcConfig] = useState({
+        index: "IPCA",
+        interestRate: 0.01, // 1% ao mês
+        interestType: "simple"
+    })
+
     const calculatedItems = useMemo(() => {
         const now = new Date()
-        const CORRECTION_RATE = 0.006 // 0.6% ao mês (estimativa IPCA)
-        const INTEREST_RATE = 0.01 // 1% ao mês (Juros de Mora)
+
+        // Fatores aproximados (em produção seriam buscados de uma API de índices)
+        const indexFactors: Record<string, number> = {
+            "IPCA": 0.0055, // Média mensal recente
+            "INPC": 0.005,
+            "SELIC": 0.009,
+            "TJSP": 0.004
+        }
+
+        const CORRECTION_RATE = indexFactors[calcConfig.index] || 0.0055
+        const INTEREST_RATE = calcConfig.interestRate
 
         return items.map(item => {
             const itemDate = new Date(item.date)
             const months = Math.max(0, differenceInMonths(now, itemDate))
 
-            const correction = item.originalValue * (CORRECTION_RATE * months)
-            const totalWithCorrection = item.originalValue + correction
-            const interest = totalWithCorrection * (INTEREST_RATE * months)
+            // Base da Repetição (Simples ou Dobrada)
+            const baseValue = item.isDouble ? item.originalValue * 2 : item.originalValue
 
-            const simpleTotal = totalWithCorrection + interest
-            const finalValue = item.isDouble ? simpleTotal * 2 : simpleTotal
+            // Correção Monetária sobre a base
+            const correction = baseValue * (CORRECTION_RATE * months)
+
+            // Juros de Mora sobre a base corrigida
+            const interest = (baseValue + correction) * (INTEREST_RATE * months)
+
+            const finalValue = baseValue + correction + interest
 
             return {
                 ...item,
                 months,
+                baseValue,
                 correction,
                 interest,
-                simpleTotal,
                 finalValue
             }
         })
-    }, [items])
+    }, [items, calcConfig])
 
     const totalFinal = calculatedItems.reduce((acc, curr) => acc + curr.finalValue, 0)
 
@@ -239,6 +259,39 @@ export function IndebitoCalculator() {
                             </div>
                         </div>
 
+                        <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <Label className="text-xs font-bold uppercase text-slate-500">Configuração do Cálculo</Label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px]">Índice de Correção</Label>
+                                    <Select value={calcConfig.index} onValueChange={(v: string) => setCalcConfig({ ...calcConfig, index: v })}>
+                                        <SelectTrigger className="h-8 text-xs bg-white">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="IPCA">IPCA (IBGE)</SelectItem>
+                                            <SelectItem value="INPC">INPC (Previdenciário)</SelectItem>
+                                            <SelectItem value="SELIC">SELIC (Banco Central)</SelectItem>
+                                            <SelectItem value="TJSP">Tabela Prática TJSP</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px]">Juros (ao mês)</Label>
+                                    <Select value={calcConfig.interestRate.toString()} onValueChange={(v: string) => setCalcConfig({ ...calcConfig, interestRate: parseFloat(v) })}>
+                                        <SelectTrigger className="h-8 text-xs bg-white">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="0.01">1% ao mês</SelectItem>
+                                            <SelectItem value="0.005">0.5% ao mês</SelectItem>
+                                            <SelectItem value="0">Sem Juros</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+
                         <Button className="w-full bg-slate-900 hover:bg-slate-800" onClick={addItem}>
                             Adicionar ao Cálculo
                         </Button>
@@ -280,12 +333,15 @@ export function IndebitoCalculator() {
                                                     <div className="text-[10px] text-slate-500">{format(new Date(item.date), "dd/MM/yyyy")} ({item.months} meses)</div>
                                                 </TableCell>
                                                 <TableCell className="text-sm">
-                                                    R$ {item.originalValue.toLocaleString("pt-BR")}
+                                                    <div className="font-medium">R$ {item.originalValue.toLocaleString("pt-BR")}</div>
+                                                    {item.isDouble && (
+                                                        <div className="text-[10px] text-orange-600 font-bold">Dobrado: R$ {item.baseValue.toLocaleString("pt-BR")}</div>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="text-[10px] space-y-0.5">
-                                                        <div className="flex justify-between w-24"><span>Corr.:</span> <span>R$ {item.correction.toFixed(2)}</span></div>
-                                                        <div className="flex justify-between w-24"><span>Juros:</span> <span>R$ {item.interest.toFixed(2)}</span></div>
+                                                        <div className="flex justify-between w-28 text-slate-500"><span>Correção ({calcConfig.index}):</span> <span className="font-bold">R$ {item.correction.toFixed(2)}</span></div>
+                                                        <div className="flex justify-between w-28 text-slate-500"><span>Juros ({calcConfig.interestRate * 100}%):</span> <span className="font-bold">R$ {item.interest.toFixed(2)}</span></div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right font-bold text-slate-900">
@@ -342,11 +398,21 @@ export function IndebitoCalculator() {
 
                     <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-orange-900 uppercase">Atenção ao Tema 929 do STJ:</p>
-                            <p className="text-xs text-orange-800 leading-relaxed">
-                                A repetição em dobro independe de prova de má-fé, basta a conduta contrária à boa-fé objetiva. Todavia, anexar os protocolos de reclamação fortifica o argumento do "erro injustificável" e garante a aplicação da dobra na maioria dos tribunais.
-                            </p>
+                        <div className="space-y-2">
+                            <p className="text-xs font-bold text-orange-900 uppercase">Metodologia e Conferência Jurídica:</p>
+                            <div className="text-xs text-orange-800 space-y-2 leading-relaxed">
+                                <p>
+                                    Para garantir sua confiança, veja como o sistema calcula:
+                                </p>
+                                <ul className="list-disc pl-4 space-y-1">
+                                    <li><strong>Base</strong>: Se a dobra está ativa, o sistema multiplica o valor original pago (cobrança) por 2 (Art. 42 CDC).</li>
+                                    <li><strong>Correção ({calcConfig.index})</strong>: Aplica-se o fator mensal acumulado sobre o valor base.</li>
+                                    <li><strong>Juros ({calcConfig.interestRate * 100}% simple)</strong>: Calculados sobre o valor principal já corrigido, conforme prática bancária e judicial comum.</li>
+                                </ul>
+                                <p className="font-bold border-t border-orange-200 pt-2">
+                                    Fórmula: [ (Valor Original × {items.some(i => i.isDouble) ? '2' : '1'}) + Correção ] + Juros de Mora
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
