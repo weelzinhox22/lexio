@@ -89,6 +89,15 @@ const navigationGroups = [
       { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
     ],
   },
+  {
+    category: "Jurídico & Compliance",
+    items: [
+      { name: "Privacidade", href: "/privacy", icon: Shield },
+      { name: "Termos de Uso", href: "/terms", icon: FileText },
+      { name: "LGPD", href: "/lgpd", icon: Shield },
+      { name: "Cookies", href: "/cookies", icon: Shield },
+    ],
+  },
 ]
 
 interface DashboardSidebarProps {

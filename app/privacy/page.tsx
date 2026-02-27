@@ -50,12 +50,12 @@ export default function PrivacyPage() {
                 <h2>2. Dados Coletados</h2>
                 <h3>2.1 Dados fornecidos pelo Usuário</h3>
                 <ul>
-                    <li><strong>Dados de cadastro:</strong> nome completo, endereço de e-mail, senha (criptografada), telefone;</li>
-                    <li><strong>Dados profissionais:</strong> número da OAB, especialidades, nome do escritório;</li>
+                    <li><strong>Dados de pagamento:</strong> registros de assinaturas e histórico financeiro via Stripe;</li>
                     <li><strong>Dados de clientes:</strong> informações de clientes cadastrados pelo Usuário na plataforma (nome, CPF/CNPJ, endereço, contatos);</li>
                     <li><strong>Dados processuais:</strong> números de processos, datas de prazos, informações de audiências;</li>
                     <li><strong>Dados financeiros:</strong> registros de transações financeiras do escritório (honorários, custas);</li>
-                    <li><strong>Documentos:</strong> arquivos enviados pelo Usuário à Plataforma.</li>
+                    <li><strong>Documentos:</strong> arquivos enviados pelo Usuário à Plataforma;</li>
+                    <li><strong>Dados de IA:</strong> prompts, teses sugeridas e interações com os assistentes virtuais.</li>
                 </ul>
 
                 <h3>2.2 Dados coletados automaticamente</h3>
@@ -143,7 +143,20 @@ export default function PrivacyPage() {
                     <li>Senhas armazenadas com hash bcrypt (nunca em texto plano);</li>
                     <li>Backups automáticos diários;</li>
                     <li>Monitoramento contínuo de acessos e atividades suspeitas;</li>
-                    <li>Revisão periódica de políticas de segurança.</li>
+                    <li>Revisão periódica de políticas de segurança;</li>
+                    <li><strong>Anonimização de IA:</strong> Seus dados privados não são utilizados para treinamento público de modelos de terceiros sem autorização expressa.</li>
+                </ul>
+            </section>
+
+            <section id="portal-cliente" className="legal-section mb-12">
+                <h2>6.3 Portal do Cliente e Onboarding</h2>
+                <p>
+                    O Themixa oferece uma funcionalidade de **Portal do Cliente**, onde o Usuário (Advogado) pode convidar seus próprios clientes para fornecer dados iniciais.
+                </p>
+                <ul>
+                    <li>O Advogado é o **Controlador** dos dados de seus clientes.</li>
+                    <li>O Themixa atua como **Operador** técnico ao processar esses dados.</li>
+                    <li>Dados coletados via formulários de onboarding são criptografados e acessíveis apenas pelo Advogado responsável.</li>
                 </ul>
             </section>
 

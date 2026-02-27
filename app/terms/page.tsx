@@ -101,6 +101,15 @@ export default function TermsPage() {
                     Alertas de prazos, notificações e demais funcionalidades são meramente informativas e não dispensam a conferência
                     direta nos autos processuais e nos sistemas oficiais do Poder Judiciário.
                 </p>
+                <h3>4.4 Inteligência Artificial</h3>
+                <p>
+                    A Plataforma utiliza modelos de IA para geração de teses, minutas e análise de dados. O Usuário reconhece que:
+                </p>
+                <ul>
+                    <li>A IA pode gerar resultados imprecisos ou incompletos ("alucinações");</li>
+                    <li>O Usuário é o único responsável pela revisão final de qualquer texto gerado pela IA;</li>
+                    <li>Não deve haver confiança cega nos cálculos ou teses sugeridas sem conferência legal prévia.</li>
+                </ul>
             </section>
 
             <section id="planos-pagamento" className="legal-section mb-12">
@@ -148,6 +157,10 @@ export default function TermsPage() {
                     O Usuário mantém a titularidade sobre todo o Conteúdo do Usuário inserido na Plataforma.
                     Ao inserir conteúdo, o Usuário concede ao Themixa uma licença limitada para processar,
                     armazenar e exibir tais conteúdos exclusivamente para a prestação dos serviços.
+                </p>
+                <h3>6.4 Templates Compartilhados</h3>
+                <p>
+                    Ao optar por "Salvar como Template Coletivo", o Usuário concede ao Themixa e aos demais usuários uma licença irrevogável, mundial e gratuita para utilizar as estruturas e minutas (mantendo a anonimização de dados reais) visando o benefício da comunidade jurídica da plataforma.
                 </p>
             </section>
 
