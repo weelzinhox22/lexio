@@ -27,6 +27,7 @@ import {
   BrainCircuit,
   MessageSquare,
   Heart,
+  Landmark,
 } from "lucide-react"
 
 const navigationGroups = [
