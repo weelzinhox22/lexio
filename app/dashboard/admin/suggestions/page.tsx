@@ -35,18 +35,31 @@ export default function AdminSuggestionsPage() {
 
     const fetchSuggestions = async () => {
         setIsLoading(true)
-        const { data, error } = await supabase
-            .from('user_suggestions')
-            .select('*, profiles(full_name, email)')
-            .order('created_at', { ascending: false })
+        try {
+            const { data, error } = await supabase
+                .from('user_suggestions')
+                .select('*, profiles!user_id(full_name, email)')
+                .order('created_at', { ascending: false })
 
-        if (error) {
-            console.error("Erro ao buscar sugestões:", error)
-            toast.error("Erro ao buscar sugestões: " + error.message)
-        } else {
-            setSuggestions(data || [])
+            if (error) {
+                console.error("Erro Supabase:", error)
+                // Se o join falhar, tenta buscar sem o join para não quebrar a tela
+                const { data: simpleData, error: simpleError } = await supabase
+                    .from('user_suggestions')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                
+                if (simpleError) throw simpleError
+                setSuggestions(simpleData || [])
+                toast.error("Erro ao carregar perfis, mas os dados básicos estão aqui.")
+            } else {
+                setSuggestions(data || [])
+            }
+        } catch (error: any) {
+            toast.error("Erro crítico: " + error.message)
+        } finally {
+            setIsLoading(false)
         }
-        setIsLoading(false)
     }
 
     const updateStatus = async (id: string, status: Suggestion['status']) => {
