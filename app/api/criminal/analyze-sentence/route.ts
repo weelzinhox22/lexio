@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+// Carregamento resiliente do pdfjs para ambiente Node
+let pdfjsLib: any;
+try {
+    pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+} catch (e) {
+    console.error('Falha ao carregar pdfjs-dist via require:', e);
+}
 
 export async function POST(req: Request) {
+    console.log('[API] Iniciando análise de sentença PDF...');
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
@@ -10,34 +18,47 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
         }
 
+        console.log(`[API] Arquivo recebido: ${file.name} (${file.size} bytes)`);
+
         const arrayBuffer = await file.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
 
-        // Carregar o PDF
+        if (!pdfjsLib) {
+            throw new Error('PDFJS Library não foi carregada corretamente no servidor.');
+        }
+
+        // Carregar o PDF com configurações seguras para Node
         const loadingTask = pdfjsLib.getDocument({
             data: uint8Array,
             useSystemFonts: true,
             disableFontFace: true,
+            disableWorker: true, // Importante para rodar em Server Actions/API Routes sem worker separado
         });
 
         const pdf = await loadingTask.promise;
+        console.log(`[API] PDF carregado com sucesso. Total de páginas: ${pdf.numPages}`);
+
         let fullText = '';
 
         // Extrair texto de todas as páginas
         for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item: any) => item.str).join(' ');
-            fullText += pageText + '\n';
+            try {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                fullText += pageText + '\n';
+            } catch (pageErr) {
+                console.warn(`[API] Erro ao extrair texto da página ${i}:`, pageErr);
+            }
+        }
+
+        if (!fullText.trim()) {
+            console.warn('[API] Nenhum texto extraído do PDF. O arquivo pode ser uma imagem/scan sem OCR.');
         }
 
         // Lógica de Extração Inteligente (NLP Light)
         const normalizedText = fullText.toLowerCase();
-
-        // 1. Buscar Datas de Trânsito em Julgado / Condenação
         const dateRegex = /(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/g;
-
-        // Procurar termos próximos a datas
         const extractionResults: { type: string, date: string, context: string }[] = [];
 
         const keywords = [
@@ -46,7 +67,6 @@ export async function POST(req: Request) {
             { type: 'Condenação Anterior', terms: ['antecedente', 'reincid'] },
         ];
 
-        // Dividir por blocos maiores ou quebras de linha
         const blocks = fullText.split(/\n|(?:\s{2,})|(?:\.\s)/);
 
         for (const block of blocks) {
@@ -67,13 +87,13 @@ export async function POST(req: Request) {
             }
         }
 
-        // Remover duplicatas de Contexto + Data
         const uniqueResults = extractionResults.filter((v, i, a) =>
             a.findIndex(t => (t.date === v.date && t.type === v.type)) === i
         );
 
-        // Detecção de Dosimetria adicional
         const mentionsRecidivism = normalizedText.includes('reincidência') || normalizedText.includes('maus antecedentes');
+
+        console.log(`[API] Análise concluída. ${uniqueResults.length} datas detectadas.`);
 
         return NextResponse.json({
             success: true,
@@ -87,8 +107,9 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('[PDF ANALYZER ERROR]:', error);
         return NextResponse.json({
-            error: 'Erro ao processar o PDF',
-            details: error.message
+            error: 'Erro interno ao processar o PDF',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }
 }
