@@ -123,9 +123,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from landing page or auth pages
   if (
-    (request.nextUrl.pathname.startsWith("/auth/login") || request.nextUrl.pathname.startsWith("/auth/sign-up")) &&
+    (request.nextUrl.pathname === "/" ||
+      request.nextUrl.pathname.startsWith("/auth/login") ||
+      request.nextUrl.pathname.startsWith("/auth/sign-up")) &&
     user
   ) {
     const url = request.nextUrl.clone()

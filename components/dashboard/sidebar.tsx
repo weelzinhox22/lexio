@@ -110,7 +110,7 @@ export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
   return (
     <div className="fixed inset-y-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] hidden lg:flex">
       <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-100 shrink-0">
-        <Link href="/" className="flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
+        <Link href="/dashboard" className="flex items-center gap-2 group/logo hover:opacity-80 transition-opacity">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 shrink-0 shadow-sm group-hover/logo:scale-105 group-hover/logo:shadow-md transition-all duration-300">
             <Scale className="h-4 w-4 text-white" />
           </div>
