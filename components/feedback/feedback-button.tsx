@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Bug } from "lucide-react"
 import { useState } from "react"
-import { FeedbackForm } from "./feedback-form"
+import { SuggestionDialog } from "./suggestion-dialog"
 
 type FeedbackButtonProps = {
   userId: string
@@ -14,7 +14,6 @@ type FeedbackButtonProps = {
 
 export function FeedbackButton({ userId, variant = 'default', label, className }: FeedbackButtonProps) {
   const [open, setOpen] = useState(false)
-  const type = variant === 'bug' ? 'bug' : 'suggestion'
 
   return (
     <>
@@ -24,18 +23,18 @@ export function FeedbackButton({ userId, variant = 'default', label, className }
         onClick={() => setOpen(true)}
         className={className}
       >
-        {variant === 'bug' ? (
-          <Bug className="h-4 w-4 mr-2" />
-        ) : (
-          <MessageSquare className="h-4 w-4 mr-2" />
-        )}
-        {label || (variant === 'bug' ? 'Reportar problema' : 'Enviar feedback')}
+        <MessageSquare className="h-4 w-4 mr-2" />
+        {label || 'Sugestão / Feedback'}
       </Button>
-      <FeedbackForm
+      <SuggestionDialog
+        userId={userId}
         open={open}
         onOpenChange={setOpen}
-        userId={userId}
-        prefillType={type}
+        category={variant === 'bug' ? 'bug' : 'feedback_header'}
+        title={variant === 'bug' ? 'Reportar Problema' : 'Sugerir Melhoria'}
+        description={variant === 'bug'
+          ? 'Descreva o problema que você encontrou para que possamos corrigir.'
+          : 'Sua opinião ajuda a evoluir o Themixa. O que podemos melhorar?'}
       />
     </>
   )
