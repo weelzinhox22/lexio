@@ -28,6 +28,7 @@ import {
   MessageSquare,
   Heart,
   Landmark,
+  ShoppingCart,
 } from "lucide-react"
 
 const navigationGroups = [
@@ -64,6 +65,7 @@ const navigationGroups = [
       { name: "Execução Penal", href: "/dashboard/criminal/calculator", icon: Scale },
       { name: "Divórcio & Partilha", href: "/dashboard/family/partilha", icon: Heart },
       { name: "Cálculo de Herança", href: "/dashboard/family/heritage", icon: Landmark },
+      { name: "Repetição de Indébito", href: "/dashboard/consumer/indebito", icon: ShoppingCart },
       { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
       { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
     ],
