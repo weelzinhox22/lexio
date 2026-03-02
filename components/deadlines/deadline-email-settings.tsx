@@ -17,6 +17,7 @@ export function DeadlineEmailSettings() {
   const [email, setEmail] = useState('')
   const [loginEmail, setLoginEmail] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [testingEmail, setTestingEmail] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +101,36 @@ export function DeadlineEmailSettings() {
     }
   }
 
+  async function handleTestEmail() {
+    setTestingEmail(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch('/api/deadlines/test-email', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao enviar e-mail de teste.')
+      }
+
+      setFeedback({
+        type: 'success',
+        message: 'E-mail de teste enviado! Verifique sua caixa de entrada (e pasta de spam).',
+      })
+    } catch (e) {
+      console.error('[deadline email settings] test error', e)
+      setFeedback({
+        type: 'error',
+        message: e instanceof Error ? e.message : 'Erro ao enviar teste. Tente novamente.',
+      })
+    } finally {
+      setTestingEmail(false)
+    }
+  }
+
   if (loading) {
     return (
       <Card className="border-slate-200">
@@ -170,10 +201,19 @@ export function DeadlineEmailSettings() {
           </div>
         )}
 
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+          <Button
+            variant="outline"
+            onClick={handleTestEmail}
+            disabled={testingEmail || saving}
+            className="border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm"
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            {testingEmail ? 'Enviando...' : 'Enviar e-mail de teste'}
+          </Button>
           <Button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || testingEmail}
             className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow"
           >
             <Save className="h-4 w-4 mr-2" />
