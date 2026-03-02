@@ -13,11 +13,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { LogOut, Settings, UserIcon } from "lucide-react"
+import { LogOut, Settings, UserIcon, Menu as MenuIcon, PanelLeftOpen, PanelLeftClose } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import { MobileMenu } from "./mobile-menu"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
 import { NotificationBell } from "@/components/notifications/notification-bell"
+import { useSidebar } from "./sidebar-provider"
 
 interface DashboardHeaderProps {
   user: User
@@ -29,6 +30,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user, profileName, avatarUrl, isAdmin = false }: DashboardHeaderProps) {
   const router = useRouter()
   const supabase = createClient()
+  const { isCollapsed, toggleSidebar } = useSidebar()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -43,7 +45,20 @@ export function DashboardHeader({ user, profileName, avatarUrl, isAdmin = false 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 md:px-6">
       <div className="flex items-center gap-3 md:gap-4">
-        <MobileMenu isAdmin={isAdmin} />
+        <div className="lg:hidden">
+          <MobileMenu isAdmin={isAdmin} />
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="hidden lg:flex text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg h-9 w-9 transition-all duration-200"
+          title={isCollapsed ? "Expandir" : "Recolher"}
+        >
+          {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+        </Button>
+
         <h2 className="text-base md:text-lg font-semibold text-slate-800 tracking-tight hidden sm:block">
           Bem-vindo ao Themixa
         </h2>

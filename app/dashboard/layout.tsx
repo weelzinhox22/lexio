@@ -7,6 +7,8 @@ import { DeadlineNotifications } from "@/components/notifications/deadline-notif
 import { DeadlineAlertBanner } from "@/components/deadlines/deadline-alert-banner"
 import { isAdmin as isAdminHelper } from "@/lib/utils/admin"
 import { VirtualAssistant } from "@/components/assistant/virtual-assistant"
+import { SidebarProvider } from "@/components/dashboard/sidebar-provider"
+import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -56,20 +58,28 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isAdmin = isAdminHelper(user.id, user.email)
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <DashboardSidebar isAdmin={isAdmin} />
-      <div className="flex flex-1 flex-col w-full lg:pl-64">
-        <DashboardHeader
-          user={user}
-          profileName={profile?.full_name || null}
-          avatarUrl={profile?.avatar_url || null}
-          isAdmin={isAdmin}
-        />
-        <DeadlineAlertBanner deadlines={bannerDeadlines} />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
-        <DeadlineNotifications />
-        <VirtualAssistant />
-      </div>
-    </div>
+    <SidebarProvider>
+      <DashboardShell
+        sidebar={<DashboardSidebar isAdmin={isAdmin} />}
+        header={
+          <DashboardHeader
+            user={user}
+            profileName={profile?.full_name || null}
+            avatarUrl={profile?.avatar_url || null}
+            isAdmin={isAdmin}
+          />
+        }
+        banner={<DeadlineAlertBanner deadlines={bannerDeadlines} />}
+        notifications={
+          <>
+            <DeadlineNotifications />
+          </>
+        }
+        assistant={<VirtualAssistant />}
+      >
+        {children}
+      </DashboardShell>
+    </SidebarProvider>
   )
 }
+

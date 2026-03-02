@@ -4,86 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { X, Menu } from "lucide-react"
+import { X, Menu, Scale } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  Scale,
-  LayoutDashboard,
-  Briefcase,
-  Users,
-  Calendar,
-  FileText,
-  DollarSign,
-  Bell,
-  BarChart3,
-  Settings,
-  UserCircle,
-  CreditCard,
-  BookOpen,
-  FileStack,
-  Star,
-  Clock,
-  Bot,
-  Shield,
-  KanbanSquare,
-  Sparkles,
-  BrainCircuit,
-} from "lucide-react"
-
-const navigationGroups = [
-  {
-    category: "Gestão Diária",
-    items: [
-      { name: "Painel Principal", href: "/dashboard", icon: LayoutDashboard },
-      { name: "Processos", href: "/dashboard/processes", icon: Briefcase },
-      { name: "Kanban (Visual)", href: "/dashboard/kanban", icon: KanbanSquare },
-      { name: "Prazos", href: "/dashboard/deadlines", icon: Bell },
-      { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
-    ],
-  },
-  {
-    category: "Inteligência & IA",
-    items: [
-      { name: "Análise Jurimétrica", href: "/dashboard/ai-analysis", icon: BrainCircuit },
-      { name: "Redator IA", href: "/dashboard/ai-writer", icon: Sparkles },
-      { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
-    ],
-  },
-  {
-    category: "Clientes & Arquivos",
-    items: [
-      { name: "Clientes", href: "/dashboard/clients", icon: Users },
-      { name: "Documentos", href: "/dashboard/documents", icon: FileText },
-      { name: "Modelos", href: "/dashboard/templates", icon: FileStack },
-      { name: "Leads", href: "/dashboard/leads", icon: UserCircle },
-    ],
-  },
-  {
-    category: "Ferramentas",
-    items: [
-      { name: "Execução Penal", href: "/dashboard/criminal/calculator", icon: Scale },
-      { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
-      { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
-    ],
-  },
-  {
-    category: "Administrativo",
-    items: [
-      { name: "Financeiro", href: "/dashboard/financial", icon: DollarSign },
-      { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
-      { name: "Assinatura", href: "/dashboard/subscription", icon: CreditCard },
-      { name: "Configurações", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-  {
-    category: "Acesso Admin",
-    items: [
-      { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
-      { name: "Painel Admin", href: "/dashboard/admin/users", icon: Shield },
-      { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
-    ],
-  },
-]
+import { navigationGroups } from "./nav-config"
 
 interface MobileMenuProps {
   isAdmin?: boolean

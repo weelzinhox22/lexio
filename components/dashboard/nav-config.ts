@@ -1,0 +1,99 @@
+import {
+    Scale,
+    LayoutDashboard,
+    Briefcase,
+    Users,
+    Calendar,
+    FileText,
+    DollarSign,
+    Bell,
+    BarChart3,
+    Settings,
+    UserCircle,
+    CreditCard,
+    FileEdit,
+    Clock,
+    Bot,
+    BookOpen,
+    Star,
+    Shield,
+    KanbanSquare,
+    Sparkles,
+    BrainCircuit,
+    MessageSquare,
+    Heart,
+    Landmark,
+    ShoppingCart,
+    Search,
+} from "lucide-react"
+
+export const navigationGroups = [
+    {
+        category: "Gestão Diária",
+        items: [
+            { name: "Painel Principal", href: "/dashboard", icon: LayoutDashboard },
+            { name: "Processos", href: "/dashboard/processes", icon: Briefcase },
+            { name: "Kanban (Visual)", href: "/dashboard/kanban", icon: KanbanSquare },
+            { name: "Prazos", href: "/dashboard/deadlines", icon: Bell },
+            { name: "Agenda", href: "/dashboard/calendar", icon: Calendar },
+        ],
+    },
+    {
+        category: "Inteligência & IA",
+        items: [
+            { name: "Análise Jurimétrica", href: "/dashboard/ai-analysis", icon: BrainCircuit },
+            { name: "Redator IA", href: "/dashboard/ai-writer", icon: Sparkles },
+            { name: "Consulta de Leis", href: "/dashboard/laws", icon: BookOpen },
+        ],
+    },
+    {
+        category: "Clientes & Arquivos",
+        items: [
+            { name: "Clientes", href: "/dashboard/clients", icon: Users },
+            { name: "Documentos", href: "/dashboard/documents", icon: FileText },
+            { name: "Templates", href: "/dashboard/templates", icon: FileEdit },
+            { name: "Leads (CRM)", href: "/dashboard/leads", icon: UserCircle },
+        ],
+    },
+    {
+        category: "Ferramentas",
+        items: [
+            { name: "Execução Penal", href: "/dashboard/criminal/calculator", icon: Scale },
+            { name: "Divórcio & Partilha", href: "/dashboard/family/partilha", icon: Heart },
+            { name: "Cálculo de Herança", href: "/dashboard/family/heritage", icon: Landmark },
+            { name: "Repetição de Indébito", href: "/dashboard/consumer/indebito", icon: ShoppingCart },
+            { name: "Simulador Danos Morais", href: "/dashboard/consumer/damages", icon: Scale },
+            { name: "Timesheet", href: "/dashboard/timesheet", icon: Clock },
+            { name: "Leis Favoritas", href: "/dashboard/laws/favorites", icon: Star },
+        ],
+    },
+    {
+        category: "Administrativo",
+        items: [
+            { name: "Financeiro", href: "/dashboard/financial", icon: DollarSign },
+            { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
+            { name: "Assinatura", href: "/dashboard/subscription", icon: CreditCard },
+            { name: "Configurações", href: "/dashboard/settings", icon: Settings },
+        ],
+    },
+    {
+        category: "Acesso Admin",
+        items: [
+            { name: "Treinamento IA", href: "/dashboard/settings/ai-training", icon: Bot },
+            { name: "Painel de Usuários", href: "/dashboard/admin/users", icon: Shield },
+            { name: "Sugestões", href: "/dashboard/admin/suggestions", icon: MessageSquare },
+            { name: "Avisos (Admin)", href: "/dashboard/admin/notifications", icon: Bot },
+            { name: "Teste API DataJud", href: "/dashboard/admin/datajud-test", icon: BarChart3 },
+            { name: "Teste busca OAB", href: "/dashboard/admin/oab-test", icon: Search },
+        ],
+    },
+    {
+        category: "Jurídico & Compliance",
+        items: [
+            { name: "Privacidade", href: "/privacy", icon: Shield },
+            { name: "Termos de Uso", href: "/terms", icon: FileText },
+            { name: "LGPD", href: "/lgpd", icon: Shield },
+            { name: "Cookies", href: "/cookies", icon: Shield },
+        ],
+    },
+]
