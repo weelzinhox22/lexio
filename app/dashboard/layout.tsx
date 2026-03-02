@@ -9,6 +9,8 @@ import { isAdmin as isAdminHelper } from "@/lib/utils/admin"
 import { VirtualAssistant } from "@/components/assistant/virtual-assistant"
 import { SidebarProvider } from "@/components/dashboard/sidebar-provider"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
+import { EffectiveUserProvider } from "@/lib/contexts/effective-user-context"
+import { getEffectiveUserId } from "@/lib/auth/effective-user"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -19,6 +21,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) {
     redirect("/auth/login")
   }
+
+  // Resolve effective user ID (for interns, this is the lawyer's ID)
+  const { effectiveUserId } = await getEffectiveUserId()
 
   // Fetch profile for avatar and name
   const { data: profile } = await supabase
@@ -33,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: rawDeadlines } = await supabase
     .from("deadlines")
     .select("id, title, deadline_date, status, acknowledged_at")
-    .eq("user_id", user.id)
+    .eq("user_id", effectiveUserId)
     .neq("status", "completed")
     .limit(200)
 
@@ -59,26 +64,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <SidebarProvider>
-      <DashboardShell
-        sidebar={<DashboardSidebar isAdmin={isAdmin} />}
-        header={
-          <DashboardHeader
-            user={user}
-            profileName={profile?.full_name || null}
-            avatarUrl={profile?.avatar_url || null}
-            isAdmin={isAdmin}
-          />
-        }
-        banner={<DeadlineAlertBanner deadlines={bannerDeadlines} />}
-        notifications={
-          <>
-            <DeadlineNotifications />
-          </>
-        }
-        assistant={<VirtualAssistant />}
-      >
-        {children}
-      </DashboardShell>
+      <EffectiveUserProvider>
+        <DashboardShell
+          sidebar={<DashboardSidebar isAdmin={isAdmin} />}
+          header={
+            <DashboardHeader
+              user={user}
+              profileName={profile?.full_name || null}
+              avatarUrl={profile?.avatar_url || null}
+              isAdmin={isAdmin}
+            />
+          }
+          banner={<DeadlineAlertBanner deadlines={bannerDeadlines} />}
+          notifications={null}
+          assistant={<VirtualAssistant />}
+        >
+          {children}
+        </DashboardShell>
+      </EffectiveUserProvider>
     </SidebarProvider>
   )
 }

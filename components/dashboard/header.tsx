@@ -13,12 +13,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { LogOut, Settings, UserIcon, Menu as MenuIcon, PanelLeftOpen, PanelLeftClose } from "lucide-react"
+import { LogOut, Settings, UserIcon, Menu as MenuIcon, PanelLeftOpen, PanelLeftClose, GraduationCap, Link as LinkIcon } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import { MobileMenu } from "./mobile-menu"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { useSidebar } from "./sidebar-provider"
+import { useEffectiveUser } from "@/lib/contexts/effective-user-context"
 
 interface DashboardHeaderProps {
   user: User
@@ -31,6 +32,7 @@ export function DashboardHeader({ user, profileName, avatarUrl, isAdmin = false 
   const router = useRouter()
   const supabase = createClient()
   const { isCollapsed, toggleSidebar } = useSidebar()
+  const { isIntern, ownerName, effectiveUserId } = useEffectiveUser()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -62,6 +64,16 @@ export function DashboardHeader({ user, profileName, avatarUrl, isAdmin = false 
         <h2 className="text-base md:text-lg font-semibold text-slate-800 tracking-tight hidden sm:block">
           Bem-vindo ao Themixa
         </h2>
+
+        {/* Intern Badge */}
+        {isIntern && (
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-50 border border-violet-200">
+            <GraduationCap className="h-3.5 w-3.5 text-violet-600" />
+            <span className="text-[11px] font-semibold text-violet-700">
+              Estagiário(a) de {ownerName}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Barra de Pesquisa Global */}
@@ -70,7 +82,7 @@ export function DashboardHeader({ user, profileName, avatarUrl, isAdmin = false 
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        <NotificationBell userId={user.id} />
+        <NotificationBell userId={effectiveUserId || user.id} />
         <FeedbackButton
           userId={user.id}
           variant="outline"

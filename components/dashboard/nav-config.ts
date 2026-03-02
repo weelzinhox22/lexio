@@ -25,6 +25,7 @@ import {
     Landmark,
     ShoppingCart,
     Search,
+    GraduationCap,
 } from "lucide-react"
 
 export const navigationGroups = [
@@ -53,6 +54,7 @@ export const navigationGroups = [
             { name: "Documentos", href: "/dashboard/documents", icon: FileText },
             { name: "Templates", href: "/dashboard/templates", icon: FileEdit },
             { name: "Leads (CRM)", href: "/dashboard/leads", icon: UserCircle },
+            { name: "Estagiários", href: "/dashboard/interns", icon: GraduationCap },
         ],
     },
     {

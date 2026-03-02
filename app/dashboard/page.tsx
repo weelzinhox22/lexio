@@ -11,6 +11,7 @@ import { WeekCalendar } from "@/components/dashboard/week-calendar"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { SuggestionCard } from "@/components/dashboard/suggestion-card"
 import { SuggestionPopup } from "@/components/feedback/suggestion-popup"
+import { getEffectiveUserId } from "@/lib/auth/effective-user"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,13 +19,16 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Resolve effective user ID (for interns, this is the lawyer's ID)
+  const { effectiveUserId } = await getEffectiveUserId()
+
   // Modal: abrir se existir prazo vencido ou que vence hoje (e não confirmado)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const { data: modalDeadlinesRaw } = await supabase
     .from("deadlines")
     .select("id, title, deadline_date, status, acknowledged_at")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
     .neq("status", "completed")
     .limit(200)
 
@@ -59,7 +63,7 @@ export default async function DashboardPage() {
         process_number
       )
     `)
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
     .eq("status", "pending")
     .gte("deadline_date", new Date().toISOString().split("T")[0])
     .order("deadline_date", { ascending: true })
@@ -69,7 +73,7 @@ export default async function DashboardPage() {
   const { data: lastAlert } = await supabase
     .from("notifications")
     .select("sent_at, channel")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
     .eq("channel", "email")
     .eq("notification_status", "sent")
     .order("sent_at", { ascending: false })
@@ -83,7 +87,7 @@ export default async function DashboardPage() {
   const { data: recentAlerts } = await supabase
     .from("notifications")
     .select("notification_status")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
     .eq("channel", "email")
     .gte("created_at", fifteenMinutesAgo.toISOString())
 
@@ -104,7 +108,7 @@ export default async function DashboardPage() {
   const { data: todayAlerts } = await supabase
     .from("notifications")
     .select("id")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
     .eq("channel", "email")
     .eq("notification_status", "sent")
     .gte("sent_at", todayStart.toISOString())
@@ -132,45 +136,45 @@ export default async function DashboardPage() {
     supabase
       .from("processes")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .eq("status", "active"),
     supabase
       .from("clients")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user!.id),
+      .eq("user_id", effectiveUserId),
     supabase
       .from("clients")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     supabase
       .from("process_updates")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .gte("created_at", sevenDaysAgo.toISOString()),
     supabase
       .from("audiences")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .eq("status", "scheduled")
       .gte("audience_date", new Date().toISOString())
       .lte("audience_date", sevenDaysLater.toISOString()),
     supabase
       .from("financial_transactions")
       .select("amount")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .in("type", ["income", "receita"])
       .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     supabase
       .from("process_updates")
       .select("id, process_id, title, update_type, created_at, processes(title, process_number)")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
       .from("notifications")
       .select("id, title, sent_at, deadline_id, deadlines(title)")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .eq("notification_status", "sent")
       .order("sent_at", { ascending: false })
       .limit(5),
@@ -184,7 +188,7 @@ export default async function DashboardPage() {
     supabase
       .from("deadlines")
       .select("id, title, deadline_date, priority")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .neq("status", "completed")
       .gte("deadline_date", today.toISOString())
       .lte("deadline_date", sevenDaysLater.toISOString())
@@ -193,7 +197,7 @@ export default async function DashboardPage() {
     supabase
       .from("audiences")
       .select("id, title, audience_date")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .eq("status", "scheduled")
       .gte("audience_date", today.toISOString())
       .lte("audience_date", sevenDaysLater.toISOString())
@@ -205,7 +209,7 @@ export default async function DashboardPage() {
   const { data: allProcesses } = await supabase
     .from("processes")
     .select("status, process_type")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
 
   const processByStatus: Record<string, number> = {}
   const processByType: Record<string, number> = {}
@@ -231,7 +235,7 @@ export default async function DashboardPage() {
     const { data: mrev } = await supabase
       .from("financial_transactions")
       .select("amount")
-      .eq("user_id", user!.id)
+      .eq("user_id", effectiveUserId)
       .in("type", ["income", "receita"])
       .gte("created_at", start.toISOString())
       .lte("created_at", end.toISOString())
@@ -243,7 +247,7 @@ export default async function DashboardPage() {
   const { data: allDeadlines } = await supabase
     .from("deadlines")
     .select("status, deadline_date")
-    .eq("user_id", user!.id)
+    .eq("user_id", effectiveUserId)
 
   const deadlineStats = { completed: 0, pending: 0, overdue: 0 }
     ; (allDeadlines || []).forEach((d: any) => {

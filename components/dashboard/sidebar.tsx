@@ -12,6 +12,7 @@ import { useSidebar } from "./sidebar-provider"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { navigationGroups } from "./nav-config"
+import { useInternPermissions, HREF_TO_PERMISSION } from "@/lib/hooks/use-intern-permissions"
 
 interface DashboardSidebarProps {
   isAdmin?: boolean
@@ -20,6 +21,20 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
   const pathname = usePathname()
   const { isCollapsed, toggleSidebar } = useSidebar()
+  const { permissions, isIntern } = useInternPermissions()
+
+  // Filter nav items based on intern permissions
+  const canAccess = (href: string): boolean => {
+    // Non-interns have full access
+    if (!isIntern || !permissions) return true
+    // Interns never see admin section or interns management
+    if (href.startsWith('/dashboard/admin') || href.startsWith('/dashboard/settings/ai-training')) return false
+    if (href === '/dashboard/interns') return false
+    // Check the permission map
+    const permKey = HREF_TO_PERMISSION[href]
+    if (!permKey) return true // If no mapping, allow by default
+    return permissions[permKey] === true
+  }
 
   return (
     <div
@@ -54,6 +69,10 @@ export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
           {navigationGroups.map((group, groupIdx) => {
             if (group.category === "Acesso Admin" && !isAdmin) return null
 
+            // Filter items based on intern permissions
+            const visibleItems = group.items.filter(item => canAccess(item.href))
+            if (visibleItems.length === 0) return null
+
             return (
               <div key={group.category} className={groupIdx > 0 ? "mt-6" : ""}>
                 {!isCollapsed ? (
@@ -64,7 +83,7 @@ export function DashboardSidebar({ isAdmin = false }: DashboardSidebarProps) {
                   <div className="h-px bg-slate-100 my-4 mx-2" />
                 )}
                 <div className="space-y-1">
-                  {group.items.map((item) => {
+                  {visibleItems.map((item) => {
                     const isActive =
                       pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Bell, X, CheckCheck, AlertTriangle, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,23 @@ interface Notification {
 export function DeadlineNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Fechar ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   useEffect(() => {
     const supabase = createClient()
@@ -113,13 +130,13 @@ export function DeadlineNotifications() {
   if (notifications.length === 0 && !isOpen) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-[60]">
+    <div ref={containerRef} className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[60]">
       <div className="relative group">
         {/* Botão de Notificações - Redesign Premium */}
         <Button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "h-14 w-14 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 text-slate-700 shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all duration-500 relative overflow-visible group/btn",
+            "h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 text-slate-700 shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all duration-500 relative overflow-visible group/btn",
             "hover:scale-110 hover:bg-white active:scale-95",
             isOpen && "bg-white border-indigo-200 shadow-indigo-100"
           )}
@@ -127,7 +144,7 @@ export function DeadlineNotifications() {
           {/* Ícone com Animação */}
           <div className="relative">
             <Bell className={cn(
-              "h-6 w-6 transition-all duration-500",
+              "h-5 w-5 md:h-6 md:w-6 transition-all duration-500",
               isOpen ? "rotate-[15deg] text-indigo-600 scale-110" : "text-slate-600 group-hover/btn:text-indigo-500",
               notifications.length > 0 && !isOpen && "animate-wiggle"
             )} />
@@ -141,20 +158,10 @@ export function DeadlineNotifications() {
           {/* Badge de Notificações - Customizado para NÃO cortar */}
           {notifications.length > 0 && (
             <div className={cn(
-              "absolute -top-1 -right-1 flex h-6 min-w-[24px] items-center justify-center rounded-full bg-gradient-to-tr from-red-500 to-rose-600 px-1.5 text-[10px] font-black text-white shadow-[0_4px_12px_rgba(244,63,94,0.4)] ring-2 ring-white transition-all duration-500 z-[70]",
+              "absolute -top-1 -right-1 flex h-5 min-w-[20px] md:h-6 md:min-w-[24px] items-center justify-center rounded-full bg-gradient-to-tr from-red-500 to-rose-600 px-1 text-[9px] md:text-[10px] font-black text-white shadow-[0_4px_12px_rgba(244,63,94,0.4)] ring-2 ring-white transition-all duration-500 z-[70]",
               isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100 hover:scale-110"
             )}>
               {notifications.length > 9 ? '9+' : notifications.length}
-            </div>
-          )}
-
-          {/* Tooltip de Sugestão (Hover) */}
-          {!isOpen && (
-            <div className="absolute right-16 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-slate-900 shadow-xl border border-white/10 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500 pointer-events-none hidden lg:block">
-              <p className="text-[10px] font-bold text-white uppercase tracking-widest whitespace-nowrap">
-                Alertas de Prazos
-              </p>
-              <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45" />
             </div>
           )}
         </Button>
@@ -163,9 +170,9 @@ export function DeadlineNotifications() {
         {isOpen && (
           <div
             className={cn(
-              "absolute bottom-20 right-0 w-[400px] rounded-[2.5rem] border border-white/20 bg-white/70 backdrop-blur-3xl shadow-[0_32px_80px_-16px_rgba(0,0,0,0.3)]",
+              "absolute bottom-16 md:bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[400px] max-h-[70vh] rounded-[2rem] md:rounded-[2.5rem] border border-white/20 bg-white/70 backdrop-blur-3xl shadow-[0_32px_80px_-16px_rgba(0,0,0,0.3)]",
               "animate-in zoom-in-95 fade-in slide-in-from-bottom-5 duration-500 cubic-bezier(0.16, 1, 0.3, 1)",
-              "overflow-hidden"
+              "flex flex-col"
             )}
           >
             {/* Header com Gradiente Moderno */}
@@ -197,7 +204,7 @@ export function DeadlineNotifications() {
             </div>
 
             {/* Lista Scrollável */}
-            <div className="max-h-[450px] overflow-y-auto overscroll-contain px-2 py-2">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-2 min-h-0">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
                   <div className="flex items-center justify-center h-16 w-16 rounded-[2rem] bg-indigo-50 mb-6 relative">
