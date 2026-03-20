@@ -137,8 +137,8 @@ export function NotificationBell({ userId }: { userId: string }) {
                                 )}
                             >
                                 <div className="flex flex-col gap-1 pr-6">
-                                    <h4 className={cn("text-xs font-bold truncate", n.is_read ? "text-slate-700" : "text-slate-900")}>{n.title}</h4>
-                                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{n.message}</p>
+                                    <h4 className={cn("text-xs font-bold", n.is_read ? "text-slate-700" : "text-slate-900")}>{n.title}</h4>
+                                    <p className="text-[11px] text-slate-500 leading-relaxed break-words">{n.message}</p>
                                     <span className="text-[9px] text-slate-400 mt-1 font-medium italic">
                                         {format(new Date(n.created_at), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                                     </span>
