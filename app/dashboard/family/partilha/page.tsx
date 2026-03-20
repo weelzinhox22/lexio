@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { PartilhaSimulator } from "@/components/family/partilha-simulator"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { ToolsConsentWrapper } from "@/components/tools/tools-consent-wrapper"
 
 export default async function PartilhaPage() {
   const supabase = await createClient()
@@ -13,9 +14,11 @@ export default async function PartilhaPage() {
 
   return (
     <DashboardLayout userId={user.id} userEmail={user.email || ""}>
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <PartilhaSimulator />
-      </div>
+      <ToolsConsentWrapper>
+        <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <PartilhaSimulator />
+        </div>
+      </ToolsConsentWrapper>
     </DashboardLayout>
   )
 }

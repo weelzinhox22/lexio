@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RecidivismCalculator } from '@/components/criminal/recidivism-calculator'
+import { ToolsConsentWrapper } from '@/components/tools/tools-consent-wrapper'
 
 interface CalculationHistory {
     id: string
@@ -240,8 +241,9 @@ export default function PenalCalculatorPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500">
-            <Tabs defaultValue="execucao" className="space-y-6">
+        <ToolsConsentWrapper>
+            <div className="max-w-6xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500">
+                <Tabs defaultValue="execucao" className="space-y-6">
                 <div className="flex justify-center">
                     <TabsList className="bg-slate-100 p-1 rounded-full border border-slate-200">
                         <TabsTrigger value="execucao" className="rounded-full px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
@@ -617,5 +619,6 @@ export default function PenalCalculatorPage() {
                 </TabsContent>
             </Tabs>
         </div>
+        </ToolsConsentWrapper>
     )
 }

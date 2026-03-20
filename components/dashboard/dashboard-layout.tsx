@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
 import { DeadlineEmailOnboardingModal } from '@/components/onboarding/deadline-email-onboarding-modal'
 import { createClient } from '@/lib/supabase/client'
+import { useEmailPopup } from '@/lib/hooks/use-email-popup'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -18,8 +19,7 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
 
-  const [showEmailOnboarding, setShowEmailOnboarding] = useState(false)
-  const [emailTarget, setEmailTarget] = useState<string>('')
+  const { showPopup: showEmailOnboarding, emailTarget, markAsSeen: markEmailAsSeen } = useEmailPopup(userId, userEmail)
 
   useEffect(() => {
     if (!userId) return
@@ -51,54 +51,6 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
     checkOnboardingStatus()
   }, [userId])
 
-  useEffect(() => {
-    if (!userId) return
-
-    const run = async () => {
-      try {
-        const emailOnboardingAlreadySeen = localStorage.getItem(EMAIL_ALERTS_KEY) === 'true'
-        if (emailOnboardingAlreadySeen) return
-
-        const supabase = createClient()
-
-        // Só mostra se tem pelo menos 1 prazo ativo
-        const { data: anyDeadline } = await supabase
-          .from('deadlines')
-          .select('id')
-          .eq('user_id', userId)
-          .neq('status', 'completed')
-          .limit(1)
-
-        if (!anyDeadline || anyDeadline.length === 0) return
-
-        const { data: settings } = await supabase
-          .from('notification_settings')
-          .select('email_enabled, email_override')
-          .eq('user_id', userId)
-          .maybeSingle()
-
-        // Se ainda não configurou, mostra 1x como sugestão
-        if (!settings) {
-          setEmailTarget(String(userEmail || '').trim())
-          setShowEmailOnboarding(true)
-          return
-        }
-
-        if ((settings as any).email_enabled === false) return
-
-        const override = String((settings as any).email_override || '').trim()
-        if (override) return
-
-        setEmailTarget(String(userEmail || '').trim())
-        setShowEmailOnboarding(true)
-      } catch (e) {
-        console.warn('[dashboard] email onboarding check failed', e)
-      }
-    }
-
-    run()
-  }, [userId, userEmail])
-
   return (
     <>
       {children}
@@ -113,8 +65,7 @@ export function DashboardLayout({ children, userId, userEmail }: DashboardLayout
       <DeadlineEmailOnboardingModal
         open={showEmailOnboarding}
         onOpenChange={(open) => {
-          setShowEmailOnboarding(open)
-          if (!open) localStorage.setItem(EMAIL_ALERTS_KEY, 'true')
+          if (!open) markEmailAsSeen()
         }}
         targetEmail={emailTarget}
       />

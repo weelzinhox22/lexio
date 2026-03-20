@@ -5,26 +5,28 @@ import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import Link from 'next/link'
 import { useGsapFadeIn } from '@/lib/hooks/useGsapAnimation'
+import { usePopups } from '@/lib/hooks/use-popups'
 
 export function WelcomeModal() {
+  const { showPopups, markAsInteracted } = usePopups()
   const [isOpen, setIsOpen] = useState(false)
   const modalRef = useGsapFadeIn(0.2)
 
   useEffect(() => {
-    // Verifica se o usuário já fechou o modal antes
-    const hasSeenModal = localStorage.getItem('themixa-welcome-modal-seen')
-    if (!hasSeenModal) {
-      // Aguarda um pouco antes de mostrar
+    if (showPopups && !isOpen) {
       const timer = setTimeout(() => {
         setIsOpen(true)
+        // Only set them up if user hasn't interacted
       }, 1000)
       return () => clearTimeout(timer)
+    } else if (!showPopups && isOpen) {
+      setIsOpen(false)
     }
-  }, [])
+  }, [showPopups, isOpen])
 
   const handleClose = () => {
     setIsOpen(false)
-    localStorage.setItem('themixa-welcome-modal-seen', 'true')
+    markAsInteracted()
   }
 
   if (!isOpen) return null

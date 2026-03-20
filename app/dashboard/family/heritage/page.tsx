@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { HeritageCalculator } from "@/components/family/heritage-calculator"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { ToolsConsentWrapper } from "@/components/tools/tools-consent-wrapper"
 
 export default async function HeritagePage() {
   const supabase = await createClient()
@@ -13,9 +14,11 @@ export default async function HeritagePage() {
 
   return (
     <DashboardLayout userId={user.id} userEmail={user.email || ""}>
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <HeritageCalculator />
-      </div>
+      <ToolsConsentWrapper>
+        <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <HeritageCalculator />
+        </div>
+      </ToolsConsentWrapper>
     </DashboardLayout>
   )
 }

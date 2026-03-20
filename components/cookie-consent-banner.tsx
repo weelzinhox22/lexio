@@ -4,29 +4,32 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Cookie, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePopups } from '@/lib/hooks/use-popups'
 
 const CONSENT_KEY = 'themixa-cookie-consent'
 
 export function CookieConsentBanner() {
+    const { showPopups, markAsInteracted } = usePopups()
     const [visible, setVisible] = useState(false)
 
     useEffect(() => {
-        // Only show if user hasn't consented yet
-        const consent = localStorage.getItem(CONSENT_KEY)
-        if (!consent) {
-            // Small delay for better UX — don't flash on page load
+        if (showPopups && !visible) {
             const timer = setTimeout(() => setVisible(true), 1500)
             return () => clearTimeout(timer)
+        } else if (!showPopups && visible) {
+            setVisible(false)
         }
-    }, [])
+    }, [showPopups, visible])
 
     const handleAcceptAll = () => {
         localStorage.setItem(CONSENT_KEY, JSON.stringify({ all: true, date: new Date().toISOString() }))
+        markAsInteracted()
         setVisible(false)
     }
 
     const handleAcceptEssential = () => {
         localStorage.setItem(CONSENT_KEY, JSON.stringify({ essential: true, date: new Date().toISOString() }))
+        markAsInteracted()
         setVisible(false)
     }
 

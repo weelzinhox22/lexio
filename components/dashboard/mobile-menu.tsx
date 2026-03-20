@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -15,7 +16,12 @@ interface MobileMenuProps {
 export function MobileMenu({ isAdmin = false }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Prevenir scroll do body quando menu está aberto
   useEffect(() => {
@@ -54,7 +60,7 @@ export function MobileMenu({ isAdmin = false }: MobileMenuProps) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      {isOpen && (
+      {isOpen && mounted && createPortal(
         <>
           {/* Backdrop com fade */}
           <div
@@ -69,7 +75,7 @@ export function MobileMenu({ isAdmin = false }: MobileMenuProps) {
           {/* Menu lateral com slide */}
           <div
             className={cn(
-              "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200/60 shadow-2xl lg:hidden flex flex-col transform transition-transform duration-300 ease-in-out",
+              "fixed inset-y-0 left-0 z-[100] w-72 bg-white border-r border-slate-200/60 shadow-2xl lg:hidden flex flex-col transform transition-transform duration-300 ease-in-out",
               isClosing ? "-translate-x-full" : "translate-x-0"
             )}
           >
@@ -145,7 +151,8 @@ export function MobileMenu({ isAdmin = false }: MobileMenuProps) {
               </nav>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       <style jsx>{`
