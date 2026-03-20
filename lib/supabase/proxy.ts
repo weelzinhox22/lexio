@@ -116,11 +116,23 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Protected routes: dashboard and all sub-routes
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+  // Protected routes: dashboard, admin and their sub-routes
+  const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard") || request.nextUrl.pathname.startsWith("/admin")
+  if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)
+  }
+
+  // Extra zero-trust block for /admin: users can be logged in but not admins
+  // In a real scenario, you'd check user meta_data for role === 'admin'
+  if (request.nextUrl.pathname.startsWith("/admin") && user) {
+     const isAdmin = user.user_metadata?.role === 'admin'
+     if (!isAdmin) {
+       const url = request.nextUrl.clone()
+       url.pathname = "/dashboard"
+       return NextResponse.redirect(url)
+     }
   }
 
   // Redirect authenticated users away from landing page or auth pages

@@ -21,16 +21,15 @@ export function DocumentViewer({ document, onClose }: DocumentViewerProps) {
       try {
         const supabase = createClient()
         
-        // Se tem file_path, baixar do storage
+        // Se tem file_path, gerar Signed URL segura e efêmera
         if (document.file_path) {
-          const { data, error: downloadError } = await supabase.storage
+          const { data, error: urlError } = await supabase.storage
             .from('documents')
-            .download(document.file_path)
+            .createSignedUrl(document.file_path, 60) // Expira em 60 segundos
 
-          if (downloadError) throw downloadError
+          if (urlError) throw urlError
 
-          const url = URL.createObjectURL(data)
-          setFileUrl(url)
+          setFileUrl(data.signedUrl)
         } else if (document.file_url) {
           // Se tem file_url, usar diretamente
           setFileUrl(document.file_url)

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
+import { createLeadAction } from "@/app/actions/lead-actions"
 
 export function LeadForm({ userId }: { userId: string }) {
   const router = useRouter()
@@ -25,24 +26,14 @@ export function LeadForm({ userId }: { userId: string }) {
     const supabase = createClient()
 
     try {
-      const { error } = await supabase.from("leads").insert({
-        user_id: userId,
-        name: formData.get("name") as string,
-        email: formData.get("email") as string,
-        phone: formData.get("phone") as string,
-        source: formData.get("source") as string,
-        status: formData.get("status") as string,
-        interest: formData.get("interest") as string,
-        notes: formData.get("notes") as string,
-        score: Number.parseInt(formData.get("score") as string) || 0,
-      })
+      const result = await createLeadAction(formData, userId)
 
-      if (error) throw error
+      if (!result.success) throw new Error(result.error)
 
       router.push("/dashboard/leads")
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar lead")
+      setError(err instanceof Error ? err.message : "Erro crítico de segurança ao criar lead")
     } finally {
       setIsLoading(false)
     }
